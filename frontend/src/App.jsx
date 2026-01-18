@@ -6,6 +6,8 @@ import SociosPage from './pages/SociosPage';
 import Layout from './components/Layout';
 import LecturasPage from './pages/LecturasPage';
 import MorosidadPage from './pages/MorosidadPage';
+import MiCuentaPage from './pages/MiCuentaPage';
+import MiConsumoPage from './pages/MiConsumoPage';
 
 function AppContent() {
   const { usuario, loading } = useAuth();
@@ -40,9 +42,9 @@ function AppContent() {
           case 'morosos':
             return <MorosidadPage />;
           case 'mi-cuenta':
-            return <div className="text-3xl">🏠 Mi Cuenta (próximamente)</div>;
+            return <MiCuentaPage />;
           case 'mi-consumo':
-            return <div className="text-3xl">💧 Mi Consumo (próximamente)</div>;
+            return <MiConsumoPage />;
           case 'pagos':
             return <div className="text-3xl">💳 Pagos (próximamente)</div>;
           case 'reclamos':
