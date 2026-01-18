@@ -12,7 +12,10 @@ app.use(express.json());
 
 // Rutas
 const transaccionRoutes = require('./routes/transaccionRoutes');
+const authRoutes = require('./routes/authRoutes');
+
 app.use('/api/transacciones', transaccionRoutes);
+app.use('/api/auth', authRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
