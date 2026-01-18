@@ -91,7 +91,7 @@ function LoginPage() {
               className="w-full text-xl py-5 mt-4"
               disabled={loading}
             >
-              {loading ? '⏳ Ingresando...' : '🔐 Iniciar Sesión'}
+              {loading ? '⏳ Ingresando...' : 'Iniciar Sesión'}
             </Button>
           </form>
 

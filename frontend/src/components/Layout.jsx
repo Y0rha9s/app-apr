@@ -65,7 +65,7 @@ function Layout({ children }) {
                 className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${
                   menuActivo === item.id
                     ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-primary-600 hover:scale-102'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-primary-600 hover:scale-105'
                 }`}
               >
                 <span className="text-2xl">{item.icon}</span>
