@@ -10,7 +10,7 @@ import MiCuentaPage from './pages/MiCuentaPage';
 import MiConsumoPage from './pages/MiConsumoPage';
 
 function AppContent() {
-  const { usuario, loading } = useAuth();
+  const { usuario, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -32,14 +32,30 @@ function AppContent() {
       {({ menuActivo }) => {
         switch (menuActivo) {
           case 'dashboard':
+            // Solo administradores pueden ver el dashboard
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
             return <DashboardPage />;
           case 'transacciones':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
             return <TransaccionesPage />;
           case 'socios':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
             return <SociosPage />;
           case 'lecturas':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
             return <LecturasPage />;
           case 'morosos':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
             return <MorosidadPage />;
           case 'mi-cuenta':
             return <MiCuentaPage />;
@@ -50,7 +66,8 @@ function AppContent() {
           case 'reclamos':
             return <div className="text-3xl">📝 Reclamos (próximamente)</div>;
           default:
-            return <DashboardPage />;
+            // Por defecto, mostrar la página según el rol
+            return isAdmin ? <DashboardPage /> : <MiCuentaPage />;
         }
       }}
     </Layout>

@@ -1,9 +1,21 @@
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function Layout({ children }) {
   const { usuario, logout, isAdmin } = useAuth();
-  const [menuActivo, setMenuActivo] = useState('dashboard');
+  const [menuActivo, setMenuActivo] = useState(isAdmin ? 'dashboard' : 'mi-cuenta');
+
+  // Actualizar el menú inicial cuando cambie el rol
+  useEffect(() => {
+    // Si es admin y está en una página de socio, cambiar a dashboard
+    if (isAdmin && (menuActivo === 'mi-cuenta' || menuActivo === 'mi-consumo' || menuActivo === 'pagos' || menuActivo === 'reclamos')) {
+      setMenuActivo('dashboard');
+    }
+    // Si es socio y está en una página de admin, cambiar a mi-cuenta
+    else if (!isAdmin && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos')) {
+      setMenuActivo('mi-cuenta');
+    }
+  }, [isAdmin]);
 
   const menuItems = isAdmin ? [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -21,7 +33,7 @@ function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header mejorado */}
-      <header className="bg-gradient-to-r from-primary-600 via-primary-700 to-primary-800 text-white shadow-xl sticky top-0 z-50">
+      <header className="shadow-xl sticky top-0 z-50" style={{ background: 'linear-gradient(to right, #065f66, #054b52, #065f66)' }}>
         <div className="container mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
@@ -29,19 +41,19 @@ function Layout({ children }) {
                 <span className="text-5xl">💧</span>
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-lg">
                   Sistema APR
                 </h1>
-                <p className="text-lg md:text-xl mt-1 text-primary-100">
+                <p className="text-lg md:text-xl mt-1 text-white/90">
                   {isAdmin ? '👨‍💼 Panel Administrador' : '👤 Portal del Socio'}
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-6 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4">
+            <div className="flex items-center gap-6 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border-2 border-white/20">
               <div className="text-right">
-                <p className="text-lg md:text-xl font-semibold">{usuario.nombre}</p>
-                <p className="text-base md:text-lg text-primary-100">{usuario.rut}</p>
+                <p className="text-lg md:text-xl font-semibold text-white">{usuario.nombre}</p>
+                <p className="text-base md:text-lg text-white/90">{usuario.rut}</p>
               </div>
               <button
                 onClick={logout}
@@ -55,7 +67,7 @@ function Layout({ children }) {
       </header>
 
       {/* Navigation mejorada */}
-      <nav className="bg-white shadow-lg border-b-2 border-gray-100 sticky top-[120px] z-40">
+      <nav className="shadow-lg border-b-2 sticky top-[120px] z-40" style={{ background: 'linear-gradient(to right, #7dd3fc, #bae6fd, #7dd3fc)', borderColor: '#38bdf8' }}>
         <div className="container mx-auto px-6">
           <div className="flex overflow-x-auto gap-2 py-3">
             {menuItems.map((item) => (
@@ -64,9 +76,25 @@ function Layout({ children }) {
                 onClick={() => setMenuActivo(item.id)}
                 className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${
                   menuActivo === item.id
-                    ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-primary-600 hover:scale-105'
+                    ? 'text-white shadow-lg scale-105'
+                    : 'hover:scale-105'
                 }`}
+                style={menuActivo === item.id 
+                  ? { background: 'linear-gradient(to right, #0ea5e9, #0284c7)', color: 'white' }
+                  : { color: '#075985' }
+                }
+                onMouseEnter={(e) => {
+                  if (menuActivo !== item.id) {
+                    e.currentTarget.style.backgroundColor = '#7dd3fc';
+                    e.currentTarget.style.color = '#0c4a6e';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (menuActivo !== item.id) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#075985';
+                  }
+                }}
               >
                 <span className="text-2xl">{item.icon}</span>
                 <span>{item.label}</span>
