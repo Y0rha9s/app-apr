@@ -5,6 +5,7 @@ import TransaccionesPage from './pages/TransaccionesPage';
 import SociosPage from './pages/SociosPage';
 import Layout from './components/Layout';
 import LecturasPage from './pages/LecturasPage';
+import MorosidadPage from './pages/MorosidadPage';
 
 function AppContent() {
   const { usuario, loading } = useAuth();
@@ -37,7 +38,7 @@ function AppContent() {
           case 'lecturas':
             return <LecturasPage />;
           case 'morosos':
-            return <div className="text-3xl">⚠️ Módulo de Morosidad (próximamente)</div>;
+            return <MorosidadPage />;
           case 'mi-cuenta':
             return <div className="text-3xl">🏠 Mi Cuenta (próximamente)</div>;
           case 'mi-consumo':
