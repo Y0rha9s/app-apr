@@ -8,6 +8,7 @@ import LecturasPage from './pages/LecturasPage';
 import MorosidadPage from './pages/MorosidadPage';
 import MiCuentaPage from './pages/MiCuentaPage';
 import MiConsumoPage from './pages/MiConsumoPage';
+import CajaPage from './pages/CajaPage';
 
 function AppContent() {
   const { usuario, loading, isAdmin } = useAuth();
@@ -57,6 +58,10 @@ function AppContent() {
               return <MiCuentaPage />;
             }
             return <MorosidadPage />;
+          case 'caja':
+            if (!isAdmin) {
+              return <CajaPage />;
+            }
           case 'mi-cuenta':
             return <MiCuentaPage />;
           case 'mi-consumo':

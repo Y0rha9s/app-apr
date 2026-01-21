@@ -23,6 +23,7 @@ function Layout({ children }) {
     { id: 'socios', label: 'Socios', icon: '👥' },
     { id: 'lecturas', label: 'Lecturas', icon: '💧' },
     { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
+    { id: 'caja', label: 'Caja', icon: '💵' },
   ] : [
     { id: 'mi-cuenta', label: 'Mi Cuenta', icon: '🏠' },
     { id: 'mi-consumo', label: 'Mi Consumo', icon: '💧' },
