@@ -70,10 +70,8 @@ function AbrirCajaPage() {
 
   const calcularDeudaSocio = async (usuarioId) => {
     try {
-      const response = await api.get(`/lecturas/usuario/${usuarioId}`);
-      const lecturas = response.data;
-      const totalDeuda = lecturas.reduce((sum, l) => sum + parseFloat(l.monto_calculado || 0), 0);
-      setDeudaSocio(totalDeuda);
+      const response = await api.get(`/usuarios/${usuarioId}/deuda`);
+      setDeudaSocio(response.data.deuda);
     } catch (error) {
       console.error('Error calculando deuda:', error);
       setDeudaSocio(0);
@@ -104,7 +102,7 @@ function AbrirCajaPage() {
 
   const handleRegistrarPago = async (e) => {
     e.preventDefault();
-    
+
     if (!socioSeleccionado) {
       alert('Debe seleccionar un socio');
       return;
@@ -122,14 +120,14 @@ function AbrirCajaPage() {
       });
 
       alert('✅ Pago registrado exitosamente');
-      
+
       // Limpiar formulario
       setSocioSeleccionado('');
       setDeudaSocio(0);
       setMontoPago('');
       setMetodoPago('efectivo');
       setObservacionesPago('');
-      
+
       // Recargar pagos
       cargarPagosHoy();
     } catch (error) {
@@ -155,6 +153,8 @@ function AbrirCajaPage() {
     const socio = socios.find(s => s.id === usuarioId);
     return socio ? `${socio.nombre} (${socio.rut})` : 'Desconocido';
   };
+
+
 
   if (loading) {
     return <div className="text-center text-3xl py-12">⏳ Cargando...</div>;
@@ -212,7 +212,7 @@ function AbrirCajaPage() {
   return (
     <div>
       <h2 className="text-4xl font-bold mb-8 text-gray-800">💰 Abrir Caja</h2>
-      
+
       {/* Info de caja abierta */}
       <Card className="bg-yellow-50 border-l-4 border-yellow-600 mb-8">
         <div className="flex items-center justify-between">
@@ -241,7 +241,7 @@ function AbrirCajaPage() {
       {/* Formulario Registrar Pago */}
       <Card className="mb-8">
         <h3 className="text-3xl font-bold mb-6">💵 Registrar Pago</h3>
-        
+
         <form onSubmit={handleRegistrarPago} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -352,11 +352,10 @@ function AbrirCajaPage() {
                       {formatearMonto(pago.monto)}
                     </td>
                     <td className="p-4">
-                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        pago.metodo_pago === 'efectivo' ? 'bg-green-100 text-green-800' :
-                        pago.metodo_pago === 'tarjeta' ? 'bg-purple-100 text-purple-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${pago.metodo_pago === 'efectivo' ? 'bg-green-100 text-green-800' :
+                          pago.metodo_pago === 'tarjeta' ? 'bg-purple-100 text-purple-800' :
+                            'bg-blue-100 text-blue-800'
+                        }`}>
                         {pago.metodo_pago === 'efectivo' && '💵 Efectivo'}
                         {pago.metodo_pago === 'tarjeta' && '💳 Tarjeta'}
                         {pago.metodo_pago === 'transferencia' && '🏦 Transferencia'}
