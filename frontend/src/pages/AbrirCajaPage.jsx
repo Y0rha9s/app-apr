@@ -12,9 +12,32 @@ function AbrirCajaPage() {
   const [loading, setLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);
 
+  // Para registrar pagos
+  const [socios, setSocios] = useState([]);
+  const [socioSeleccionado, setSocioSeleccionado] = useState('');
+  const [deudaSocio, setDeudaSocio] = useState(0);
+  const [montoPago, setMontoPago] = useState('');
+  const [metodoPago, setMetodoPago] = useState('efectivo');
+  const [observacionesPago, setObservacionesPago] = useState('');
+  const [pagosHoy, setPagosHoy] = useState([]);
+  const [registrandoPago, setRegistrandoPago] = useState(false);
+
   useEffect(() => {
     verificarCajaAbierta();
+    cargarSocios();
   }, []);
+
+  useEffect(() => {
+    if (cajaAbierta) {
+      cargarPagosHoy();
+    }
+  }, [cajaAbierta]);
+
+  useEffect(() => {
+    if (socioSeleccionado) {
+      calcularDeudaSocio(socioSeleccionado);
+    }
+  }, [socioSeleccionado]);
 
   const verificarCajaAbierta = async () => {
     try {
@@ -24,6 +47,36 @@ function AbrirCajaPage() {
     } catch (error) {
       console.error('Error verificando caja:', error);
       setLoading(false);
+    }
+  };
+
+  const cargarSocios = async () => {
+    try {
+      const response = await api.get('/usuarios');
+      setSocios(response.data.filter(s => s.rol === 'socio'));
+    } catch (error) {
+      console.error('Error cargando socios:', error);
+    }
+  };
+
+  const cargarPagosHoy = async () => {
+    try {
+      const response = await api.get(`/pagos/caja/${cajaAbierta.id}`);
+      setPagosHoy(response.data);
+    } catch (error) {
+      console.error('Error cargando pagos:', error);
+    }
+  };
+
+  const calcularDeudaSocio = async (usuarioId) => {
+    try {
+      const response = await api.get(`/lecturas/usuario/${usuarioId}`);
+      const lecturas = response.data;
+      const totalDeuda = lecturas.reduce((sum, l) => sum + parseFloat(l.monto_calculado || 0), 0);
+      setDeudaSocio(totalDeuda);
+    } catch (error) {
+      console.error('Error calculando deuda:', error);
+      setDeudaSocio(0);
     }
   };
 
@@ -49,6 +102,43 @@ function AbrirCajaPage() {
     }
   };
 
+  const handleRegistrarPago = async (e) => {
+    e.preventDefault();
+    
+    if (!socioSeleccionado) {
+      alert('Debe seleccionar un socio');
+      return;
+    }
+
+    setRegistrandoPago(true);
+
+    try {
+      await api.post('/pagos', {
+        usuario_id: parseInt(socioSeleccionado),
+        caja_id: cajaAbierta.id,
+        monto: parseFloat(montoPago),
+        metodo_pago: metodoPago,
+        observaciones: observacionesPago
+      });
+
+      alert('✅ Pago registrado exitosamente');
+      
+      // Limpiar formulario
+      setSocioSeleccionado('');
+      setDeudaSocio(0);
+      setMontoPago('');
+      setMetodoPago('efectivo');
+      setObservacionesPago('');
+      
+      // Recargar pagos
+      cargarPagosHoy();
+    } catch (error) {
+      alert('❌ Error al registrar pago: ' + error.message);
+    } finally {
+      setRegistrandoPago(false);
+    }
+  };
+
   const formatearMonto = (monto) => {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -57,87 +147,255 @@ function AbrirCajaPage() {
     }).format(monto);
   };
 
+  const formatearFecha = (fecha) => {
+    return new Date(fecha).toLocaleString('es-CL');
+  };
+
+  const getNombreSocio = (usuarioId) => {
+    const socio = socios.find(s => s.id === usuarioId);
+    return socio ? `${socio.nombre} (${socio.rut})` : 'Desconocido';
+  };
+
   if (loading) {
     return <div className="text-center text-3xl py-12">⏳ Cargando...</div>;
   }
 
-  if (cajaAbierta) {
+  // SIN CAJA ABIERTA: Formulario para abrir
+  if (!cajaAbierta) {
     return (
       <div>
         <h2 className="text-4xl font-bold mb-8 text-gray-800">💰 Abrir Caja</h2>
-        
-        <Card className="bg-yellow-50 border-l-4 border-yellow-600">
-          <div className="flex items-center gap-4 mb-6">
-            <span className="text-6xl">⚠️</span>
-            <div>
-              <h3 className="text-3xl font-bold text-yellow-800">Ya hay una caja abierta</h3>
-              <p className="text-xl text-yellow-700 mt-2">Debe cerrar la caja actual antes de abrir una nueva</p>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl p-6 mt-6">
-            <h4 className="text-2xl font-bold mb-4">Información de la caja abierta:</h4>
-            <div className="space-y-3 text-lg">
-              <p><strong>Fecha de apertura:</strong> {new Date(cajaAbierta.fecha_apertura).toLocaleString('es-CL')}</p>
-              <p><strong>Saldo inicial:</strong> {formatearMonto(cajaAbierta.saldo_inicial)}</p>
-              <p><strong>Observaciones:</strong> {cajaAbierta.observaciones_apertura || '-'}</p>
-            </div>
-          </div>
+        <div className="max-w-2xl">
+          <Card>
+            <form onSubmit={handleAbrirCaja} className="space-y-6">
+              <div>
+                <label className="block text-xl font-bold text-gray-700 mb-3">
+                  Saldo Inicial *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={saldoInicial}
+                  onChange={(e) => setSaldoInicial(e.target.value)}
+                  placeholder="Ej: 50000"
+                  className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+                  required
+                />
+                <p className="text-base text-gray-600 mt-2">Monto en efectivo con el que inicia la caja</p>
+              </div>
 
-          <div className="mt-6">
-            <Button variant="danger" className="w-full" onClick={() => window.location.href = '#cerrar-caja'}>
-              Ir a Cerrar Caja
-            </Button>
-          </div>
-        </Card>
+              <div>
+                <label className="block text-xl font-bold text-gray-700 mb-3">
+                  Observaciones
+                </label>
+                <textarea
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  placeholder="Notas adicionales (opcional)"
+                  rows="4"
+                  className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+                ></textarea>
+              </div>
+
+              <Button type="submit" variant="primary" className="w-full" disabled={enviando}>
+                {enviando ? '⏳ Abriendo...' : '✅ Abrir Caja'}
+              </Button>
+            </form>
+          </Card>
+        </div>
       </div>
     );
   }
 
+  // CON CAJA ABIERTA: Info + Registrar Pagos
   return (
     <div>
       <h2 className="text-4xl font-bold mb-8 text-gray-800">💰 Abrir Caja</h2>
+      
+      {/* Info de caja abierta */}
+      <Card className="bg-yellow-50 border-l-4 border-yellow-600 mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-6xl">⚠️</span>
+            <div>
+              <h3 className="text-3xl font-bold text-yellow-800">Ya hay una caja abierta</h3>
+              <p className="text-xl text-yellow-700 mt-2">Puede registrar pagos o cerrar la caja</p>
+            </div>
+          </div>
+          <Button variant="danger" onClick={() => window.location.hash = '#cerrar'}>
+            Ir a Cerrar Caja
+          </Button>
+        </div>
 
-      <div className="max-w-2xl">
-        <Card>
-          <form onSubmit={handleAbrirCaja} className="space-y-6">
+        <div className="bg-white rounded-xl p-6 mt-6">
+          <h4 className="text-2xl font-bold mb-4">Información de la caja abierta:</h4>
+          <div className="space-y-3 text-lg">
+            <p><strong>Fecha de apertura:</strong> {formatearFecha(cajaAbierta.fecha_apertura)}</p>
+            <p><strong>Saldo inicial:</strong> {formatearMonto(cajaAbierta.saldo_inicial)}</p>
+            <p><strong>Observaciones:</strong> {cajaAbierta.observaciones_apertura || '-'}</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Formulario Registrar Pago */}
+      <Card className="mb-8">
+        <h3 className="text-3xl font-bold mb-6">💵 Registrar Pago</h3>
+        
+        <form onSubmit={handleRegistrarPago} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-xl font-bold text-gray-700 mb-3">
-                Saldo Inicial *
+                Seleccionar Socio *
+              </label>
+              <select
+                value={socioSeleccionado}
+                onChange={(e) => setSocioSeleccionado(e.target.value)}
+                className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+                required
+              >
+                <option value="">-- Seleccione un socio --</option>
+                {socios.map(socio => (
+                  <option key={socio.id} value={socio.id}>
+                    {socio.nombre} ({socio.rut})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {socioSeleccionado && (
+              <div className="bg-blue-50 p-4 rounded-xl flex items-center">
+                <div>
+                  <p className="text-lg font-semibold text-gray-700">Deuda Total del Socio</p>
+                  <p className="text-3xl font-bold text-blue-600">{formatearMonto(deudaSocio)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xl font-bold text-gray-700 mb-3">
+                Monto del Pago *
               </label>
               <input
                 type="number"
                 step="0.01"
-                value={saldoInicial}
-                onChange={(e) => setSaldoInicial(e.target.value)}
-                placeholder="Ej: 50000"
+                value={montoPago}
+                onChange={(e) => setMontoPago(e.target.value)}
+                placeholder="0"
                 className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                 required
               />
-              <p className="text-base text-gray-600 mt-2">Monto en efectivo con el que inicia la caja</p>
             </div>
 
             <div>
               <label className="block text-xl font-bold text-gray-700 mb-3">
-                Observaciones
+                Método de Pago *
               </label>
-              <textarea
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                placeholder="Notas adicionales (opcional)"
-                rows="4"
+              <select
+                value={metodoPago}
+                onChange={(e) => setMetodoPago(e.target.value)}
                 className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
-              ></textarea>
+              >
+                <option value="efectivo">💵 Efectivo</option>
+                <option value="transferencia">🏦 Transferencia</option>
+                <option value="tarjeta">💳 Tarjeta</option>
+              </select>
             </div>
+          </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" variant="primary" className="flex-1" disabled={enviando}>
-                {enviando ? '⏳ Abriendo...' : '✅ Abrir Caja'}
-              </Button>
+          <div>
+            <label className="block text-xl font-bold text-gray-700 mb-3">
+              Observaciones
+            </label>
+            <textarea
+              value={observacionesPago}
+              onChange={(e) => setObservacionesPago(e.target.value)}
+              placeholder="Notas adicionales (opcional)"
+              rows="3"
+              className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+            ></textarea>
+          </div>
+
+          <Button type="submit" variant="success" className="w-full" disabled={registrandoPago}>
+            {registrandoPago ? '⏳ Registrando...' : '✅ Registrar Pago'}
+          </Button>
+        </form>
+      </Card>
+
+      {/* Tabla de Pagos de Hoy */}
+      <Card title="📋 Pagos Registrados Hoy">
+        {pagosHoy.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📭</div>
+            <p className="text-2xl font-semibold text-gray-600">No hay pagos registrados aún</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-100 border-b-2 border-gray-300">
+                <tr>
+                  <th className="p-4 text-lg font-semibold">Fecha/Hora</th>
+                  <th className="p-4 text-lg font-semibold">Socio</th>
+                  <th className="p-4 text-lg font-semibold">Monto</th>
+                  <th className="p-4 text-lg font-semibold">Método</th>
+                  <th className="p-4 text-lg font-semibold">Observaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagosHoy.map((pago) => (
+                  <tr key={pago.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 text-base">{formatearFecha(pago.fecha_pago)}</td>
+                    <td className="p-4 text-base font-semibold">{getNombreSocio(pago.usuario_id)}</td>
+                    <td className="p-4 text-base font-bold text-green-600">
+                      {formatearMonto(pago.monto)}
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        pago.metodo_pago === 'efectivo' ? 'bg-green-100 text-green-800' :
+                        pago.metodo_pago === 'tarjeta' ? 'bg-purple-100 text-purple-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {pago.metodo_pago === 'efectivo' && '💵 Efectivo'}
+                        {pago.metodo_pago === 'tarjeta' && '💳 Tarjeta'}
+                        {pago.metodo_pago === 'transferencia' && '🏦 Transferencia'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-base">{pago.observaciones || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Resumen */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-6 rounded-xl">
+              <div>
+                <p className="text-lg font-semibold text-gray-700">Total Pagos</p>
+                <p className="text-2xl font-bold text-gray-900">{pagosHoy.length}</p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-green-700">💵 Efectivo</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {formatearMonto(pagosHoy.filter(p => p.metodo_pago === 'efectivo').reduce((sum, p) => sum + parseFloat(p.monto), 0))}
+                </p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-blue-700">🏦 Transferencias</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {formatearMonto(pagosHoy.filter(p => p.metodo_pago === 'transferencia').reduce((sum, p) => sum + parseFloat(p.monto), 0))}
+                </p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-purple-700">💳 Tarjetas</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {formatearMonto(pagosHoy.filter(p => p.metodo_pago === 'tarjeta').reduce((sum, p) => sum + parseFloat(p.monto), 0))}
+                </p>
+              </div>
             </div>
-          </form>
-        </Card>
-      </div>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
