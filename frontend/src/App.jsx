@@ -59,9 +59,7 @@ function AppContent() {
             }
             return <MorosidadPage />;
           case 'caja':
-            if (!isAdmin) {
-              return <CajaPage />;
-            }
+            return <CajaPage />;
           case 'mi-cuenta':
             return <MiCuentaPage />;
           case 'mi-consumo':
