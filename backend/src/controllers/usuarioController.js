@@ -1,4 +1,5 @@
 const usuarioModel = require('../models/usuarioModel');
+const pool = require('../config/database');
 
 const usuarioController = {
   // Obtener todos los usuarios
