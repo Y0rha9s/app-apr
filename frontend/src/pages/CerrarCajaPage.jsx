@@ -20,22 +20,24 @@ function CerrarCajaPage() {
   }, []);
 
   const verificarCajaAbierta = async () => {
-    try {
-      const response = await api.get('/cajas/abierta');
-      setCajaAbierta(response.data);
-      
-      if (response.data) {
-        // Cargar resumen de pagos de esta caja
-        const resumenResponse = await api.get(`/pagos/resumen/${response.data.id}`);
-        setResumenPagos(resumenResponse.data);
-      }
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Error verificando caja:', error);
-      setLoading(false);
+  try {
+    const response = await api.get('/cajas/abierta');
+    console.log('Caja abierta:', response.data); // AGREGAR
+    setCajaAbierta(response.data);
+    
+    if (response.data) {
+      // Cargar resumen de pagos de esta caja
+      const resumenResponse = await api.get(`/pagos/resumen/${response.data.id}`);
+      console.log('Resumen pagos:', resumenResponse.data); // AGREGAR
+      setResumenPagos(resumenResponse.data);
     }
-  };
+    
+    setLoading(false);
+  } catch (error) {
+    console.error('Error verificando caja:', error); // YA EXISTE
+    setLoading(false);
+  }
+};
 
   const calcularTotales = () => {
     const saldoInicial = parseFloat(cajaAbierta?.saldo_inicial || 0);
