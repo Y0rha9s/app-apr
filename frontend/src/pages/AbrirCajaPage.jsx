@@ -13,9 +13,9 @@ function AbrirCajaPage() {
   const [enviando, setEnviando] = useState(false);
 
   // Para registrar pagos
-  const [socios, setSocios] = useState([]);
-  const [socioSeleccionado, setSocioSeleccionado] = useState('');
-  const [deudaSocio, setDeudaSocio] = useState(0);
+  const [usuarios, setUsuarios] = useState([]);
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState('');
+  const [deudaUsuario, setDeudaUsuario] = useState(0);
   const [montoPago, setMontoPago] = useState('');
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [observacionesPago, setObservacionesPago] = useState('');
@@ -24,7 +24,7 @@ function AbrirCajaPage() {
 
   useEffect(() => {
     verificarCajaAbierta();
-    cargarSocios();
+    cargarUsuarios();
   }, []);
 
   useEffect(() => {
@@ -34,10 +34,10 @@ function AbrirCajaPage() {
   }, [cajaAbierta]);
 
   useEffect(() => {
-    if (socioSeleccionado) {
-      calcularDeudaSocio(socioSeleccionado);
+    if (usuarioSeleccionado) {
+      calcularDeudaUsuario(usuarioSeleccionado);
     }
-  }, [socioSeleccionado]);
+  }, [usuarioSeleccionado]);
 
   const verificarCajaAbierta = async () => {
     try {
@@ -50,12 +50,12 @@ function AbrirCajaPage() {
     }
   };
 
-  const cargarSocios = async () => {
+  const cargarUsuarios = async () => {
     try {
       const response = await api.get('/usuarios');
-      setSocios(response.data.filter(s => s.rol === 'socio'));
+      setUsuarios(response.data.filter(u => u.rol === 'socio'));
     } catch (error) {
-      console.error('Error cargando socios:', error);
+      console.error('Error cargando usuarios:', error);
     }
   };
 
@@ -68,13 +68,13 @@ function AbrirCajaPage() {
     }
   };
 
-  const calcularDeudaSocio = async (usuarioId) => {
+  const calcularDeudaUsuario = async (usuarioId) => {
     try {
       const response = await api.get(`/usuarios/${usuarioId}/deuda`);
-      setDeudaSocio(response.data.deuda);
+      setDeudaUsuario(response.data.deuda);
     } catch (error) {
       console.error('Error calculando deuda:', error);
-      setDeudaSocio(0);
+      setDeudaUsuario(0);
     }
   };
 
@@ -103,8 +103,8 @@ function AbrirCajaPage() {
   const handleRegistrarPago = async (e) => {
     e.preventDefault();
 
-    if (!socioSeleccionado) {
-      alert('Debe seleccionar un socio');
+    if (!usuarioSeleccionado) {
+      alert('Debe seleccionar un usuario');
       return;
     }
 
@@ -112,7 +112,7 @@ function AbrirCajaPage() {
 
     try {
       await api.post('/pagos', {
-        usuario_id: parseInt(socioSeleccionado),
+        usuario_id: parseInt(usuarioSeleccionado),
         caja_id: cajaAbierta.id,
         monto: parseFloat(montoPago),
         metodo_pago: metodoPago,
@@ -122,8 +122,8 @@ function AbrirCajaPage() {
       alert('✅ Pago registrado exitosamente');
 
       // Limpiar formulario
-      setSocioSeleccionado('');
-      setDeudaSocio(0);
+      setUsuarioSeleccionado('');
+      setDeudaUsuario(0);
       setMontoPago('');
       setMetodoPago('efectivo');
       setObservacionesPago('');
@@ -149,9 +149,9 @@ function AbrirCajaPage() {
     return new Date(fecha).toLocaleString('es-CL');
   };
 
-  const getNombreSocio = (usuarioId) => {
-    const socio = socios.find(s => s.id === usuarioId);
-    return socio ? `${socio.nombre} (${socio.rut})` : 'Desconocido';
+  const getNombreUsuario = (usuarioId) => {
+    const usuario = usuarios.find(u => u.id === usuarioId);
+    return usuario ? `${usuario.nombre} (${usuario.rut})` : 'Desconocido';
   };
 
 
@@ -246,28 +246,28 @@ function AbrirCajaPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-xl font-bold text-gray-700 mb-3">
-                Seleccionar Socio *
+                Seleccionar Usuario *
               </label>
               <select
-                value={socioSeleccionado}
-                onChange={(e) => setSocioSeleccionado(e.target.value)}
+                value={usuarioSeleccionado}
+                onChange={(e) => setUsuarioSeleccionado(e.target.value)}
                 className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                 required
               >
-                <option value="">-- Seleccione un socio --</option>
-                {socios.map(socio => (
-                  <option key={socio.id} value={socio.id}>
-                    {socio.nombre} ({socio.rut})
+                <option value="">-- Seleccione un usuario --</option>
+                {usuarios.map(usuario => (
+                  <option key={usuario.id} value={usuario.id}>
+                    {usuario.nombre} ({usuario.rut})
                   </option>
                 ))}
               </select>
             </div>
 
-            {socioSeleccionado && (
+            {usuarioSeleccionado && (
               <div className="bg-blue-50 p-4 rounded-xl flex items-center">
                 <div>
-                  <p className="text-lg font-semibold text-gray-700">Deuda Total del Socio</p>
-                  <p className="text-3xl font-bold text-blue-600">{formatearMonto(deudaSocio)}</p>
+                  <p className="text-lg font-semibold text-gray-700">Deuda Total del Usuario</p>
+                  <p className="text-3xl font-bold text-blue-600">{formatearMonto(deudaUsuario)}</p>
                 </div>
               </div>
             )}
@@ -337,7 +337,7 @@ function AbrirCajaPage() {
               <thead className="bg-gray-100 border-b-2 border-gray-300">
                 <tr>
                   <th className="p-4 text-lg font-semibold">Fecha/Hora</th>
-                  <th className="p-4 text-lg font-semibold">Socio</th>
+                  <th className="p-4 text-lg font-semibold">Usuario</th>
                   <th className="p-4 text-lg font-semibold">Monto</th>
                   <th className="p-4 text-lg font-semibold">Método</th>
                   <th className="p-4 text-lg font-semibold">Observaciones</th>
@@ -347,7 +347,7 @@ function AbrirCajaPage() {
                 {pagosHoy.map((pago) => (
                   <tr key={pago.id} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-base">{formatearFecha(pago.fecha_pago)}</td>
-                    <td className="p-4 text-base font-semibold">{getNombreSocio(pago.usuario_id)}</td>
+                    <td className="p-4 text-base font-semibold">{getNombreUsuario(pago.usuario_id)}</td>
                     <td className="p-4 text-base font-bold text-green-600">
                       {formatearMonto(pago.monto)}
                     </td>

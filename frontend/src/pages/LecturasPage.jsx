@@ -4,7 +4,7 @@ import Card from '../components/Card';
 
 function LecturasPage() {
   const [lecturas, setLecturas] = useState([]);
-  const [socios, setSocios] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mesActual] = useState(new Date().getMonth() + 1);
   const [anioActual] = useState(new Date().getFullYear());
@@ -15,12 +15,12 @@ function LecturasPage() {
 
   const cargarDatos = async () => {
     try {
-      const [lecturasRes, sociosRes] = await Promise.all([
+      const [lecturasRes, usuariosRes] = await Promise.all([
         api.get('/lecturas'),
         api.get('/usuarios')
       ]);
       setLecturas(lecturasRes.data);
-      setSocios(sociosRes.data.filter(s => s.rol === 'socio'));
+      setUsuarios(usuariosRes.data.filter(u => u.rol === 'socio'));
       setLoading(false);
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -40,9 +40,9 @@ function LecturasPage() {
     return new Date(fecha).toLocaleDateString('es-CL');
   };
 
-  const getNombreSocio = (usuarioId) => {
-    const socio = socios.find(s => s.id === usuarioId);
-    return socio ? socio.nombre : 'Desconocido';
+  const getNombreUsuario = (usuarioId) => {
+    const usuario = usuarios.find(u => u.id === usuarioId);
+    return usuario ? usuario.nombre : 'Desconocido';
   };
 
   const lecturasDelMes = lecturas.filter(l => l.mes === mesActual && l.anio === anioActual);
@@ -78,7 +78,7 @@ function LecturasPage() {
         </Card>
 
         <Card className="bg-green-50 border-l-4 border-green-600">
-          <h3 className="text-lg font-semibold text-gray-700">Promedio por Socio</h3>
+          <h3 className="text-lg font-semibold text-gray-700">Promedio por Usuario</h3>
           <p className="text-3xl font-bold text-green-700">
             {lecturasDelMes.length > 0 ? Math.round(consumoTotal / lecturasDelMes.length) : 0} m³
           </p>
@@ -92,7 +92,7 @@ function LecturasPage() {
           <table className="w-full text-left">
             <thead className="bg-gray-100 border-b-2 border-gray-300">
               <tr>
-                <th className="p-4 text-lg font-semibold">Socio</th>
+                <th className="p-4 text-lg font-semibold">Usuario</th>
                 <th className="p-4 text-lg font-semibold">Fecha</th>
                 <th className="p-4 text-lg font-semibold">Período</th>
                 <th className="p-4 text-lg font-semibold">Lectura Anterior</th>
@@ -111,7 +111,7 @@ function LecturasPage() {
               ) : (
                 lecturas.slice().reverse().map((lectura) => (
                   <tr key={lectura.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-base font-semibold">{getNombreSocio(lectura.usuario_id)}</td>
+                    <td className="p-4 text-base font-semibold">{getNombreUsuario(lectura.usuario_id)}</td>
                     <td className="p-4 text-base">{formatearFecha(lectura.fecha_lectura)}</td>
                     <td className="p-4 text-base">
                       {new Date(lectura.anio, lectura.mes - 1).toLocaleString('es-CL', { month: 'long', year: 'numeric' })}

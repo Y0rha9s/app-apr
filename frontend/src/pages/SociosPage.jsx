@@ -3,29 +3,29 @@ import api from '../services/api';
 import Card from '../components/Card';
 
 function SociosPage() {
-  const [socios, setSocios] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
 
   useEffect(() => {
-    cargarSocios();
+    cargarUsuarios();
   }, []);
 
-  const cargarSocios = async () => {
+  const cargarUsuarios = async () => {
     try {
       const response = await api.get('/usuarios');
-      setSocios(response.data);
+      setUsuarios(response.data);
       setLoading(false);
     } catch (error) {
-      console.error('Error cargando socios:', error);
+      console.error('Error cargando usuarios:', error);
       setLoading(false);
     }
   };
 
-  const sociosFiltrados = socios.filter(socio => 
-    socio.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    socio.rut.includes(busqueda) ||
-    (socio.numero_cliente && socio.numero_cliente.includes(busqueda))
+  const usuariosFiltrados = usuarios.filter(usuario => 
+    usuario.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    usuario.rut.includes(busqueda) ||
+    (usuario.numero_cliente && usuario.numero_cliente.includes(busqueda))
   );
 
   const estadoBadge = (estado) => {
@@ -38,15 +38,15 @@ function SociosPage() {
   };
 
   if (loading) {
-    return <div className="text-center text-3xl py-12">⏳ Cargando socios...</div>;
+    return <div className="text-center text-3xl py-12">⏳ Cargando usuarios...</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-4xl font-bold text-gray-800">👥 Gestión de Socios</h2>
+        <h2 className="text-4xl font-bold text-gray-800">👥 Gestión de Usuarios</h2>
         <button className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700">
-          ➕ Nuevo Socio
+          ➕ Nuevo Usuario
         </button>
       </div>
 
@@ -64,31 +64,31 @@ function SociosPage() {
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="bg-blue-50 border-l-4 border-blue-600">
-          <h3 className="text-lg font-semibold text-gray-700">Total Socios</h3>
-          <p className="text-3xl font-bold text-blue-700">{socios.length}</p>
+          <h3 className="text-lg font-semibold text-gray-700">Total Usuarios</h3>
+          <p className="text-3xl font-bold text-blue-700">{usuarios.length}</p>
         </Card>
         <Card className="bg-green-50 border-l-4 border-green-600">
           <h3 className="text-lg font-semibold text-gray-700">Activos</h3>
           <p className="text-3xl font-bold text-green-700">
-            {socios.filter(s => s.estado === 'activo').length}
+            {usuarios.filter(u => u.estado === 'activo').length}
           </p>
         </Card>
         <Card className="bg-red-50 border-l-4 border-red-600">
           <h3 className="text-lg font-semibold text-gray-700">Morosos</h3>
           <p className="text-3xl font-bold text-red-700">
-            {socios.filter(s => s.estado === 'moroso').length}
+            {usuarios.filter(u => u.estado === 'moroso').length}
           </p>
         </Card>
         <Card className="bg-gray-50 border-l-4 border-gray-600">
           <h3 className="text-lg font-semibold text-gray-700">Administradores</h3>
           <p className="text-3xl font-bold text-gray-700">
-            {socios.filter(s => s.rol === 'admin').length}
+            {usuarios.filter(u => u.rol === 'admin').length}
           </p>
         </Card>
       </div>
 
-      {/* Tabla de socios */}
-      <Card title="📋 Lista de Socios">
+      {/* Tabla de usuarios */}
+      <Card title="📋 Lista de Usuarios">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-gray-100 border-b-2 border-gray-300">
@@ -104,27 +104,27 @@ function SociosPage() {
               </tr>
             </thead>
             <tbody>
-              {sociosFiltrados.map((socio) => (
-                <tr key={socio.id} className="border-b hover:bg-gray-50">
+              {usuariosFiltrados.map((usuario) => (
+                <tr key={usuario.id} className="border-b hover:bg-gray-50">
                   <td className="p-4 text-base font-mono font-bold text-blue-600">
-                    {socio.numero_cliente || '-'}
+                    {usuario.numero_cliente || '-'}
                   </td>
-                  <td className="p-4 text-base font-mono">{socio.rut}</td>
-                  <td className="p-4 text-base font-semibold">{socio.nombre}</td>
-                  <td className="p-4 text-base">{socio.telefono || '-'}</td>
-                  <td className="p-4 text-base">{socio.direccion || '-'}</td>
+                  <td className="p-4 text-base font-mono">{usuario.rut}</td>
+                  <td className="p-4 text-base font-semibold">{usuario.nombre}</td>
+                  <td className="p-4 text-base">{usuario.telefono || '-'}</td>
+                  <td className="p-4 text-base">{usuario.direccion || '-'}</td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      socio.rol === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                      usuario.rol === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {socio.rol === 'admin' ? '👨‍💼 Admin' : '👤 Socio'}
+                      {usuario.rol === 'admin' ? '👨‍💼 Admin' : '👤 Usuario'}
                     </span>
                   </td>
                   <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${estadoBadge(socio.estado)}`}>
-                      {socio.estado === 'activo' && '✅ Activo'}
-                      {socio.estado === 'moroso' && '⚠️ Moroso'}
-                      {socio.estado === 'suspendido' && '🚫 Suspendido'}
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${estadoBadge(usuario.estado)}`}>
+                      {usuario.estado === 'activo' && '✅ Activo'}
+                      {usuario.estado === 'moroso' && '⚠️ Moroso'}
+                      {usuario.estado === 'suspendido' && '🚫 Suspendido'}
                     </span>
                   </td>
                   <td className="p-4">

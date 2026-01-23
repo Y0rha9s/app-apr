@@ -1,5 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import Logo from './Logo';
 
 function Layout({ children }) {
   const { usuario, logout, isAdmin } = useAuth();
@@ -7,11 +8,11 @@ function Layout({ children }) {
 
   // Actualizar el menú inicial cuando cambie el rol
   useEffect(() => {
-    // Si es admin y está en una página de socio, cambiar a dashboard
+    // Si es admin y está en una página de usuario, cambiar a dashboard
     if (isAdmin && (menuActivo === 'mi-cuenta' || menuActivo === 'mi-consumo' || menuActivo === 'pagos' || menuActivo === 'reclamos')) {
       setMenuActivo('dashboard');
     }
-    // Si es socio y está en una página de admin, cambiar a mi-cuenta
+    // Si es usuario y está en una página de admin, cambiar a mi-cuenta
     else if (!isAdmin && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos')) {
       setMenuActivo('mi-cuenta');
     }
@@ -20,7 +21,7 @@ function Layout({ children }) {
   const menuItems = isAdmin ? [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'transacciones', label: 'Ingresos/Egresos', icon: '💰' },
-    { id: 'socios', label: 'Socios', icon: '👥' },
+    { id: 'socios', label: 'Usuarios', icon: '👥' },
     { id: 'lecturas', label: 'Lecturas', icon: '💧' },
     { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
     { id: 'caja', label: 'Caja', icon: '💵' },
@@ -38,15 +39,15 @@ function Layout({ children }) {
         <div className="container mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl">
-                <span className="text-5xl">💧</span>
+              <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center justify-center">
+                <Logo size="lg" className="drop-shadow-lg" />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-lg">
                   Sistema APR
                 </h1>
                 <p className="text-lg md:text-xl mt-1 text-white/90">
-                  {isAdmin ? '👨‍💼 Panel Administrador' : '👤 Portal del Socio'}
+                  {isAdmin ? '👨‍💼 Panel Administrador' : '👤 Portal del Usuario'}
                 </p>
               </div>
             </div>

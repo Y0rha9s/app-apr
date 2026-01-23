@@ -3,7 +3,7 @@ import api from '../services/api';
 import Card from '../components/Card';
 
 function MorosidadPage() {
-  const [socios, setSocios] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [lecturas, setLecturas] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,11 +13,11 @@ function MorosidadPage() {
 
   const cargarDatos = async () => {
     try {
-      const [sociosRes, lecturasRes] = await Promise.all([
+      const [usuariosRes, lecturasRes] = await Promise.all([
         api.get('/usuarios'),
         api.get('/lecturas')
       ]);
-      setSocios(sociosRes.data);
+      setUsuarios(usuariosRes.data);
       setLecturas(lecturasRes.data);
       setLoading(false);
     } catch (error) {
@@ -34,22 +34,22 @@ function MorosidadPage() {
     }).format(monto);
   };
 
-  // Calcular deuda por socio
-  const calcularDeuda = (socioId) => {
-    const lecturasDelSocio = lecturas.filter(l => l.usuario_id === socioId);
-    const totalDeuda = lecturasDelSocio.reduce((sum, l) => sum + parseFloat(l.monto_calculado || 0), 0);
-    const mesesAdeudados = lecturasDelSocio.length;
+  // Calcular deuda por usuario
+  const calcularDeuda = (usuarioId) => {
+    const lecturasDelUsuario = lecturas.filter(l => l.usuario_id === usuarioId);
+    const totalDeuda = lecturasDelUsuario.reduce((sum, l) => sum + parseFloat(l.monto_calculado || 0), 0);
+    const mesesAdeudados = lecturasDelUsuario.length;
     return { totalDeuda, mesesAdeudados };
   };
 
-  const sociosMorosos = socios
-    .filter(s => s.estado === 'moroso' && s.rol === 'socio')
-    .map(socio => {
-      const { totalDeuda, mesesAdeudados } = calcularDeuda(socio.id);
-      return { ...socio, totalDeuda, mesesAdeudados };
+  const usuariosMorosos = usuarios
+    .filter(u => u.estado === 'moroso' && u.rol === 'socio')
+    .map(usuario => {
+      const { totalDeuda, mesesAdeudados } = calcularDeuda(usuario.id);
+      return { ...usuario, totalDeuda, mesesAdeudados };
     });
 
-  const deudaTotal = sociosMorosos.reduce((sum, s) => sum + s.totalDeuda, 0);
+  const deudaTotal = usuariosMorosos.reduce((sum, u) => sum + u.totalDeuda, 0);
 
   if (loading) {
     return <div className="text-center text-3xl py-12">⏳ Cargando datos...</div>;
@@ -63,8 +63,8 @@ function MorosidadPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="bg-red-50 border-l-4 border-red-600">
           <h3 className="text-lg font-semibold text-gray-700">Total Morosos</h3>
-          <p className="text-4xl font-bold text-red-700">{sociosMorosos.length}</p>
-          <p className="text-sm text-gray-600 mt-2">Socios con pagos pendientes</p>
+          <p className="text-4xl font-bold text-red-700">{usuariosMorosos.length}</p>
+          <p className="text-sm text-gray-600 mt-2">Usuarios con pagos pendientes</p>
         </Card>
 
         <Card className="bg-orange-50 border-l-4 border-orange-600">
@@ -76,19 +76,19 @@ function MorosidadPage() {
         <Card className="bg-yellow-50 border-l-4 border-yellow-600">
           <h3 className="text-lg font-semibold text-gray-700">Promedio Deuda</h3>
           <p className="text-3xl font-bold text-yellow-700">
-            {sociosMorosos.length > 0 ? formatearMonto(deudaTotal / sociosMorosos.length) : '$0'}
+            {usuariosMorosos.length > 0 ? formatearMonto(deudaTotal / usuariosMorosos.length) : '$0'}
           </p>
-          <p className="text-sm text-gray-600 mt-2">Por socio moroso</p>
+          <p className="text-sm text-gray-600 mt-2">Por usuario moroso</p>
         </Card>
       </div>
 
       {/* Tabla de morosos */}
       <Card title="📋 Lista de Morosos">
-        {sociosMorosos.length === 0 ? (
+        {usuariosMorosos.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">✅</div>
             <p className="text-2xl font-semibold text-green-600">¡No hay morosos!</p>
-            <p className="text-lg text-gray-600 mt-2">Todos los socios están al día con sus pagos</p>
+            <p className="text-lg text-gray-600 mt-2">Todos los usuarios están al día con sus pagos</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -104,20 +104,20 @@ function MorosidadPage() {
                 </tr>
               </thead>
               <tbody>
-                {sociosMorosos
+                {usuariosMorosos
                   .sort((a, b) => b.totalDeuda - a.totalDeuda)
-                  .map((socio) => (
-                    <tr key={socio.id} className="border-b hover:bg-red-50">
-                      <td className="p-4 text-base font-mono">{socio.rut}</td>
-                      <td className="p-4 text-base font-semibold">{socio.nombre}</td>
-                      <td className="p-4 text-base">{socio.telefono || '-'}</td>
+                  .map((usuario) => (
+                    <tr key={usuario.id} className="border-b hover:bg-red-50">
+                      <td className="p-4 text-base font-mono">{usuario.rut}</td>
+                      <td className="p-4 text-base font-semibold">{usuario.nombre}</td>
+                      <td className="p-4 text-base">{usuario.telefono || '-'}</td>
                       <td className="p-4 text-center">
                         <span className="px-4 py-2 bg-orange-100 text-orange-800 rounded-full text-base font-bold">
-                          {socio.mesesAdeudados} {socio.mesesAdeudados === 1 ? 'mes' : 'meses'}
+                          {usuario.mesesAdeudados} {usuario.mesesAdeudados === 1 ? 'mes' : 'meses'}
                         </span>
                       </td>
                       <td className="p-4 text-base font-bold text-red-600 text-right">
-                        {formatearMonto(socio.totalDeuda)}
+                        {formatearMonto(usuario.totalDeuda)}
                       </td>
                       <td className="p-4">
                         <div className="flex gap-2">
@@ -141,7 +141,7 @@ function MorosidadPage() {
       </Card>
 
       {/* Acciones masivas */}
-      {sociosMorosos.length > 0 && (
+      {usuariosMorosos.length > 0 && (
         <Card className="mt-8 bg-yellow-50">
           <h3 className="text-2xl font-bold mb-4 text-gray-800">⚡ Acciones Masivas</h3>
           <div className="flex gap-4">

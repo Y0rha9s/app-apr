@@ -107,7 +107,7 @@ function LoginPage() {
                 <p className="font-mono">11111111-1 / demo123</p>
               </div>
               <div className="bg-white px-4 py-3 rounded-lg">
-                <p className="font-semibold">👤 Socio:</p>
+                <p className="font-semibold">👤 Usuario:</p>
                 <p className="font-mono">12345678-9 / demo123</p>
               </div>
             </div>
