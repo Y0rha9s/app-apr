@@ -24,7 +24,8 @@ function SociosPage() {
 
   const sociosFiltrados = socios.filter(socio => 
     socio.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    socio.rut.includes(busqueda)
+    socio.rut.includes(busqueda) ||
+    (socio.numero_cliente && socio.numero_cliente.includes(busqueda))
   );
 
   const estadoBadge = (estado) => {
@@ -53,7 +54,7 @@ function SociosPage() {
       <Card className="mb-6">
         <input
           type="text"
-          placeholder="🔍 Buscar por nombre o RUT..."
+          placeholder="🔍 Buscar por nombre, RUT o número de cliente..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
@@ -92,6 +93,7 @@ function SociosPage() {
           <table className="w-full text-left">
             <thead className="bg-gray-100 border-b-2 border-gray-300">
               <tr>
+                <th className="p-4 text-lg font-semibold">N° Cliente</th>
                 <th className="p-4 text-lg font-semibold">RUT</th>
                 <th className="p-4 text-lg font-semibold">Nombre</th>
                 <th className="p-4 text-lg font-semibold">Teléfono</th>
@@ -104,6 +106,9 @@ function SociosPage() {
             <tbody>
               {sociosFiltrados.map((socio) => (
                 <tr key={socio.id} className="border-b hover:bg-gray-50">
+                  <td className="p-4 text-base font-mono font-bold text-blue-600">
+                    {socio.numero_cliente || '-'}
+                  </td>
                   <td className="p-4 text-base font-mono">{socio.rut}</td>
                   <td className="p-4 text-base font-semibold">{socio.nombre}</td>
                   <td className="p-4 text-base">{socio.telefono || '-'}</td>

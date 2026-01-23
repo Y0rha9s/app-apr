@@ -16,6 +16,12 @@ function MiCuentaPage() {
               <label className="block text-lg font-semibold text-gray-700 mb-1">Nombre Completo</label>
               <p className="text-xl text-gray-900">{usuario.nombre}</p>
             </div>
+            {usuario.rol === 'socio' && usuario.numero_cliente && (
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-1">Número de Cliente</label>
+                <p className="text-xl text-gray-900 font-mono font-bold text-blue-600">{usuario.numero_cliente}</p>
+              </div>
+            )}
             <div>
               <label className="block text-lg font-semibold text-gray-700 mb-1">RUT</label>
               <p className="text-xl text-gray-900 font-mono">{usuario.rut}</p>
