@@ -17,4 +17,12 @@ export const transaccionesService = {
   create: (data) => api.post('/transacciones', data),
 };
 
+// Servicios de usuarios
+export const usuariosService = {
+  getAll: () => api.get('/usuarios'),
+  getById: (id) => api.get(`/usuarios/${id}`),
+  getDeuda: (id) => api.get(`/usuarios/${id}/deuda`),
+  getInfoCompleta: (id) => api.get(`/usuarios/${id}/info-completa`),
+};
+
 export default api;

@@ -6,5 +6,6 @@ const usuarioController = require('../controllers/usuarioController');
 router.get('/', usuarioController.getAll);
 router.get('/:id', usuarioController.getById);
 router.get('/:id/deuda', usuarioController.getDeuda);
+router.get('/:id/info-completa', usuarioController.getInfoCompleta);
 
 module.exports = router;
