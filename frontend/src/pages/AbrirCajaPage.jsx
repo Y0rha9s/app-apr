@@ -22,6 +22,14 @@ function AbrirCajaPage() {
   const [pagosHoy, setPagosHoy] = useState([]);
   const [registrandoPago, setRegistrandoPago] = useState(false);
 
+  // Para registrar egresos
+  const [categoriaEgreso, setCategoriaEgreso] = useState('');
+  const [montoEgreso, setMontoEgreso] = useState('');
+  const [descripcionEgreso, setDescripcionEgreso] = useState('');
+  const [observacionesEgreso, setObservacionesEgreso] = useState('');
+  const [egresosHoy, setEgresosHoy] = useState([]);
+  const [registrandoEgreso, setRegistrandoEgreso] = useState(false);
+
   useEffect(() => {
     verificarCajaAbierta();
     cargarUsuarios();
@@ -30,6 +38,7 @@ function AbrirCajaPage() {
   useEffect(() => {
     if (cajaAbierta) {
       cargarPagosHoy();
+      cargarEgresosHoy();
     }
   }, [cajaAbierta]);
 
@@ -154,7 +163,50 @@ function AbrirCajaPage() {
     return usuario ? `${usuario.nombre} (${usuario.rut})` : 'Desconocido';
   };
 
+  const cargarEgresosHoy = async () => {
+    try {
+      const response = await api.get(`/egresos-caja/caja/${cajaAbierta.id}`);
+      setEgresosHoy(response.data);
+    } catch (error) {
+      console.error('Error cargando egresos:', error);
+    }
+  };
 
+  const handleRegistrarEgreso = async (e) => {
+    e.preventDefault();
+
+    if (!categoriaEgreso) {
+      alert('Debe seleccionar una categoría');
+      return;
+    }
+
+    setRegistrandoEgreso(true);
+
+    try {
+      await api.post('/egresos-caja', {
+        caja_id: cajaAbierta.id,
+        categoria: categoriaEgreso,
+        descripcion: descripcionEgreso,
+        monto: parseFloat(montoEgreso),
+        observaciones: observacionesEgreso
+      });
+
+      alert('✅ Egreso registrado exitosamente');
+
+      // Limpiar formulario
+      setCategoriaEgreso('');
+      setMontoEgreso('');
+      setDescripcionEgreso('');
+      setObservacionesEgreso('');
+
+      // Recargar egresos
+      cargarEgresosHoy();
+    } catch (error) {
+      alert('❌ Error al registrar egreso: ' + error.message);
+    } finally {
+      setRegistrandoEgreso(false);
+    }
+  };
 
   if (loading) {
     return <div className="text-center text-3xl py-12">⏳ Cargando...</div>;
@@ -353,8 +405,8 @@ function AbrirCajaPage() {
                     </td>
                     <td className="p-4">
                       <span className={`px-3 py-1 rounded-full text-sm font-semibold ${pago.metodo_pago === 'efectivo' ? 'bg-green-100 text-green-800' :
-                          pago.metodo_pago === 'tarjeta' ? 'bg-purple-100 text-purple-800' :
-                            'bg-blue-100 text-blue-800'
+                        pago.metodo_pago === 'tarjeta' ? 'bg-purple-100 text-purple-800' :
+                          'bg-blue-100 text-blue-800'
                         }`}>
                         {pago.metodo_pago === 'efectivo' && '💵 Efectivo'}
                         {pago.metodo_pago === 'tarjeta' && '💳 Tarjeta'}
@@ -389,6 +441,130 @@ function AbrirCajaPage() {
                 <p className="text-lg font-semibold text-purple-700">💳 Tarjetas</p>
                 <p className="text-2xl font-bold text-purple-600">
                   {formatearMonto(pagosHoy.filter(p => p.metodo_pago === 'tarjeta').reduce((sum, p) => sum + parseFloat(p.monto), 0))}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+      {/* Sección de EGRESOS */}
+      <Card className="mt-8 bg-red-50">
+        <h3 className="text-3xl font-bold mb-6 text-red-800">💸 Registrar Egreso</h3>
+
+        <form onSubmit={handleRegistrarEgreso} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xl font-bold text-gray-700 mb-3">
+                Categoría *
+              </label>
+              <select
+                value={categoriaEgreso}
+                onChange={(e) => setCategoriaEgreso(e.target.value)}
+                className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-red-500"
+                required
+              >
+                <option value="">-- Seleccione categoría --</option>
+                <option value="personal">👷 Personal/Ayudantes</option>
+                <option value="materiales">🔧 Materiales</option>
+                <option value="transporte">🚗 Transporte</option>
+                <option value="servicios">⚡ Servicios</option>
+                <option value="otros">📦 Otros</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xl font-bold text-gray-700 mb-3">
+                Monto *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={montoEgreso}
+                onChange={(e) => setMontoEgreso(e.target.value)}
+                placeholder="0"
+                className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-red-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xl font-bold text-gray-700 mb-3">
+              Descripción *
+            </label>
+            <input
+              type="text"
+              value={descripcionEgreso}
+              onChange={(e) => setDescripcionEgreso(e.target.value)}
+              placeholder="Ej: Pago ayudante instalación red"
+              className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-red-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xl font-bold text-gray-700 mb-3">
+              Observaciones
+            </label>
+            <textarea
+              value={observacionesEgreso}
+              onChange={(e) => setObservacionesEgreso(e.target.value)}
+              placeholder="Notas adicionales (opcional)"
+              rows="2"
+              className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-red-500"
+            ></textarea>
+          </div>
+
+          <Button type="submit" variant="danger" className="w-full" disabled={registrandoEgreso}>
+            {registrandoEgreso ? '⏳ Registrando...' : '💸 Registrar Egreso'}
+          </Button>
+        </form>
+      </Card>
+
+      {/* Tabla de Egresos del Día */}
+      <Card title="📋 Egresos Registrados Hoy" className="mt-8">
+        {egresosHoy.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📭</div>
+            <p className="text-2xl font-semibold text-gray-600">No hay egresos registrados aún</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-100 border-b-2 border-gray-300">
+                <tr>
+                  <th className="p-4 text-lg font-semibold">Fecha/Hora</th>
+                  <th className="p-4 text-lg font-semibold">Categoría</th>
+                  <th className="p-4 text-lg font-semibold">Descripción</th>
+                  <th className="p-4 text-lg font-semibold">Monto</th>
+                  <th className="p-4 text-lg font-semibold">Observaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {egresosHoy.map((egreso) => (
+                  <tr key={egreso.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 text-base">{formatearFecha(egreso.fecha_egreso)}</td>
+                    <td className="p-4">
+                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                        {egreso.categoria}
+                      </span>
+                    </td>
+                    <td className="p-4 text-base">{egreso.descripcion}</td>
+                    <td className="p-4 text-base font-bold text-red-600">
+                      -{formatearMonto(egreso.monto)}
+                    </td>
+                    <td className="p-4 text-base">{egreso.observaciones || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Resumen de Egresos */}
+            <div className="mt-6 bg-red-50 p-6 rounded-xl">
+              <div className="flex justify-between items-center">
+                <p className="text-2xl font-bold text-red-800">Total Egresos del Día:</p>
+                <p className="text-3xl font-bold text-red-600">
+                  -{formatearMonto(egresosHoy.reduce((sum, e) => sum + parseFloat(e.monto), 0))}
                 </p>
               </div>
             </div>

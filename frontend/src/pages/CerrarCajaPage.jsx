@@ -5,6 +5,7 @@ import Button from '../components/Button';
 
 function CerrarCajaPage() {
   const [cajaAbierta, setCajaAbierta] = useState(null);
+  const [totalEgresos, setTotalEgresos] = useState(0);
   const [resumenPagos, setResumenPagos] = useState({
     monto_efectivo: 0,
     monto_tarjeta: 0,
@@ -23,13 +24,16 @@ function CerrarCajaPage() {
     try {
       const response = await api.get('/cajas/abierta');
       setCajaAbierta(response.data);
-      
+
       if (response.data) {
         // Cargar resumen de pagos de esta caja
         const resumenResponse = await api.get(`/pagos/resumen/${response.data.id}`);
         setResumenPagos(resumenResponse.data);
+
+        const egresosResponse = await api.get(`/egresos-caja/total/${response.data.id}`);
+        setTotalEgresos(egresosResponse.data.total);
       }
-      
+
       setLoading(false);
     } catch (error) {
       console.error('Error verificando caja:', error);
@@ -44,7 +48,7 @@ function CerrarCajaPage() {
     const tarjeta = parseFloat(resumenPagos.monto_tarjeta || 0);
     const contado = parseFloat(efectivoContado || 0);
 
-    const efectivoEsperado = saldoInicial + efectivo;
+    const efectivoEsperado = saldoInicial + efectivo - parseFloat(totalEgresos || 0);
     const totalGeneral = saldoInicial + efectivo + transferencia + tarjeta;
     const diferencia = contado - efectivoEsperado;
 
@@ -53,7 +57,7 @@ function CerrarCajaPage() {
 
   const handleCerrarCaja = async (e) => {
     e.preventDefault();
-    
+
     if (!window.confirm('¿Está seguro de cerrar la caja? Esta acción no se puede deshacer.')) {
       return;
     }
@@ -98,7 +102,7 @@ function CerrarCajaPage() {
     return (
       <div>
         <h2 className="text-4xl font-bold mb-8 text-gray-800">🔒 Cerrar Caja</h2>
-        
+
         <Card className="bg-blue-50 border-l-4 border-blue-600">
           <div className="flex items-center gap-4">
             <span className="text-6xl">ℹ️</span>
@@ -120,7 +124,7 @@ function CerrarCajaPage() {
         {/* Resumen del día */}
         <Card>
           <h3 className="text-2xl font-bold mb-6">📊 Resumen del Día</h3>
-          
+
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-lg font-semibold text-gray-700">Saldo Inicial</p>
@@ -146,6 +150,12 @@ function CerrarCajaPage() {
               <p className="text-lg font-semibold text-purple-800">💳 Monto Tarjeta</p>
               <p className="text-2xl font-bold text-purple-700">{formatearMonto(resumenPagos.monto_tarjeta)}</p>
               <p className="text-sm text-purple-600 mt-1">Pagos recibidos con tarjeta</p>
+            </div>
+
+            <div className="bg-red-50 p-4 rounded-lg border-2 border-red-200">
+              <p className="text-lg font-semibold text-red-800">💸 Total Egresos</p>
+              <p className="text-2xl font-bold text-red-700">-{formatearMonto(totalEgresos)}</p>
+              <p className="text-sm text-red-600 mt-1">Gastos del día</p>
             </div>
           </div>
 
@@ -189,12 +199,12 @@ function CerrarCajaPage() {
         <div className="space-y-6">
           <Card className="bg-gradient-to-br from-cyan-50 to-blue-50">
             <h3 className="text-2xl font-bold mb-6">💰 Totales</h3>
-            
+
             <div className="space-y-4">
               <div className="bg-white p-4 rounded-lg">
                 <p className="text-lg text-gray-600">Efectivo Esperado</p>
                 <p className="text-3xl font-bold text-cyan-600">{formatearMonto(efectivoEsperado)}</p>
-                <p className="text-sm text-gray-500 mt-1">Saldo Inicial + Efectivo del día</p>
+                <p className="text-sm text-gray-500 mt-1">Saldo Inicial + Efectivo - Egresos</p>
               </div>
 
               <div className="bg-white p-4 rounded-lg">
@@ -203,17 +213,15 @@ function CerrarCajaPage() {
                 <p className="text-sm text-gray-500 mt-1">Todos los ingresos del día</p>
               </div>
 
-              <div className={`p-4 rounded-lg ${
-                diferencia === 0 ? 'bg-green-100 border-2 border-green-400' : 
-                diferencia > 0 ? 'bg-blue-100 border-2 border-blue-400' : 
-                'bg-red-100 border-2 border-red-400'
-              }`}>
-                <p className="text-lg font-semibold">Diferencia</p>
-                <p className={`text-4xl font-bold ${
-                  diferencia === 0 ? 'text-green-600' : 
-                  diferencia > 0 ? 'text-blue-600' : 
-                  'text-red-600'
+              <div className={`p-4 rounded-lg ${diferencia === 0 ? 'bg-green-100 border-2 border-green-400' :
+                diferencia > 0 ? 'bg-blue-100 border-2 border-blue-400' :
+                  'bg-red-100 border-2 border-red-400'
                 }`}>
+                <p className="text-lg font-semibold">Diferencia</p>
+                <p className={`text-4xl font-bold ${diferencia === 0 ? 'text-green-600' :
+                  diferencia > 0 ? 'text-blue-600' :
+                    'text-red-600'
+                  }`}>
                   {formatearMonto(Math.abs(diferencia))}
                 </p>
                 <p className="text-lg font-semibold mt-2">

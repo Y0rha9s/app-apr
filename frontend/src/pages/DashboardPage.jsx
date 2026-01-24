@@ -11,6 +11,7 @@ function DashboardPage() {
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [infoUsuario, setInfoUsuario] = useState(null);
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
+  const [errorBusqueda, setErrorBusqueda] = useState(null);
   const [pestanaPrincipal, setPestanaPrincipal] = useState('busqueda');
   const [tabActiva, setTabActiva] = useState('resumen');
 
@@ -40,6 +41,7 @@ function DashboardPage() {
   };
 
   const buscarUsuario = async () => {
+    setErrorBusqueda(null);
     if (!busquedaUsuario.trim()) {
       setUsuarioSeleccionado(null);
       setInfoUsuario(null);
@@ -48,11 +50,12 @@ function DashboardPage() {
 
     setCargandoUsuario(true);
     try {
+      const termino = busquedaUsuario.toLowerCase();
       // Buscar por número de cliente, RUT o nombre
       const usuario = usuarios.find(u => 
-        u.numero_cliente?.includes(busquedaUsuario) ||
-        u.rut?.includes(busquedaUsuario) ||
-        u.nombre?.toLowerCase().includes(busquedaUsuario.toLowerCase())
+        u.numero_cliente?.toLowerCase().includes(termino) ||
+        u.rut?.toLowerCase().includes(termino) ||
+        u.nombre?.toLowerCase().includes(termino)
       );
 
       if (usuario) {
@@ -62,11 +65,13 @@ function DashboardPage() {
       } else {
         setUsuarioSeleccionado(null);
         setInfoUsuario(null);
+        setErrorBusqueda('No se encontró ningún usuario con ese criterio de búsqueda.');
       }
     } catch (error) {
       console.error('Error buscando usuario:', error);
       setUsuarioSeleccionado(null);
       setInfoUsuario(null);
+      setErrorBusqueda('Ocurrió un error al buscar la información del usuario.');
     } finally {
       setCargandoUsuario(false);
     }
@@ -224,6 +229,15 @@ function DashboardPage() {
           </Card>
 
           {/* Información del Usuario Seleccionado */}
+          {errorBusqueda && (
+            <Card className="mb-6 bg-red-50 border-l-8 border-red-500">
+              <div className="flex items-center">
+                <div className="text-2xl mr-4">⚠️</div>
+                <p className="text-red-700 font-semibold">{errorBusqueda}</p>
+              </div>
+            </Card>
+          )}
+
           {infoUsuario && (
             <div className="space-y-6">
               {/* Información Básica */}
@@ -347,7 +361,7 @@ function DashboardPage() {
             </div>
           )}
 
-          {!infoUsuario && usuarioSeleccionado === null && (
+          {!infoUsuario && usuarioSeleccionado === null && !errorBusqueda && (
             <Card className="text-center py-12">
               <p className="text-xl text-gray-500">🔍 Busca un usuario para ver su información y gráficos</p>
             </Card>

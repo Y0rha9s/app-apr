@@ -81,8 +81,8 @@ function SociosPage() {
 
   const usuariosFiltrados = usuarios.filter(usuario => 
     usuario.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    usuario.rut.includes(busqueda) ||
-    usuario.numero_cliente?.includes(busqueda)
+    usuario.rut.toLowerCase().includes(busqueda.toLowerCase()) ||
+    usuario.numero_cliente?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const estadoBadge = (estado) => {
