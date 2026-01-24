@@ -58,6 +58,86 @@ const usuarioController = {
     }
   },
 
+  suspender: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        `UPDATE usuarios 
+       SET estado = 'suspendido', fecha_suspension = NOW() 
+       WHERE id = $1 
+       RETURNING *`,
+        [id]
+      );
+
+      const { password, ...usuario } = result.rows[0];
+      res.json(usuario);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // Reponer usuario
+  reponer: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        `UPDATE usuarios 
+       SET estado = 'activo', fecha_reposicion = NOW() 
+       WHERE id = $1 
+       RETURNING *`,
+        [id]
+      );
+
+      const { password, ...usuario } = result.rows[0];
+      res.json(usuario);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // Reponer usuario
+  reponer: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        `UPDATE usuarios 
+       SET estado = 'activo', fecha_reposicion = NOW() 
+       WHERE id = $1 
+       RETURNING *`,
+        [id]
+      );
+
+      const { password, ...usuario } = result.rows[0];
+      res.json(usuario);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // Crear usuario
+  create: async (req, res) => {
+    try {
+      const { rut, nombre, email, telefono, direccion, rol } = req.body;
+
+      // Generar número de cliente automático
+      const countResult = await pool.query('SELECT COUNT(*) FROM usuarios');
+      const count = parseInt(countResult.rows[0].count) + 1;
+      const numeroCliente = 'CLI-' + count.toString().padStart(4, '0');
+
+      const result = await pool.query(
+        `INSERT INTO usuarios (numero_cliente, rut, nombre, email, telefono, direccion, password, rol, estado) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'activo') 
+       RETURNING *`,
+        [numeroCliente, rut, nombre, email, telefono, direccion, 'demo123', rol || 'socio']
+      );
+
+      const { password, ...usuario } = result.rows[0];
+      res.status(201).json(usuario);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
   // Obtener información completa del usuario (pagos, morosidad, convenio, notificaciones)
   getInfoCompleta: async (req, res) => {
     try {
@@ -103,7 +183,7 @@ const usuarioController = {
       const ultimoPago = pagosResult.rows[0] || null;
 
       // Saldo anterior pendiente (deuda antes del último pago)
-      const saldoAnterior = ultimoPago 
+      const saldoAnterior = ultimoPago
         ? deuda + parseFloat(ultimoPago.monto || 0)
         : deuda;
 

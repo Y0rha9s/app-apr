@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const usuarioController = require('../controllers/usuarioController');
 
-// Rutas - IMPORTANTE: Las rutas más específicas deben ir ANTES de las genéricas
+// Rutas
 router.get('/', usuarioController.getAll);
-router.get('/:id/info-completa', usuarioController.getInfoCompleta);
-router.get('/:id/deuda', usuarioController.getDeuda);
 router.get('/:id', usuarioController.getById);
+router.get('/:id/deuda', usuarioController.getDeuda);
+router.post('/', usuarioController.create);
+router.put('/:id/suspender', usuarioController.suspender);
+router.put('/:id/reponer', usuarioController.reponer);
 
 module.exports = router;

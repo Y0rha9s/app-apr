@@ -19,8 +19,8 @@ function Logo({ className = '', size = 'md' }) {
     '2xl': 'text-7xl'
   };
 
+  // Si hay error, mostrar emoji
   if (imageError) {
-    // Fallback al emoji si la imagen no carga
     return <span className={`${emojiSizes[size]} ${className}`}>💧</span>;
   }
 
@@ -29,7 +29,13 @@ function Logo({ className = '', size = 'md' }) {
       src="/logo-apr.png" 
       alt="Logo APR" 
       className={`${sizeClasses[size]} ${className} object-contain`}
-      onError={() => setImageError(true)}
+      onError={() => {
+        console.log('Error cargando logo: /logo-apr.png no encontrado');
+        setImageError(true);
+      }}
+      onLoad={() => {
+        console.log('Logo cargado correctamente');
+      }}
     />
   );
 }

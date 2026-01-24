@@ -42,7 +42,7 @@ const usuarioModel = {
   create: async (usuario) => {
     const { rut, nombre, email, telefono, direccion, password, rol } = usuario;
     
-    // Si es un socio (no admin), generar número de cliente automáticamente
+    // Si es un usuario (no admin), generar número de cliente automáticamente
     let numeroCliente = null;
     if (rol === 'socio') {
       numeroCliente = await usuarioModel.generarNumeroCliente();
