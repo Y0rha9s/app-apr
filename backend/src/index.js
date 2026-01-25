@@ -18,6 +18,7 @@ const lecturaRoutes = require('./routes/lecturaRoutes');
 const cajaRoutes = require('./routes/cajaRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const egresoCajaRoutes = require('./routes/egresoCajaRoutes');
+const boletaRoutes = require('./routes/boletaRoutes');
 
 app.use('/api/transacciones', transaccionRoutes);
 app.use('/api/auth', authRoutes);
@@ -26,6 +27,7 @@ app.use('/api/lecturas', lecturaRoutes);
 app.use('/api/cajas', cajaRoutes);
 app.use('/api/pagos', pagoRoutes);
 app.use('/api/egresos-caja', egresoCajaRoutes);
+app.use('/api/boletas', boletaRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {

@@ -7,6 +7,7 @@ function Button({ children, onClick, variant = 'primary', type = 'button', class
     success: 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700',
     danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700',
     outline: 'bg-white border-2 border-primary-500 text-primary-700 hover:bg-primary-50',
+    neutral: 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300',
   };
 
   return (

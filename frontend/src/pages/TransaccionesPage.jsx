@@ -86,19 +86,19 @@ function TransaccionesPage() {
       <Card className="mb-6">
         <div className="flex gap-4">
           <Button 
-            variant={filtro === 'todas' ? 'primary' : 'secondary'}
+            variant={filtro === 'todas' ? 'primary' : 'neutral'}
             onClick={() => setFiltro('todas')}
           >
             Todas
           </Button>
           <Button 
-            variant={filtro === 'ingreso' ? 'success' : 'secondary'}
+            variant={filtro === 'ingreso' ? 'success' : 'neutral'}
             onClick={() => setFiltro('ingreso')}
           >
             Ingresos
           </Button>
           <Button 
-            variant={filtro === 'egreso' ? 'danger' : 'secondary'}
+            variant={filtro === 'egreso' ? 'danger' : 'neutral'}
             onClick={() => setFiltro('egreso')}
           >
             Egresos

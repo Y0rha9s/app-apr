@@ -8,7 +8,7 @@ function SociosPage() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  
+
   // Formulario nuevo usuario
   const [formData, setFormData] = useState({
     rut: '',
@@ -36,7 +36,7 @@ function SociosPage() {
 
   const handleSuspender = async (id) => {
     if (!window.confirm('¿Está seguro de suspender este usuario?')) return;
-    
+
     try {
       await api.put(`/usuarios/${id}/suspender`);
       alert('✅ Usuario suspendido correctamente');
@@ -48,7 +48,7 @@ function SociosPage() {
 
   const handleReponer = async (id) => {
     if (!window.confirm('¿Está seguro de reponer este usuario?')) return;
-    
+
     try {
       await api.put(`/usuarios/${id}/reponer`);
       alert('✅ Usuario repuesto correctamente');
@@ -60,7 +60,7 @@ function SociosPage() {
 
   const handleCrearUsuario = async (e) => {
     e.preventDefault();
-    
+
     try {
       await api.post('/usuarios', formData);
       alert('✅ Usuario creado exitosamente');
@@ -79,7 +79,7 @@ function SociosPage() {
     }
   };
 
-  const usuariosFiltrados = usuarios.filter(usuario => 
+  const usuariosFiltrados = usuarios.filter(usuario =>
     usuario.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     usuario.rut.toLowerCase().includes(busqueda.toLowerCase()) ||
     usuario.numero_cliente?.toLowerCase().includes(busqueda.toLowerCase())
@@ -118,19 +118,19 @@ function SociosPage() {
                 <input
                   type="text"
                   value={formData.rut}
-                  onChange={(e) => setFormData({...formData, rut: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, rut: e.target.value })}
                   placeholder="12345678-9"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Nombre Completo *</label>
                 <input
                   type="text"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Juan Pérez"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                   required
@@ -142,7 +142,7 @@ function SociosPage() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="correo@ejemplo.cl"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                 />
@@ -153,7 +153,7 @@ function SociosPage() {
                 <input
                   type="tel"
                   value={formData.telefono}
-                  onChange={(e) => setFormData({...formData, telefono: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   placeholder="+56912345678"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                 />
@@ -164,7 +164,7 @@ function SociosPage() {
                 <input
                   type="text"
                   value={formData.direccion}
-                  onChange={(e) => setFormData({...formData, direccion: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
                   placeholder="Calle 123, Comuna"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                 />
@@ -174,7 +174,7 @@ function SociosPage() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Rol</label>
                 <select
                   value={formData.rol}
-                  onChange={(e) => setFormData({...formData, rol: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                 >
                   <option value="socio">Usuario/Socio</option>
@@ -249,17 +249,23 @@ function SociosPage() {
             <tbody>
               {usuariosFiltrados.map((usuario) => (
                 <tr key={usuario.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-base font-bold text-blue-600 cursor-pointer hover:underline">
-                    {usuario.numero_cliente || '-'}
+                  <td className="p-4">
+                    <a 
+                      href={`https://app-apr.onrender.com/api/boletas/pdf/${usuario.id}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-base font-bold text-blue-600 cursor-pointer hover:underline"
+                    >
+                      {usuario.numero_cliente || '-'}
+                    </a>
                   </td>
                   <td className="p-4 text-base font-mono">{usuario.rut}</td>
                   <td className="p-4 text-base font-semibold">{usuario.nombre}</td>
                   <td className="p-4 text-base">{usuario.telefono || '-'}</td>
                   <td className="p-4 text-base">{usuario.direccion || '-'}</td>
                   <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      usuario.rol === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${usuario.rol === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
                       {usuario.rol === 'admin' ? '👨‍💼 Admin' : '👤 Usuario'}
                     </span>
                   </td>
@@ -276,7 +282,7 @@ function SociosPage() {
                         👁️ Ver
                       </button>
                       {usuario.estado !== 'suspendido' && (
-                        <button 
+                        <button
                           onClick={() => handleSuspender(usuario.id)}
                           className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
                         >
@@ -284,7 +290,7 @@ function SociosPage() {
                         </button>
                       )}
                       {usuario.estado === 'suspendido' && (
-                        <button 
+                        <button
                           onClick={() => handleReponer(usuario.id)}
                           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
                         >

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
+import Logo from '../components/Logo';
 
 function LoginPage() {
   const [rut, setRut] = useState('');
@@ -34,7 +35,7 @@ function LoginPage() {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="inline-block bg-white/20 backdrop-blur-sm p-6 rounded-3xl mb-6">
-            <span className="text-7xl">💧</span>
+            <Logo size="2xl" className="drop-shadow-lg" />
           </div>
           <h1 className="text-5xl font-bold text-white mb-3 drop-shadow-lg">
             Sistema APR
