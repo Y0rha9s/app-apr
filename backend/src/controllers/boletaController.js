@@ -1,3 +1,32 @@
+const path = require('path');
+const QRCode = require('qrcode');
+const PDFDocument = require('pdfkit');
+const pool = require('../config/database');
+
+const APR_CONFIG = {
+  nombre: 'Sistema APR',
+  subtitulo: 'Empresa de Servicios Sanitarios',
+  rut: '00.000.000-0',
+  direccion: 'Dirección',
+  telefono: '+56900000000'
+};
+
+function calcularBoleta(lecturaAnterior, lecturaActual, saldoPendiente, subsidio, multa, incluirIVA) {
+  const consumo = Math.max(0, (lecturaActual || 0) - (lecturaAnterior || 0));
+  const cargoFijo = 3000;
+  const baseConsumo = Math.min(consumo, 15);
+  const excedente16_30Consumo = Math.max(0, Math.min(consumo - 15, 15));
+  const excedente30PlusConsumo = Math.max(0, consumo - 30);
+  const montoBase = baseConsumo * 800;
+  const excedente16_30 = excedente16_30Consumo * 900;
+  const excedente30plus = excedente30PlusConsumo * 1000;
+  const subtotal = cargoFijo + montoBase + excedente16_30 + excedente30plus + (multa || 0) + (saldoPendiente || 0) - (subsidio || 0);
+  const iva = incluirIVA ? Math.round(subtotal * 0.19) : 0;
+  const total = subtotal + iva;
+  return { consumo, cargoFijo, montoBase, excedente16_30, excedente30plus, multa: multa || 0, saldoPendiente: saldoPendiente || 0, iva, total };
+}
+
+const boletaController = {
 generarPDF: async (req, res) => {
   try {
     const { usuarioId } = req.params;
@@ -246,6 +275,7 @@ generarPDF: async (req, res) => {
     console.error('Error generando boleta:', error);
     res.status(500).json({ error: error.message });
   }
+}
 };
 
 module.exports = boletaController;
