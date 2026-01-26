@@ -246,4 +246,6 @@ generarPDF: async (req, res) => {
     console.error('Error generando boleta:', error);
     res.status(500).json({ error: error.message });
   }
-}
+};
+
+module.exports = boletaController;
