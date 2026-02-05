@@ -1,13 +1,22 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Card from '../components/Card';
+import Button from '../components/Button';
+import { useAuth } from '../contexts/AuthContext';
 
 function LecturasPage() {
+  const { usuario } = useAuth();
   const [lecturas, setLecturas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mesActual] = useState(new Date().getMonth() + 1);
   const [anioActual] = useState(new Date().getFullYear());
+  
+  // Estado para edición
+  const [editando, setEditando] = useState(null);
+  const [formEdit, setFormEdit] = useState({});
+  const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+  const [razonModificacion, setRazonModificacion] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -43,6 +52,42 @@ function LecturasPage() {
   const getNombreUsuario = (usuarioId) => {
     const usuario = usuarios.find(u => u.id === usuarioId);
     return usuario ? usuario.nombre : 'Desconocido';
+  };
+
+  const handleSolicitarGuardar = (id) => {
+    const lectura = lecturas.find(l => l.id === id);
+    if (lectura) {
+      setEditando(id);
+      setFormEdit({
+        lectura_anterior: lectura.lectura_anterior,
+        lectura_actual: lectura.lectura_actual,
+        monto_calculado: lectura.monto_calculado,
+        observaciones: lectura.observaciones
+      });
+      setMostrarModalEdicion(true);
+    }
+  };
+
+  const handleGuardarConRazon = async (id) => {
+    if (!razonModificacion.trim()) {
+      alert('⚠️ Debe ingresar una razón para modificar la lectura');
+      return;
+    }
+    
+    try {
+      await api.put(`/lecturas/${id}`, {
+        ...formEdit,
+        razon_modificacion: razonModificacion,
+        usuario_modificador_id: usuario.id // Desde el contexto de auth
+      });
+      alert('✅ Lectura actualizada correctamente');
+      setEditando(null);
+      setMostrarModalEdicion(false);
+      setRazonModificacion('');
+      cargarDatos();
+    } catch (error) {
+      alert('❌ Error al actualizar lectura: ' + error.message);
+    }
   };
 
   const lecturasDelMes = lecturas.filter(l => l.mes === mesActual && l.anio === anioActual);
@@ -128,6 +173,16 @@ function LecturasPage() {
                     <td className="p-4 text-base font-bold text-green-600">
                       {formatearMonto(lectura.monto_calculado)}
                     </td>
+                    <td className="p-4">
+                      <Button 
+                        variant="success" 
+                        size="sm"
+                        onClick={() => handleSolicitarGuardar(lectura.id)}
+                        disabled={lectura.estado === 'completada' && !usuario?.es_admin}
+                      >
+                        Guardar
+                      </Button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -135,6 +190,46 @@ function LecturasPage() {
           </table>
         </div>
       </Card>
+      {/* Modal de confirmación de edición */}
+      {mostrarModalEdicion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="max-w-md w-full mx-4">
+            <h3 className="text-2xl font-bold mb-4">⚠️ Confirmar Modificación</h3>
+            <p className="text-lg mb-4">
+              Está a punto de modificar una lectura. Por razones de auditoría, debe indicar el motivo:
+            </p>
+            
+            <textarea
+              value={razonModificacion}
+              onChange={(e) => setRazonModificacion(e.target.value)}
+              placeholder="Ej: Lectura tomada incorrectamente, el medidor marcaba 12345 en lugar de 12356"
+              rows="4"
+              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 mb-4"
+              required
+            />
+            
+            <div className="flex gap-4">
+              <Button 
+                variant="success" 
+                onClick={() => handleGuardarConRazon(editando)}
+                className="flex-1"
+              >
+                ✅ Confirmar Cambios
+              </Button>
+              <Button 
+                variant="secondary" 
+                onClick={() => {
+                  setMostrarModalEdicion(false);
+                  setRazonModificacion('');
+                }}
+                className="flex-1"
+              >
+                ❌ Cancelar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

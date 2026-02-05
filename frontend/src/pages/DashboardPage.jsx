@@ -209,21 +209,21 @@ function DashboardPage() {
         <div>
           <Card className="mb-8 bg-gradient-to-r from-blue-50 to-cyan-50">
             <h3 className="text-2xl font-bold mb-4 text-gray-800">🔍 Búsqueda de Usuario</h3>
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4 w-full">
               <input
                 type="text"
-                placeholder="Buscar por número de cliente, RUT o nombre..."
+                placeholder="Buscar por número de cliente..."
                 value={busquedaUsuario}
                 onChange={(e) => setBusquedaUsuario(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && buscarUsuario()}
-                className="flex-1 px-6 py-4 text-xl border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="flex-1 px-4 py-3 text-lg border-2 rounded-xl w-full"
               />
               <button
                 onClick={buscarUsuario}
                 disabled={cargandoUsuario}
-                className="px-8 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl w-full md:w-auto hover:bg-blue-700 disabled:opacity-50"
               >
-                {cargandoUsuario ? '⏳ Buscando...' : '🔍 Buscar'}
+                {cargandoUsuario ? '⏳ Buscando...' : 'Buscar'}
               </button>
             </div>
           </Card>

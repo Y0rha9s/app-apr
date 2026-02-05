@@ -6,5 +6,7 @@ const lecturaController = require('../controllers/lecturaController');
 router.get('/', lecturaController.getAll);
 router.get('/usuario/:usuarioId', lecturaController.getByUsuario);
 router.post('/', lecturaController.create);
+router.put('/:id', lecturaController.update);
+router.get('/:id/historial', lecturaController.getHistorial);
 
 module.exports = router;
