@@ -180,7 +180,7 @@ function DashboardPage() {
 
       {/* Pestañas Principales */}
       <div className="mb-6">
-        <div className="flex gap-2 border-b-2 border-gray-200">
+        <div className="flex gap-2 border-b-2 border-gray-200 overflow-x-auto">
           <button
             onClick={() => setPestanaPrincipal('busqueda')}
             className={`px-8 py-4 text-xl font-semibold transition-colors ${
@@ -209,7 +209,7 @@ function DashboardPage() {
         <div>
           <Card className="mb-8 bg-gradient-to-r from-blue-50 to-cyan-50">
             <h3 className="text-2xl font-bold mb-4 text-gray-800">🔍 Búsqueda de Usuario</h3>
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               <input
                 type="text"
                 placeholder="Buscar por número de cliente, RUT o nombre..."

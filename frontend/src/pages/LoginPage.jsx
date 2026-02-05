@@ -44,7 +44,7 @@ function LoginPage() {
         </div>
 
         {/* Formulario */}
-        <div className="bg-white rounded-3xl shadow-2xl p-10">
+        <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-10">
           <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
             Iniciar Sesión
           </h2>

@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import Card from '../components/Card';
 
+import Button from '../components/Button';
+
 function LecturasPage() {
+  const { user } = useAuth();
   const [lecturas, setLecturas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mesActual] = useState(new Date().getMonth() + 1);
   const [anioActual] = useState(new Date().getFullYear());
+  
+  // Estados para edición
+  const [editando, setEditando] = useState(null);
+  const [formEdit, setFormEdit] = useState({});
+  const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+  const [razonModificacion, setRazonModificacion] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -43,6 +53,48 @@ function LecturasPage() {
   const getNombreUsuario = (usuarioId) => {
     const usuario = usuarios.find(u => u.id === usuarioId);
     return usuario ? usuario.nombre : 'Desconocido';
+  };
+
+  // Funciones de Edición
+  const handleEditar = (lectura) => {
+    setEditando(lectura.id);
+    setFormEdit({
+      lectura_actual: lectura.lectura_actual,
+      fecha_lectura: lectura.fecha_lectura.split('T')[0]
+    });
+  };
+
+  const handleCancelarEdicion = () => {
+    setEditando(null);
+    setFormEdit({});
+    setMostrarModalEdicion(false);
+    setRazonModificacion('');
+  };
+
+  const handleGuardarConRazon = async () => {
+    if (!razonModificacion.trim()) {
+      alert('⚠️ Debe ingresar una razón para modificar la lectura');
+      return;
+    }
+
+    try {
+      await api.put(`/lecturas/${editando}`, {
+        ...formEdit,
+        razon_modificacion: razonModificacion,
+        usuario_modificador_id: user.id // Desde el contexto de auth
+      });
+      alert('✅ Lectura actualizada correctamente');
+      setEditando(null);
+      setMostrarModalEdicion(false);
+      setRazonModificacion('');
+      cargarDatos();
+    } catch (error) {
+      alert('❌ Error al actualizar lectura: ' + error.message);
+    }
+  };
+
+  const handleSolicitarGuardar = () => {
+    setMostrarModalEdicion(true);
   };
 
   const lecturasDelMes = lecturas.filter(l => l.mes === mesActual && l.anio === anioActual);
@@ -99,12 +151,13 @@ function LecturasPage() {
                 <th className="p-4 text-lg font-semibold">Lectura Actual</th>
                 <th className="p-4 text-lg font-semibold">Consumo (m³)</th>
                 <th className="p-4 text-lg font-semibold">Monto</th>
+                <th className="p-4 text-lg font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {lecturas.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-xl text-gray-500">
+                  <td colSpan="8" className="p-8 text-center text-xl text-gray-500">
                     No hay lecturas registradas
                   </td>
                 </tr>
@@ -118,7 +171,16 @@ function LecturasPage() {
                     </td>
                     <td className="p-4 text-base text-center font-mono">{lectura.lectura_anterior}</td>
                     <td className="p-4 text-base text-center font-mono font-bold text-blue-600">
-                      {lectura.lectura_actual}
+                      {editando === lectura.id ? (
+                        <input
+                          type="number"
+                          value={formEdit.lectura_actual}
+                          onChange={(e) => setFormEdit({ ...formEdit, lectura_actual: e.target.value })}
+                          className="w-24 px-2 py-1 border rounded"
+                        />
+                      ) : (
+                        lectura.lectura_actual
+                      )}
                     </td>
                     <td className="p-4 text-base text-center">
                       <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full font-bold">
@@ -128,6 +190,31 @@ function LecturasPage() {
                     <td className="p-4 text-base font-bold text-green-600">
                       {formatearMonto(lectura.monto_calculado)}
                     </td>
+                    <td className="p-4">
+                      {editando === lectura.id ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSolicitarGuardar(lectura.id)}
+                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                          >
+                            ✅ Guardar
+                          </button>
+                          <button
+                            onClick={handleCancelarEdicion}
+                            className="text-red-600 hover:text-red-800 font-bold"
+                          >
+                            ❌
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleEditar(lectura)}
+                          className="text-blue-600 hover:text-blue-800 font-bold"
+                        >
+                          ✏️ Editar
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
@@ -135,6 +222,47 @@ function LecturasPage() {
           </table>
         </div>
       </Card>
+
+      {/* Modal de confirmación de edición */}
+      {mostrarModalEdicion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="max-w-md w-full mx-4">
+            <h3 className="text-2xl font-bold mb-4">⚠️ Confirmar Modificación</h3>
+            <p className="text-lg mb-4">
+              Está a punto de modificar una lectura. Por razones de auditoría, debe indicar el motivo:
+            </p>
+            
+            <textarea
+              value={razonModificacion}
+              onChange={(e) => setRazonModificacion(e.target.value)}
+              placeholder="Ej: Lectura tomada incorrectamente, el medidor marcaba 12345 en lugar de 12356"
+              rows="4"
+              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 mb-4"
+              required
+            />
+            
+            <div className="flex gap-4">
+              <Button
+                variant="success"
+                onClick={() => handleGuardarConRazon(editando)}
+                className="flex-1"
+              >
+                ✅ Confirmar Cambios
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setMostrarModalEdicion(false);
+                  setRazonModificacion('');
+                }}
+                className="flex-1"
+              >
+                ❌ Cancelar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import MorosidadPage from './pages/MorosidadPage';
 import MiCuentaPage from './pages/MiCuentaPage';
 import MiConsumoPage from './pages/MiConsumoPage';
 import CajaPage from './pages/CajaPage';
+import PagosPage from './pages/PagosPage';
 
 function AppContent() {
   const { usuario, loading, isAdmin } = useAuth();
@@ -65,7 +66,7 @@ function AppContent() {
           case 'mi-consumo':
             return <MiConsumoPage />;
           case 'pagos':
-            return <div className="text-3xl">💳 Pagos (próximamente)</div>;
+            return <PagosPage />;
           case 'reclamos':
             return <div className="text-3xl">📝 Reclamos (próximamente)</div>;
           default:

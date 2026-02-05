@@ -33,33 +33,34 @@ function Layout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Header mejorado */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 overflow-x-hidden">
+      {/* Header Informativo */}
       <header className="shadow-xl sticky top-0 z-50" style={{ background: 'linear-gradient(to right, #065f66, #054b52, #065f66)' }}>
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center justify-center">
-                <Logo size="lg" className="drop-shadow-lg" />
+        <div className="container mx-auto px-4 md:px-6 py-4"> {/* px-6 -> px-4 md:px-6 */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3">
+            <div className="flex items-center gap-3"> {/* gap-4 -> gap-3 */}
+              <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl flex items-center justify-center"> {/* p-4 -> p-2, rounded-2xl -> rounded-xl */}
+                <Logo size="md" className="drop-shadow-lg" /> {/* size="lg" -> size="md" */}
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-lg">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white drop-shadow-lg"> {/* text-3xl/4xl -> text-2xl/3xl */}
                   Sistema APR
                 </h1>
-                <p className="text-lg md:text-xl mt-1 text-white/90">
+                <p className="text-base md:text-lg mt-0.5 text-white/90"> {/* text-lg/xl -> text-base/lg, mt-1 -> mt-0.5 */}
                   {isAdmin ? '👨‍💼 Panel Administrador' : '👤 Portal del Usuario'}
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-6 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border-2 border-white/20">
+            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20"> {/* gap-6 -> gap-4, rounded-2xl -> rounded-xl, px-6 py-4 -> px-4 py-2, border-2 -> border */}
               <div className="text-right">
-                <p className="text-lg md:text-xl font-semibold text-white">{usuario.nombre}</p>
-                <p className="text-base md:text-lg text-white/90">{usuario.rut}</p>
+                <p className="text-base md:text-lg font-semibold text-white">{usuario.nombre}</p> {/* text-lg/xl -> text-base/lg */}
+                <p className="text-sm md:text-base text-white/90">{usuario.rut}</p> {/* text-base/lg -> text-sm/base */}
               </div>
               <button
                 onClick={logout}
-                className="px-6 py-3 bg-red-500 hover:bg-red-600 rounded-xl text-base md:text-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm md:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95" 
+                /* px-6 py-3 -> px-4 py-2, rounded-xl -> rounded-lg, text-base/lg -> text-sm/base */
               >
                 🚪 Salir
               </button>
@@ -69,9 +70,9 @@ function Layout({ children }) {
       </header>
 
       {/* Navigation mejorada */}
-      <nav className="shadow-lg border-b-2 sticky top-[120px] z-40" style={{ background: 'linear-gradient(to right, #7dd3fc, #bae6fd, #7dd3fc)', borderColor: '#38bdf8' }}>
-        <div className="container mx-auto px-6">
-          <div className="flex overflow-x-auto gap-2 py-3">
+      <nav className="shadow-lg border-b-2 sticky top-[88px] z-40 w-full" style={{ background: 'linear-gradient(to right, #7dd3fc, #bae6fd, #7dd3fc)', borderColor: '#38bdf8' }}> {/* top-[120px] -> top-[88px] (aprox 30% menos) */}
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex overflow-x-auto gap-2 py-3 scrollbar-hide">
             {menuItems.map((item) => (
               <button
                 key={item.id}

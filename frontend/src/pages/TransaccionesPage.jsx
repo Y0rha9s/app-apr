@@ -83,10 +83,10 @@ function TransaccionesPage() {
       </div>
 
       {/* Filtros */}
-      <Card className="mb-6">
-        <div className="flex gap-4">
-          <Button 
-            variant={filtro === 'todas' ? 'primary' : 'neutral'}
+      <Card className="mb-8">
+        <div className="flex flex-wrap gap-4 mb-6">
+          <Button
+            variant={filtro === 'todos' ? 'primary' : 'neutral'}
             onClick={() => setFiltro('todas')}
           >
             Todas
