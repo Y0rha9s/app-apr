@@ -17,6 +17,15 @@ router.post('/create-preference', async (req, res) => {
     const { boletaId, monto, descripcion, usuarioEmail, usuarioId } = req.body;
 
     try {
+        // Detectar si el backend está corriendo en localhost
+        const host = req.get('host') || '';
+        const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+        const frontendUrl = isLocal 
+            ? 'http://localhost:5173' 
+            : (process.env.FRONTEND_URL || 'https://app-apr-frontend.vercel.app');
+        
+        console.log('🔗 URL de retorno configurada:', frontendUrl);
+        
         let externalReference = String(boletaId);
         // Si es pago de deuda total, usar referencia de usuario
         if (boletaId === 'DEUDA-TOTAL' && usuarioId) {
@@ -33,9 +42,9 @@ router.post('/create-preference', async (req, res) => {
                 }
             ],
             back_urls: {
-                success: `${process.env.FRONTEND_URL}/pago-exitoso`,
-                failure: `${process.env.FRONTEND_URL}/pago-fallido`,
-                pending: `${process.env.FRONTEND_URL}/pago-pendiente`
+                success: `${frontendUrl}/pago-exitoso`,
+                failure: `${frontendUrl}/pago-fallido`,
+                pending: `${frontendUrl}/pago-pendiente`
             },
             auto_return: 'approved',
             external_reference: externalReference,

@@ -16,8 +16,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  const API_URL = 'https://app-apr.onrender.com/api';
-  // const API_URL = 'http://localhost:5000/api';
+  // Detectar entorno automáticamente
+  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://app-apr.onrender.com/api';
 
   // Verificar token al cargar
   useEffect(() => {

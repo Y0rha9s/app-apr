@@ -1,8 +1,14 @@
 import axios from 'axios';
 
-// URL de la API
-const API_URL = 'https://app-apr.onrender.com/api'; 
-// const API_URL = 'http://localhost:5000/api';
+// Detectar entorno automáticamente
+const getBaseUrl = () => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:5000/api';
+  }
+  return 'https://app-apr.onrender.com/api';
+};
+
+const API_URL = getBaseUrl();
 
 const api = axios.create({
   baseURL: API_URL,
