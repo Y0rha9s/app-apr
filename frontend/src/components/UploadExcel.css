@@ -1,0 +1,313 @@
+.upload-excel-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.upload-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+.upload-card h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 28px;
+}
+
+.subtitle {
+  color: #7f8c8d;
+  margin-bottom: 30px;
+}
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: inline-block;
+  padding: 15px 30px;
+  background: #ecf0f1;
+  border: 2px dashed #95a5a6;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.file-label:hover {
+  background: #d5dbdb;
+  border-color: #7f8c8d;
+}
+
+.upload-button {
+  padding: 15px 30px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.upload-button:hover:not(:disabled) {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.upload-button:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: #e74c3c;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.resultado-container {
+  margin-top: 30px;
+}
+
+.resultado-header {
+  background: #2ecc71;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.resultado-header h3 {
+  margin: 0 0 10px 0;
+}
+
+.resultado-header p {
+  margin: 0;
+  font-size: 18px;
+}
+
+.nuevos-usuarios {
+  background: #e8f5e9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #4caf50;
+}
+
+.nuevos-usuarios h4 {
+  margin-top: 0;
+  color: #2e7d32;
+}
+
+.nuevos-usuarios ul {
+  list-style: none;
+  padding: 0;
+}
+
+.nuevos-usuarios li {
+  padding: 5px 0;
+  color: #1b5e20;
+}
+
+.info-password {
+  margin-top: 15px;
+  padding: 10px;
+  background: #fff3cd;
+  border-radius: 4px;
+  color: #856404;
+}
+
+.info-password code {
+  background: #ffc107;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.errores-list {
+  background: #ffebee;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #f44336;
+}
+
+.errores-list h4 {
+  margin-top: 0;
+  color: #c62828;
+}
+
+.errores-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.errores-list li {
+  padding: 8px 0;
+  color: #b71c1c;
+  border-bottom: 1px solid #ffcdd2;
+}
+
+.detalles-table {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.detalles-table h4 {
+  color: #2c3e50;
+}
+
+.detalles-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.detalles-table th {
+  background: #34495e;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.detalles-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.detalles-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.estado {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.estado.pagado {
+  background: #d4edda;
+  color: #155724;
+}
+
+.estado.parcial {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado.pendiente {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.more-results {
+  text-align: center;
+  color: #7f8c8d;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+.instrucciones {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.instrucciones h4 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.instrucciones ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.instrucciones li {
+  padding: 5px 0;
+  color: #34495e;
+}
+
+.instrucciones strong {
+  color: #2980b9;
+}
+
+.loading-sheets {
+  padding: 15px;
+  background: #fff3cd;
+  border-radius: 8px;
+  color: #856404;
+  text-align: center;
+  font-weight: 500;
+}
+
+.sheet-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sheet-label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 16px;
+}
+
+.sheet-select {
+  padding: 12px 15px;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  font-size: 16px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sheet-select:hover {
+  border-color: #2980b9;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+}
+
+.sheet-select:focus {
+  outline: none;
+  border-color: #2980b9;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.periodo-info {
+  font-size: 16px;
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+.nota-importante {
+  margin-top: 15px;
+  padding: 12px;
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+  color: #1565c0;
+}

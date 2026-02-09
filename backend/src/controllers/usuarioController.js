@@ -138,6 +138,34 @@ const usuarioController = {
     }
   },
 
+  // Actualizar usuario
+  update: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { nombre, rut, email, telefono, direccion } = req.body;
+
+      // Verificar si existe el usuario
+      const usuarioExistente = await usuarioModel.getById(id);
+      if (!usuarioExistente) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+
+      // Actualizar
+      const usuarioActualizado = await usuarioModel.update(id, {
+        nombre,
+        rut,
+        email,
+        telefono,
+        direccion
+      });
+
+      const { password, ...usuario } = usuarioActualizado;
+      res.json(usuario);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
   // Obtener información completa del usuario (pagos, morosidad, convenio, notificaciones)
   getInfoCompleta: async (req, res) => {
     try {

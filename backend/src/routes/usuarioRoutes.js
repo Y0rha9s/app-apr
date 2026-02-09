@@ -8,6 +8,7 @@ router.get('/:id', usuarioController.getById);
 router.get('/:id/deuda', usuarioController.getDeuda);
 router.get('/:id/info-completa', usuarioController.getInfoCompleta);
 router.post('/', usuarioController.create);
+router.put('/:id', usuarioController.update);
 router.put('/:id/suspender', usuarioController.suspender);
 router.put('/:id/reponer', usuarioController.reponer);
 

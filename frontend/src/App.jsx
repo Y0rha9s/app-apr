@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TransaccionesPage from './pages/TransaccionesPage';
@@ -10,9 +11,12 @@ import MiCuentaPage from './pages/MiCuentaPage';
 import MiConsumoPage from './pages/MiConsumoPage';
 import CajaPage from './pages/CajaPage';
 import PagosPage from './pages/PagosPage';
+import UploadExcel from './components/UploadExcel';
+import PagoExitoso from './pages/PagoExitoso';
 
 function AppContent() {
   const { usuario, loading, isAdmin } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -27,6 +31,11 @@ function AppContent() {
 
   if (!usuario) {
     return <LoginPage />;
+  }
+
+  // Rutas especiales que no usan el Layout principal o necesitan renderizado completo
+  if (location.pathname === '/pago-exitoso') {
+    return <PagoExitoso />;
   }
 
   return (
@@ -59,6 +68,11 @@ function AppContent() {
               return <MiCuentaPage />;
             }
             return <MorosidadPage />;
+          case 'carga-masiva': // ← NUEVO CASO
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
+            return <UploadExcel />;
           case 'caja':
             return <CajaPage />;
           case 'mi-cuenta':

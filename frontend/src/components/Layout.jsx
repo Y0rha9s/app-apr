@@ -1,19 +1,27 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
 function Layout({ children }) {
   const { usuario, logout, isAdmin } = useAuth();
   const [menuActivo, setMenuActivo] = useState(isAdmin ? 'dashboard' : 'mi-cuenta');
+  const location = useLocation();
 
-  // Actualizar el menú inicial cuando cambie el rol
+  // Actualizar el menú inicial cuando cambie el rol o la URL
   useEffect(() => {
+    // Sincronizar URL con menú
+    if (location.pathname === '/pagos') {
+      setMenuActivo('pagos');
+      return; // Prioridad a la URL explícita
+    }
+
     // Si es admin y está en una página de usuario, cambiar a dashboard
     if (isAdmin && (menuActivo === 'mi-cuenta' || menuActivo === 'mi-consumo' || menuActivo === 'pagos' || menuActivo === 'reclamos')) {
       setMenuActivo('dashboard');
     }
     // Si es usuario y está en una página de admin, cambiar a mi-cuenta
-    else if (!isAdmin && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos')) {
+    else if (!isAdmin && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos' || menuActivo === 'carga-masiva')) { // ← AGREGADO
       setMenuActivo('mi-cuenta');
     }
   }, [isAdmin]);
@@ -23,6 +31,7 @@ function Layout({ children }) {
     { id: 'transacciones', label: 'Ingresos/Egresos', icon: '💰' },
     { id: 'socios', label: 'Usuarios', icon: '👥' },
     { id: 'lecturas', label: 'Lecturas', icon: '💧' },
+    { id: 'carga-masiva', label: 'Carga Masiva', icon: '📤' },
     { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
     { id: 'caja', label: 'Caja', icon: '💵' },
   ] : [
@@ -51,7 +60,7 @@ function Layout({ children }) {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20"> {/* gap-6 -> gap-4, rounded-2xl -> rounded-xl, px-6 py-4 -> px-4 py-2, border-2 -> border */}
               <div className="text-right">
                 <p className="text-base md:text-lg font-semibold text-white">{usuario.nombre}</p> {/* text-lg/xl -> text-base/lg */}
@@ -59,8 +68,8 @@ function Layout({ children }) {
               </div>
               <button
                 onClick={logout}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm md:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95" 
-                /* px-6 py-3 -> px-4 py-2, rounded-xl -> rounded-lg, text-base/lg -> text-sm/base */
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm md:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+              /* px-6 py-3 -> px-4 py-2, rounded-xl -> rounded-lg, text-base/lg -> text-sm/base */
               >
                 🚪 Salir
               </button>
@@ -77,12 +86,11 @@ function Layout({ children }) {
               <button
                 key={item.id}
                 onClick={() => setMenuActivo(item.id)}
-                className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${
-                  menuActivo === item.id
+                className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${menuActivo === item.id
                     ? 'text-white shadow-lg scale-105'
                     : 'hover:scale-105'
-                }`}
-                style={menuActivo === item.id 
+                  }`}
+                style={menuActivo === item.id
                   ? { background: 'linear-gradient(to right, #0ea5e9, #0284c7)', color: 'white' }
                   : { color: '#075985' }
                 }
@@ -127,20 +135,20 @@ function Layout({ children }) {
                 Gestión eficiente de agua potable para comunidades rurales
               </p>
             </div>
-            
+
             <div>
               <h4 className="text-xl font-bold mb-4">Contacto</h4>
               <p className="text-lg text-gray-300 mb-2">📞 +56 9 1234 5678</p>
               <p className="text-lg text-gray-300">✉️ contacto@apr.cl</p>
             </div>
-            
+
             <div>
               <h4 className="text-xl font-bold mb-4">Horario de Atención</h4>
               <p className="text-lg text-gray-300 mb-2">Lunes a Viernes</p>
               <p className="text-lg text-gray-300">9:00 - 18:00 hrs</p>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-700 mt-8 pt-8 text-center">
             <p className="text-lg text-gray-400">
               © 2026 Sistema APR - Todos los derechos reservados

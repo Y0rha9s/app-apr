@@ -1,9 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import BotonPagarMP from '../components/BotonPagarMP';
+import { useAuth } from '../contexts/AuthContext';
+import { usuariosService } from '../services/api';
 
 const PagosPage = () => {
+  const { usuario } = useAuth();
   const [metodoSeleccionado, setMetodoSeleccionado] = useState(null);
+  const [deuda, setDeuda] = useState(0);
+  const [loadingDeuda, setLoadingDeuda] = useState(true);
+
+  useEffect(() => {
+    if (usuario) {
+      cargarDeuda();
+    }
+  }, [usuario]);
+
+  const cargarDeuda = async () => {
+    try {
+      setLoadingDeuda(true);
+      const response = await usuariosService.getDeuda(usuario.id);
+      setDeuda(response.data.deuda || 0);
+    } catch (error) {
+      console.error('Error al cargar deuda:', error);
+    } finally {
+      setLoadingDeuda(false);
+    }
+  };
 
   const datosTransferencia = {
     banco: 'Banco Estado',
@@ -27,19 +51,41 @@ const PagosPage = () => {
               La forma más rápida y segura de pagar su cuenta. El pago se registra automáticamente.
             </p>
             
+            <div className="bg-blue-50 p-4 rounded-lg mb-6 flex justify-between items-center">
+              <span className="text-blue-800 font-medium">Total a Pagar:</span>
+              <span className="text-2xl font-bold text-blue-600">
+                {loadingDeuda ? 'Cargando...' : `$ ${deuda.toLocaleString('es-CL')}`}
+              </span>
+            </div>
+
             <div className="space-y-4">
               {/* Mercado Pago - Destacado */}
-              <button 
-                className="w-full bg-[#009EE3] hover:bg-[#008ED0] text-white py-4 px-6 rounded-xl shadow-md transition-transform transform hover:scale-[1.02] flex items-center justify-center gap-3"
-                onClick={() => alert('Integración con Mercado Pago próximamente')}
-              >
-                <img 
-                  src="https://img.icons8.com/color/48/mercadopago.png" 
-                  alt="Mercado Pago" 
-                  className="w-8 h-8 bg-white rounded-full p-1"
+              {deuda > 0 ? (
+                <BotonPagarMP 
+                  boleta={{
+                    id: 'DEUDA-TOTAL', // Opcional, el backend maneja el pago a nivel usuario si no hay boleta
+                    total_a_pagar: deuda,
+                    usuario_id: usuario.id,
+                    usuario_email: usuario.email,
+                    descripcion: `Pago total deuda - Cliente #${usuario.numero_cliente || usuario.rut}`
+                  }}
+                  onSuccess={() => {
+                    alert('Pago iniciado correctamente');
+                  }}
                 />
-                <span className="text-xl font-bold">Pagar con Mercado Pago</span>
-              </button>
+              ) : (
+                 <button 
+                  className="w-full py-4 px-6 rounded-xl shadow-md bg-gray-300 text-gray-500 cursor-not-allowed flex items-center justify-center gap-3"
+                  disabled
+                >
+                  <img 
+                    src="https://cdn.simpleicons.org/mercadopago/009EE3" 
+                    alt="Mercado Pago" 
+                    className="w-8 h-8 bg-white rounded-full p-1.5 grayscale opacity-50"
+                  />
+                  <span className="text-xl font-bold">Sin deuda pendiente</span>
+                </button>
+              )}
 
               {/* WebPay - Secundario */}
               <button 
