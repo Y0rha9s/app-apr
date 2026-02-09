@@ -23,9 +23,15 @@ router.post('/create-preference', async (req, res) => {
         // Detectar si el backend está corriendo en localhost
         const host = req.get('host') || '';
         const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
-        const frontendUrl = isLocal 
+        let frontendUrl = isLocal 
             ? 'http://localhost:5173' 
             : (process.env.FRONTEND_URL || 'https://app-apr-frontend.vercel.app');
+        
+        // Limpieza robusta de URL
+        frontendUrl = frontendUrl.trim();
+        if (frontendUrl.endsWith('/')) {
+            frontendUrl = frontendUrl.slice(0, -1);
+        }
         
         console.log('🔗 URL de retorno configurada:', frontendUrl);
         
@@ -62,7 +68,7 @@ router.post('/create-preference', async (req, res) => {
             }
         };
 
-        console.log('📋 Creando preferencia...');
+        console.log('📋 Creando preferencia con datos:', JSON.stringify(preferenceData, null, 2));
 
         const preference = await preferenceClient.create({ body: preferenceData });
 
