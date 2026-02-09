@@ -16,8 +16,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  // const API_URL = 'https://app-apr.onrender.com/api';
-  const API_URL = 'http://localhost:5000/api';
+  const API_URL = 'https://app-apr.onrender.com/api';
+  // const API_URL = 'http://localhost:5000/api';
 
   // Verificar token al cargar
   useEffect(() => {

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// URL de la API (cambiar a localhost para desarrollo local si el backend corre en tu máquina)
-// const API_URL = 'https://app-apr.onrender.com/api'; 
-const API_URL = 'http://localhost:5000/api';
+// URL de la API
+const API_URL = 'https://app-apr.onrender.com/api'; 
+// const API_URL = 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
