@@ -336,6 +336,60 @@ function MiCuentaPage() {
           </button>
         </div>
       </Card>
+      {/* Modal de Historial */}
+      {showHistorial && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="p-6 border-b flex justify-between items-center bg-blue-600 text-white rounded-t-xl">
+              <h3 className="text-2xl font-bold">📜 Historial de Pagos</h3>
+              <button onClick={() => setShowHistorial(false)} className="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              {loadingHistorial ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-xl animate-pulse">Cargando historial...</p>
+                </div>
+              ) : historial.length > 0 ? (
+                <div className="space-y-4">
+                  {historial.map((pago) => (
+                    <div key={pago.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors flex justify-between items-center">
+                      <div>
+                        <p className="font-bold text-lg text-gray-800">
+                          Monto: ${parseInt(pago.monto).toLocaleString('es-CL')}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Fecha: {new Date(pago.fecha_pago).toLocaleDateString('es-CL')} {new Date(pago.fecha_pago).toLocaleTimeString('es-CL')}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">
+                          Método: {pago.metodo_pago || 'Desconocido'}
+                        </p>
+                      </div>
+                      <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        ✅ Pagado
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                  <p className="text-4xl mb-3">📭</p>
+                  <p className="text-gray-500 text-lg">No se encontraron pagos registrados.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t bg-gray-50 rounded-b-xl flex justify-end">
+              <button 
+                onClick={() => setShowHistorial(false)}
+                className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
