@@ -37,6 +37,34 @@ function AppContent() {
   if (location.pathname === '/pago-exitoso') {
     return <PagoExitoso />;
   }
+  if (location.pathname === '/pago-fallido') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-50">
+        <div className="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full">
+          <div className="text-6xl mb-4">❌</div>
+          <h1 className="text-2xl font-bold text-red-600 mb-2">Pago Fallido</h1>
+          <p className="text-gray-600 mb-6">Lo sentimos, no pudimos procesar tu pago. Por favor intenta nuevamente.</p>
+          <a href="/pagos" className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition-colors">
+            Volver a intentar
+          </a>
+        </div>
+      </div>
+    );
+  }
+  if (location.pathname === '/pago-pendiente') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-yellow-50">
+        <div className="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full">
+          <div className="text-6xl mb-4">⏳</div>
+          <h1 className="text-2xl font-bold text-yellow-600 mb-2">Pago Pendiente</h1>
+          <p className="text-gray-600 mb-6">Tu pago está siendo procesado. Te notificaremos cuando se complete.</p>
+          <a href="/pagos" className="bg-yellow-600 text-white px-6 py-2 rounded-full hover:bg-yellow-700 transition-colors">
+            Volver a Pagos
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout>
