@@ -33,7 +33,10 @@ router.post('/create-preference', async (req, res) => {
             frontendUrl = frontendUrl.slice(0, -1);
         }
         
+        const backendUrl = process.env.BACKEND_URL || (isLocal ? 'http://localhost:5000' : 'https://app-apr.onrender.com');
+        
         console.log('🔗 URL de retorno configurada:', frontendUrl);
+        console.log('🔗 URL de backend configurada:', backendUrl);
         
         let externalReference = String(boletaId);
         // Si es pago de deuda total, usar referencia de usuario
@@ -60,7 +63,7 @@ router.post('/create-preference', async (req, res) => {
             payer: {
                 email: usuarioEmail || 'test@test.com'
             },
-            notification_url: `${process.env.BACKEND_URL}/api/mercadopago/webhook`,
+            notification_url: `${backendUrl}/api/mercadopago/webhook`,
             statement_descriptor: 'APR AGUA',
             metadata: {
                 boleta_id: boletaId,
