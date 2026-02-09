@@ -4,8 +4,11 @@ const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const pool = require('../config/database');
 
 // Configurar cliente de Mercado Pago
+const accessToken = process.env.MP_ACCESS_TOKEN ? process.env.MP_ACCESS_TOKEN.trim() : '';
+console.log('🔑 MP Token Configurado (inicia con):', accessToken.substring(0, 10) + '...');
+
 const client = new MercadoPagoConfig({
-    accessToken: process.env.MP_ACCESS_TOKEN,
+    accessToken: accessToken,
     options: { timeout: 5000 }
 });
 
