@@ -10,7 +10,14 @@ function UploadExcel() {
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const getBaseUrl = () => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+    return 'https://app-apr.onrender.com';
+  };
+  
+  const API_URL = getBaseUrl();
   
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
