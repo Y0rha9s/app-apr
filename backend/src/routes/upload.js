@@ -33,8 +33,49 @@ router.post('/get-sheets', upload.single('file'), async (req, res) => {
   }
 });
 
-// Función para calcular total por tramos
-async function calcularTotalPorTramos(consumoM3) {
+function normalizarPeriodo(nombreHoja) {
+  if (!nombreHoja) {
+    return new Date().toISOString().substring(0, 7); // YYYY-MM
+  }
+
+  // Si ya viene en formato YYYY-MM, devolverlo
+  if (/^\d{4}-\d{2}$/.test(nombreHoja)) {
+    return nombreHoja;
+  }
+
+  // Mapeo de nombres de meses en español
+  const meses = {
+    'ENERO': '01',
+    'FEBRERO': '02',
+    'MARZO': '03',
+    'ABRIL': '04',
+    'MAYO': '05',
+    'JUNIO': '06',
+    'JULIO': '07',
+    'AGOSTO': '08',
+    'SEPTIEMBRE': '09',
+    'OCTUBRE': '10',
+    'NOVIEMBRE': '11',
+    'DICIEMBRE': '12'
+  };
+
+  // Extraer mes y año del nombre de la hoja
+  const partes = nombreHoja.toUpperCase().trim().split(/\s+/);
+  const nombreMes = partes[0];
+  const año = partes[1] || new Date().getFullYear().toString();
+
+  const numeroMes = meses[nombreMes];
+
+  if (!numeroMes) {
+    console.log(`⚠️ No se pudo parsear el periodo: "${nombreHoja}", usando actual`);
+    return new Date().toISOString().substring(0, 7);
+  }
+
+  return `${año}-${numeroMes}`;
+}
+
+// Función para calcular total por tramos (ahora recibe las tarifas ya cargadas)
+async function calcularTotalPorTramos(consumoM3, tipoUsuario = 'normal') {
   const result = await pool.query(
     'SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC'
   );
@@ -42,6 +83,11 @@ async function calcularTotalPorTramos(consumoM3) {
   const tarifas = result.rows;
   let total = 0;
   let m3Restantes = consumoM3;
+  let m3ProcesadosTotal = 0;
+
+  // Configuración de subsidio (primeros 15 m³ al 50% para usuarios subsidiados)
+  const LIMITE_SUBSIDIO = 15;
+  const DESCUENTO_SUBSIDIO = 0.5; // 50%
 
   for (const tarifa of tarifas) {
     if (m3Restantes <= 0) break;
@@ -50,18 +96,63 @@ async function calcularTotalPorTramos(consumoM3) {
     const hasta = tarifa.tramo_hasta || Infinity;
     const rangoTramo = hasta - desde + 1;
 
+    // Cuántos m³ entran en este tramo
     const m3EnTramo = Math.min(m3Restantes, rangoTramo);
-    total += m3EnTramo * parseFloat(tarifa.precio_por_m3);
+
+    // Aplicar descuento para usuarios subsidiados en primeros 15 m³
+    let precioFinal = parseFloat(tarifa.precio_por_m3);
+
+    if (tipoUsuario === 'subsidiado') {
+      // Verificar cuántos m³ de este tramo están dentro del límite de subsidio
+      const m3SubsidiablesEnTramo = Math.max(0, Math.min(
+        LIMITE_SUBSIDIO - m3ProcesadosTotal,
+        m3EnTramo
+      ));
+
+      if (m3SubsidiablesEnTramo > 0) {
+        // Calcular parte con descuento
+        const montoConDescuento = m3SubsidiablesEnTramo * precioFinal * DESCUENTO_SUBSIDIO;
+
+        // Calcular parte sin descuento
+        const m3SinDescuento = m3EnTramo - m3SubsidiablesEnTramo;
+        const montoSinDescuento = m3SinDescuento * precioFinal;
+
+        total += montoConDescuento + montoSinDescuento;
+
+        console.log(`  💰 Tramo ${desde}-${hasta}: ${m3SubsidiablesEnTramo}m³ con desc. + ${m3SinDescuento}m³ normal`);
+      } else {
+        // Todos los m³ de este tramo sin descuento
+        total += m3EnTramo * precioFinal;
+      }
+    } else {
+      // Usuario normal o exento_iva (sin descuento en consumo)
+      total += m3EnTramo * precioFinal;
+    }
+
+    m3ProcesadosTotal += m3EnTramo;
     m3Restantes -= m3EnTramo;
   }
 
-  return total;
+  // Aplicar IVA para usuarios exentos (iglesias, juntas vecinales, colegios)
+  let totalIVA = 0;
+  if (tipoUsuario === 'exento_iva') {
+    totalIVA = total * 0.19; // 19% IVA
+    total = total + totalIVA;
+    console.log(`  📊 IVA 19%: $${totalIVA.toFixed(0)}`);
+  }
+
+  return {
+    subtotal: total - totalIVA,
+    iva: totalIVA,
+    total: total
+  };
 }
 
 // Función para obtener o crear usuario
 async function obtenerOCrearUsuario(row, client) {
   const rut = row.RUT;
 
+  // Buscar usuario existente
   const resultUsuario = await client.query(
     'SELECT id FROM usuarios WHERE rut = $1',
     [rut]
@@ -71,41 +162,27 @@ async function obtenerOCrearUsuario(row, client) {
     return { id: resultUsuario.rows[0].id, esNuevo: false };
   }
 
+  // Crear nuevo usuario
   const password = generarPassword(rut);
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Generar número de cliente automáticamente
-  // Buscamos el máximo actual y sumamos 1
-  const resultMax = await client.query(`
-    SELECT COALESCE(MAX(CAST(numero_cliente AS INTEGER)), 0) + 1 as siguiente 
-    FROM usuarios 
-    WHERE numero_cliente ~ '^[0-9]+$'
-  `);
-  
-  let siguienteNumero = parseInt(resultMax.rows[0]?.siguiente || 1);
-  // Formato: 001, 002... 999, 1000...
-  const numeroCliente = siguienteNumero < 1000 
-    ? siguienteNumero.toString().padStart(3, '0') 
-    : siguienteNumero.toString();
-
   const resultNuevo = await client.query(
-    `INSERT INTO usuarios (nombre, rut, direccion, email, password, rol, numero_cliente) 
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+    `INSERT INTO usuarios (nombre, rut, direccion, email, password, rol) 
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
     [
       row.NOMBRE,
       rut,
       row.DOMICILIO,
       `${rut}@temp.com`,
       hashedPassword,
-      'socio', // Usamos 'socio' para consistencia con el resto del sistema
-      numeroCliente
+      'usuario'
     ]
   );
 
   return { id: resultNuevo.rows[0].id, esNuevo: true };
 }
 
-// Endpoint principal - ACTUALIZADO para recibir nombre de hoja
+// Función principal - ACTUALIZADO para recibir nombre de hoja
 router.post('/upload-excel', upload.single('file'), async (req, res) => {
   const client = await pool.connect();
 
@@ -164,18 +241,25 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     const abonoIdx = headers.indexOf('ABONO');
     const mPagoIdx = headers.indexOf('M. PAGO');
     const totalIdx = headers.indexOf('TOTAL');
-    const sPendienteIdx = headers.findIndex(h => h && h.includes('PENDIENTE'));
+    const sAnteriorIdx = headers.findIndex(h => h && (h === 'S. ANTERIOR' || h.includes('SALDO ANTERIOR')));
+    const totalMesIdx = headers.findIndex(h => h && (h.includes('TOTAL MES') || h.includes('T. MES') || h.includes('MES')));
+    const sPendienteIdx = headers.findIndex(h => h && (h === 'S.PENDIENTE' || h.includes('PENDIENTE')));
+    const tMesIdx = headers.findIndex(h => h && (h === 'T. MES' || h.includes('TOTAL MES')));
 
-    console.log('� Índices de columnas:', {
+    console.log('📍 Índices de columnas:', {
       nombre: nombreIdx,
       rut: rutIdx,
       domicilio: domicilioIdx,
       lAnterior: lAnteriorIdx,
       lActual: lActualIdx,
       m3: m3Idx,
+      saldoAnterior: sAnteriorIdx, // ← Verificar que sea diferente de lAnteriorIdx
+      totalMes: tMesIdx,
       abono: abonoIdx,
-      total:  totalIdx
+      total: totalIdx
     });
+
+
 
     // Procesar filas de datos (después de los encabezados)
     const dataFiltrada = [];
@@ -198,6 +282,8 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
         'ABONO': parseFloat(String(row[abonoIdx] || '0').replace(/[$,]/g, '')) || 0,
         'M. PAGO': row[mPagoIdx] || '',
         'TOTAL': parseFloat(String(row[totalIdx] || '0').replace(/[$,]/g, '')) || 0,
+        'SALDO ANTERIOR': parseFloat(String(row[sAnteriorIdx] || '0').replace(/[$,]/g, '')) || 0, // ← Importante
+        'TOTAL MES': parseFloat(String(row[tMesIdx] || '0').replace(/[$,]/g, '')) || 0, // ← Importante
         'S.PENDIENTE': parseFloat(String(row[sPendienteIdx] || '0').replace(/[$,]/g, '')) || 0
       });
     }
@@ -205,9 +291,18 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     console.log('✅ Filas válidas después del mapeo:', dataFiltrada.length);
     if (dataFiltrada.length > 0) {
       console.log('📝 Primeras 3 filas mapeadas:', dataFiltrada.slice(0, 3));
+
+      if (dataFiltrada.length > 0) {
+        const primera = dataFiltrada[0];
+        console.log('🔍 Verificación primera fila:');
+        console.log('  L.ANTERIOR (lectura):', primera['L.ANTERIOR']);
+        console.log('  SALDO ANTERIOR ($$):', primera['SALDO ANTERIOR']);
+        console.log('  TOTAL MES:', primera['TOTAL MES']);
+      }
     }
 
-    const periodo = targetSheet || new Date().toISOString().substring(0, 7);
+    const periodo = normalizarPeriodo(targetSheet);
+    console.log('📅 Periodo normalizado:', periodo);
 
     // Parsear mes y año del periodo
     let mes, anio;
@@ -234,7 +329,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
         anio = hoy.getFullYear();
       }
     }
-    
+
     // Formatear periodo para la BD (YYYY-MM) para cumplir con varchar(7)
     const periodoBD = `${anio}-${String(mes).padStart(2, '0')}`;
 
@@ -244,6 +339,39 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
       nuevosUsuarios: [],
       detalles: []
     };
+
+    // 1. Pre-cargar datos necesarios para optimizar
+    const resultTarifas = await client.query('SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC');
+    const tarifas = resultTarifas.rows;
+
+    const resultMax = await client.query(`
+      SELECT COALESCE(MAX(CAST(numero_cliente AS INTEGER)), 0) as max_actual 
+      FROM usuarios 
+      WHERE numero_cliente ~ '^[0-9]+$'
+    `);
+    let siguienteNumeroCliente = parseInt(resultMax.rows[0]?.max_actual || 0) + 1;
+
+    // Obtener todos los RUTs de la data para buscar usuarios existentes de una sola vez
+    const rutsEnExcel = dataFiltrada.map(r => r.RUT);
+    const resultUsuariosExistentes = await client.query(
+      'SELECT id, rut, numero_cliente FROM usuarios WHERE rut = ANY($1)',
+      [rutsEnExcel]
+    );
+
+    // Mapa para búsqueda rápida de usuarios
+    const usuariosMap = new Map();
+    resultUsuariosExistentes.rows.forEach(u => usuariosMap.set(u.rut, u));
+
+    // Obtener los saldos pendientes actuales de todos los usuarios
+    const resultSaldos = await client.query(`
+      SELECT DISTINCT ON (usuario_id) usuario_id, saldo_pendiente 
+      FROM boletas 
+      WHERE usuario_id = ANY($1)
+      ORDER BY usuario_id, created_at DESC
+    `, [Array.from(usuariosMap.values()).map(u => u.id)]);
+
+    const saldosMap = new Map();
+    resultSaldos.rows.forEach(s => saldosMap.set(s.usuario_id, parseFloat(s.saldo_pendiente)));
 
     await client.query('BEGIN');
 
@@ -259,42 +387,76 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
           resultados.nuevosUsuarios.push(row.NOMBRE);
         }
 
-        // 2. Insertar lectura
+        // 2. Obtener tipo de usuario
+        const tipoUsuarioResult = await client.query(
+          'SELECT tipo_usuario FROM usuarios WHERE id = $1',
+          [usuarioId]
+        );
+        const tipoUsuario = tipoUsuarioResult.rows[0]?.tipo_usuario || 'normal';
+
+        // 3. Preparar datos de lectura
         const lecturaAnterior = parseInt(row['L.ANTERIOR']) || 0;
         const lecturaActual = parseInt(row['L.ACTUAL']) || 0;
-        const consumoM3 = Math.max(0, lecturaActual - lecturaAnterior);
+        const consumoTemporal = Math.max(0, lecturaActual - lecturaAnterior);
 
-        console.log(`📝 Fila ${i + 1}: ${row.NOMBRE}, consumo: ${consumoM3}`);
+        // 4. CALCULAR MONTO (SIEMPRE debe definirse aquí)
+        let montoCalculado = 0; // ← INICIALIZAR SIEMPRE
 
-        // 3. Calcular total del mes (Mover antes de insertar lectura para guardar monto_calculado)
-        const totalMes = await calcularTotalPorTramos(consumoM3);
+        if (row['TOTAL MES'] && row['TOTAL MES'] > 0) {
+          montoCalculado = row['TOTAL MES'];
+          console.log(`  📋 Usando total del Excel: $${montoCalculado}`);
+        } else {
+          const calculoTotal = await calcularTotalPorTramos(consumoTemporal, tipoUsuario);
+          montoCalculado = calculoTotal.total;
+          console.log(`  💵 Total calculado: $${montoCalculado.toFixed(0)}`);
+        }
+
+        // 5. Insertar lectura
+        const [anio, mes] = periodo.split('-').map(Number);
+        const fechaPeriodo = new Date(anio, mes - 1, 1);
+        const fechaVencimiento = new Date(fechaPeriodo);
+        fechaVencimiento.setDate(fechaPeriodo.getDate() + 15);
 
         const resultLectura = await client.query(
-          `INSERT INTO lecturas (usuario_id, lectura_anterior, lectura_actual, monto_calculado, mes, anio, fecha_lectura)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id`,
-          [usuarioId, lecturaAnterior, lecturaActual, totalMes, mes, anio]
+          `INSERT INTO lecturas (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura)
+     VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, consumo_m3`,
+          [usuarioId, lecturaAnterior, lecturaActual, mes, anio, montoCalculado]
         );
 
         const lecturaId = resultLectura.rows[0].id;
+        const consumoM3 = resultLectura.rows[0].consumo_m3;
 
-        // 4. Obtener saldo anterior
-        const resultSaldoAnterior = await client.query(
-          `SELECT saldo_pendiente FROM boletas 
-           WHERE usuario_id = $1 
-           ORDER BY created_at DESC LIMIT 1`,
-          [usuarioId]
-        );
+        console.log(`📝 Fila ${i + 1}: ${row.NOMBRE}, consumo: ${consumoM3}m³`);
+        console.log(`  👤 Tipo usuario: ${tipoUsuario}`);
 
-        const saldoAnterior = resultSaldoAnterior.rows.length > 0
-          ? parseFloat(resultSaldoAnterior.rows[0].saldo_pendiente)
-          : 0;
+        // 6. totalMes es igual a montoCalculado
+        const totalMes = montoCalculado;
 
-        // 5. Calcular totales
+        // 7. Obtener saldo anterior
+        let saldoAnterior = 0;
+
+        if (row['SALDO ANTERIOR'] && row['SALDO ANTERIOR'] > 0) {
+          saldoAnterior = row['SALDO ANTERIOR'];
+          console.log(`  💰 Usando saldo anterior del Excel: $${saldoAnterior}`);
+        } else {
+          const resultSaldoAnterior = await client.query(
+            `SELECT saldo_pendiente FROM boletas 
+       WHERE usuario_id = $1 
+       ORDER BY created_at DESC LIMIT 1`,
+            [usuarioId]
+          );
+
+          saldoAnterior = resultSaldoAnterior.rows.length > 0
+            ? parseFloat(resultSaldoAnterior.rows[0].saldo_pendiente)
+            : 0;
+        }
+
+        // 8. Calcular totales
         const totalAPagar = totalMes + saldoAnterior;
         const abono = parseFloat(row['ABONO']) || 0;
         const saldoPendiente = totalAPagar - abono;
 
-        // 6. Determinar estado
+        // 9. Determinar estado
         let estado = 'pendiente';
         if (abono >= totalAPagar) {
           estado = 'pagado';
@@ -302,21 +464,36 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
           estado = 'parcial';
         }
 
-        // 7. Insertar boleta
+        // 10. Insertar boleta
+
         const resultBoleta = await client.query(
           `INSERT INTO boletas 
-           (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-          [usuarioId, lecturaId, periodoBD, consumoM3, totalMes, saldoAnterior, totalAPagar, saldoPendiente, estado]
+   (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, 
+    total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+          [
+            usuarioId,
+            lecturaId,
+            periodo,
+            consumoM3,
+            totalMes,
+            saldoAnterior,
+            totalAPagar,
+            saldoPendiente,
+            estado,
+            0, // descuento_subsidio
+            0, // monto_iva
+            fechaVencimiento // ← Fecha de vencimiento calculada
+          ]
         );
 
         const boletaId = resultBoleta.rows[0].id;
 
-        // 8. Registrar pago si hay abono
+        // 11. Registrar pago si hay abono
         if (abono > 0) {
           await client.query(
             `INSERT INTO pagos (usuario_id, monto, metodo_pago, boleta_id, fecha_pago)
-             VALUES ($1, $2, $3, $4, NOW())`,
+       VALUES ($1, $2, $3, $4, NOW())`,
             [usuarioId, abono, row['M. PAGO'] || 'efectivo', boletaId]
           );
         }
@@ -332,6 +509,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
         });
 
       } catch (error) {
+        console.error(`❌ Error en fila ${i + 1}:`, error.message);
         resultados.errores.push({
           fila: i + 1,
           nombre: row.NOMBRE,

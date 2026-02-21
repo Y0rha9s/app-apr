@@ -1,23 +1,43 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import Card from '../components/Card';
 
 import Button from '../components/Button';
+import FormularioNuevaLectura from '../components/FormularioNuevaLectura';
 
 function LecturasPage() {
-  const { user } = useAuth();
+
+  const { usuario  } = useAuth();
   const [lecturas, setLecturas] = useState([]);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mesActual] = useState(new Date().getMonth() + 1);
   const [anioActual] = useState(new Date().getFullYear());
-  
+
   // Estados para edición
   const [editando, setEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({});
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
   const [razonModificacion, setRazonModificacion] = useState('');
+
+
+  const handleNuevaLectura = () => {
+    setMostrarFormulario(true);
+  };
+
+  const handleCerrarFormulario = () => {
+    setMostrarFormulario(false);
+  };
+
+  const handleLecturaCreada = (data) => {
+    // Recargar lecturas
+    cargarLecturas();
+
+    // Mostrar mensaje de éxito
+    alert(`✅ ${data.mensaje}\n\nConsumo: ${data.lectura.consumo_m3} m³\nTotal a pagar: $${data.boleta.total_a_pagar.toLocaleString()}`);
+  };
 
   useEffect(() => {
     cargarDatos();
@@ -30,7 +50,7 @@ function LecturasPage() {
         api.get('/usuarios')
       ]);
       setLecturas(lecturasRes.data);
-      setUsuarios(usuariosRes.data.filter(u => u.rol === 'socio'));
+      setUsuarios(usuariosRes.data.filter(u => u.rol === 'usuario'));
       setLoading(false);
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -59,7 +79,10 @@ function LecturasPage() {
   const handleEditar = (lectura) => {
     setEditando(lectura.id);
     setFormEdit({
+      lectura_anterior: lectura.lectura_anterior,
       lectura_actual: lectura.lectura_actual,
+      monto_calculado: lectura.monto_calculado,
+      observaciones: lectura.observaciones || '',
       fecha_lectura: lectura.fecha_lectura.split('T')[0]
     });
   };
@@ -79,14 +102,19 @@ function LecturasPage() {
 
     try {
       await api.put(`/lecturas/${editando}`, {
-        ...formEdit,
+        lectura_anterior: parseInt(formEdit.lectura_anterior),
+        lectura_actual: parseInt(formEdit.lectura_actual),
+        monto_calculado: parseFloat(formEdit.monto_calculado),
+        observaciones: formEdit.observaciones,
         razon_modificacion: razonModificacion,
-        usuario_modificador_id: user.id // Desde el contexto de auth
+        usuario_modificador_id: usuario.id
       });
+
       alert('✅ Lectura actualizada correctamente');
       setEditando(null);
       setMostrarModalEdicion(false);
       setRazonModificacion('');
+      setFormEdit({});
       cargarDatos();
     } catch (error) {
       alert('❌ Error al actualizar lectura: ' + error.message);
@@ -94,6 +122,14 @@ function LecturasPage() {
   };
 
   const handleSolicitarGuardar = () => {
+    // Recalcular el consumo antes de abrir el modal
+    const consumoNuevo = parseInt(formEdit.lectura_actual) - parseInt(formEdit.lectura_anterior);
+
+    if (consumoNuevo < 0) {
+      alert('⚠️ La lectura actual no puede ser menor que la anterior');
+      return;
+    }
+
     setMostrarModalEdicion(true);
   };
 
@@ -108,9 +144,19 @@ function LecturasPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-4xl font-bold text-gray-800">💧 Gestión de Lecturas</h2>
-        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700">
+        <button
+          onClick={handleNuevaLectura}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
+        >
           ➕ Nueva Lectura
         </button>
+        {/* Modal del formulario */}
+        {mostrarFormulario && (
+          <FormularioNuevaLectura
+            onClose={handleCerrarFormulario}
+            onSuccess={handleLecturaCreada}
+          />
+        )}
       </div>
 
       {/* Estadísticas */}
@@ -164,7 +210,7 @@ function LecturasPage() {
               ) : (
                 lecturas.slice().reverse().map((lectura) => (
                   <tr key={lectura.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-base font-semibold">{getNombreUsuario(lectura.usuario_id)}</td>
+                    <td className="p-4 text-base font-semibold">{lectura.usuario_nombre || 'Desconocido'}</td>
                     <td className="p-4 text-base">{formatearFecha(lectura.fecha_lectura)}</td>
                     <td className="p-4 text-base">
                       {new Date(lectura.anio, lectura.mes - 1).toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
@@ -231,7 +277,7 @@ function LecturasPage() {
             <p className="text-lg mb-4">
               Está a punto de modificar una lectura. Por razones de auditoría, debe indicar el motivo:
             </p>
-            
+
             <textarea
               value={razonModificacion}
               onChange={(e) => setRazonModificacion(e.target.value)}
@@ -240,7 +286,7 @@ function LecturasPage() {
               className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 mb-4"
               required
             />
-            
+
             <div className="flex gap-4">
               <Button
                 variant="success"

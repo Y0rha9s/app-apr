@@ -1,5 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
@@ -7,6 +7,9 @@ function Layout({ children }) {
   const { usuario, logout, isAdmin } = useAuth();
   const [menuActivo, setMenuActivo] = useState(isAdmin ? 'dashboard' : 'mi-cuenta');
   const location = useLocation();
+  const scrollRef = useRef(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(false);
 
   // Actualizar el menú inicial cuando cambie el rol o la URL
   useEffect(() => {
@@ -26,13 +29,43 @@ function Layout({ children }) {
     }
   }, [isAdmin]);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    const update = () => {
+      if (!el) return;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      setShowLeft(el.scrollLeft > 0);
+      setShowRight(el.scrollLeft < maxScroll - 1);
+    };
+    update();
+    if (el) el.addEventListener('scroll', update);
+    const onResize = () => update();
+    window.addEventListener('resize', onResize);
+    return () => {
+      if (el) el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
+  const scrollByAmount = (dir) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const delta = Math.floor(el.clientWidth * 0.7) * (dir === 'right' ? 1 : -1);
+    el.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
   const menuItems = isAdmin ? [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'transacciones', label: 'Ingresos/Egresos', icon: '💰' },
     { id: 'socios', label: 'Usuarios', icon: '👥' },
     { id: 'lecturas', label: 'Lecturas', icon: '💧' },
     { id: 'carga-masiva', label: 'Carga Masiva', icon: '📤' },
+    { id: 'carga-simple', label: 'Carga Simple', icon: '📤' },
     { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
+    { id: 'cortes', label: 'Cortes', icon: '✂️' },
+    { id: 'repactaciones', label: 'Repactaciones', icon: '💳' },
+    { id: 'prestamos', label: 'Préstamos', icon: '🔧' },
+    { id: 'avisos', label: 'Avisos Masivos', icon: '📄' },
     { id: 'caja', label: 'Caja', icon: '💵' },
   ] : [
     { id: 'mi-cuenta', label: 'Mi Cuenta', icon: '🏠' },
@@ -81,36 +114,58 @@ function Layout({ children }) {
       {/* Navigation mejorada */}
       <nav className="shadow-lg border-b-2 sticky top-[88px] z-40 w-full" style={{ background: 'linear-gradient(to right, #7dd3fc, #bae6fd, #7dd3fc)', borderColor: '#38bdf8' }}> {/* top-[120px] -> top-[88px] (aprox 30% menos) */}
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex overflow-x-auto gap-2 py-3 scrollbar-hide">
-            {menuItems.map((item) => (
+          <div className="relative">
+            {showLeft && (
               <button
-                key={item.id}
-                onClick={() => setMenuActivo(item.id)}
-                className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${menuActivo === item.id
-                    ? 'text-white shadow-lg scale-105'
-                    : 'hover:scale-105'
-                  }`}
-                style={menuActivo === item.id
-                  ? { background: 'linear-gradient(to right, #0ea5e9, #0284c7)', color: 'white' }
-                  : { color: '#075985' }
-                }
-                onMouseEnter={(e) => {
-                  if (menuActivo !== item.id) {
-                    e.currentTarget.style.backgroundColor = '#7dd3fc';
-                    e.currentTarget.style.color = '#0c4a6e';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (menuActivo !== item.id) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#075985';
-                  }
-                }}
+                onClick={() => scrollByAmount('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 text-sky-800 shadow hover:bg-white"
+                aria-label="Desplazar a la izquierda"
               >
-                <span className="text-2xl">{item.icon}</span>
-                <span>{item.label}</span>
+                ‹
               </button>
-            ))}
+            )}
+            {showRight && (
+              <button
+                onClick={() => scrollByAmount('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 text-sky-800 shadow hover:bg-white"
+                aria-label="Desplazar a la derecha"
+              >
+                ›
+              </button>
+            )}
+            <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-sky-200/80 to-transparent" />
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-sky-200/80 to-transparent" />
+            <div ref={scrollRef} className="flex overflow-x-auto scroll-smooth gap-2 py-3 scrollbar-hide">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setMenuActivo(item.id)}
+                  className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${menuActivo === item.id
+                      ? 'text-white shadow-lg scale-105'
+                      : 'hover:scale-105'
+                    }`}
+                  style={menuActivo === item.id
+                    ? { background: 'linear-gradient(to right, #0ea5e9, #0284c7)', color: 'white' }
+                    : { color: '#075985' }
+                  }
+                  onMouseEnter={(e) => {
+                    if (menuActivo !== item.id) {
+                      e.currentTarget.style.backgroundColor = '#7dd3fc';
+                      e.currentTarget.style.color = '#0c4a6e';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (menuActivo !== item.id) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#075985';
+                    }
+                  }}
+                >
+                  <span className="text-2xl">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </nav>

@@ -13,6 +13,11 @@ import CajaPage from './pages/CajaPage';
 import PagosPage from './pages/PagosPage';
 import UploadExcel from './components/UploadExcel';
 import PagoExitoso from './pages/PagoExitoso';
+import CortesPage from './pages/CortesPage';
+import RepactacionesPage from './pages/RepactacionesPage';
+import PrestamosPage from './pages/PrestamosPage';
+import AvisosPage from './pages/AvisosPage';
+import CargaSimplePage from './pages/CargaSimplePage';
 
 function AppContent() {
   const { usuario, loading, isAdmin } = useAuth();
@@ -111,7 +116,33 @@ function AppContent() {
             return <PagosPage />;
           case 'reclamos':
             return <div className="text-3xl">📝 Reclamos (próximamente)</div>;
+          case 'cortes':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
+            return <CortesPage />;
+          case 'repactaciones':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
+            return <RepactacionesPage />;
+          case 'prestamos':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
+            return <PrestamosPage />;
+          case 'avisos':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
+            return <AvisosPage />;
+          case 'carga-simple':
+            if (!isAdmin) {
+              return <MiCuentaPage />;
+            }
+            return <CargaSimplePage />;
           default:
+
             // Por defecto, mostrar la página según el rol
             return isAdmin ? <DashboardPage /> : <MiCuentaPage />;
         }

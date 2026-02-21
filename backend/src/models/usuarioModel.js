@@ -9,7 +9,11 @@ const usuarioModel = {
 
   // Obtener usuario por RUT
   getByRut: async (rut) => {
-    const result = await pool.query('SELECT * FROM usuarios WHERE rut = $1', [rut]);
+    const rutNorm = rut.toLowerCase().replace(/\./g, '').replace(/-/g, '');
+    const result = await pool.query(
+      "SELECT * FROM usuarios WHERE replace(replace(lower(rut),'.',''),'-','') = $1",
+      [rutNorm]
+    );
     return result.rows[0];
   },
 

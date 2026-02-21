@@ -22,6 +22,14 @@ const egresoCajaRoutes = require('./routes/egresoCajaRoutes');
 const boletaRoutes = require('./routes/boletaRoutes');
 const uploadRoutes = require('./routes/upload');
 const mercadoPagoRoutes = require('./routes/mercadoPagoRoutes');
+const tipoUsuarioRoutes = require('./routes/tipoUsuarioRoutes');
+const morosidadRoutes = require('./routes/morosidadRoutes');
+const repactacionRoutes = require('./routes/repactacionRoutes');
+const corteRoutes = require('./routes/corteRoutes');
+const prestamoRoutes = require('./routes/prestamoRoutes');
+const avisoRoutes = require('./routes/avisoRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const cargaSimpleRoutes = require('./routes/cargaSimpleRoutes');
 
 app.use('/api/transacciones', transaccionRoutes);
 app.use('/api/auth', authRoutes);
@@ -33,6 +41,15 @@ app.use('/api/egresos-caja', egresoCajaRoutes);
 app.use('/api/boletas', boletaRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api/mercadopago', mercadoPagoRoutes);
+app.use('/api/usuarios', tipoUsuarioRoutes);
+app.use('/api/morosidad', morosidadRoutes);
+app.use('/api/repactaciones', repactacionRoutes);
+app.use('/api/cortes', corteRoutes);
+app.use('/api/prestamos', prestamoRoutes);
+app.use('/api/avisos', avisoRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/carga-simple', cargaSimpleRoutes);
+
 
 // Ruta de prueba
 app.get('/', (req, res) => {

@@ -20,9 +20,18 @@ const authController = {
         return res.status(401).json({ error: 'RUT o contraseña incorrectos' });
       }
 
-      // Verificar contraseña (por ahora sin encriptar para demo)
-      // En producción usar: const passwordValido = await bcrypt.compare(password, usuario.password);
-      const passwordValido = password === 'demo123'; // Temporal para demo
+      let passwordValido = false;
+      if (usuario.rol === 'admin') {
+        passwordValido = password === 'demo123';
+      } else {
+        const stored = usuario.password || '';
+        const isBcrypt = typeof stored === 'string' && stored.startsWith('$2');
+        if (isBcrypt) {
+          passwordValido = await bcrypt.compare(password, stored);
+        } else {
+          passwordValido = password === stored;
+        }
+      }
       
       if (!passwordValido) {
         return res.status(401).json({ error: 'RUT o contraseña incorrectos' });
