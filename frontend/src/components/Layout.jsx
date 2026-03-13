@@ -4,8 +4,10 @@ import { useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
 function Layout({ children }) {
-  const { usuario, logout, isAdmin } = useAuth();
-  const [menuActivo, setMenuActivo] = useState(isAdmin ? 'dashboard' : 'mi-cuenta');
+  const { usuario, logout, isAdmin, isOperador, isRecaudador } = useAuth();
+  const [menuActivo, setMenuActivo] = useState(
+    isAdmin ? 'dashboard' : isOperador ? 'toma-lecturas' : isRecaudador ? 'caja' : 'mi-cuenta'
+  );
   const location = useLocation();
   const scrollRef = useRef(null);
   const [showLeft, setShowLeft] = useState(false);
@@ -13,21 +15,20 @@ function Layout({ children }) {
 
   // Actualizar el menú inicial cuando cambie el rol o la URL
   useEffect(() => {
-    // Sincronizar URL con menú
     if (location.pathname === '/pagos') {
       setMenuActivo('pagos');
-      return; // Prioridad a la URL explícita
+      return;
     }
-
-    // Si es admin y está en una página de usuario, cambiar a dashboard
     if (isAdmin && (menuActivo === 'mi-cuenta' || menuActivo === 'mi-consumo' || menuActivo === 'pagos' || menuActivo === 'reclamos')) {
       setMenuActivo('dashboard');
-    }
-    // Si es usuario y está en una página de admin, cambiar a mi-cuenta
-    else if (!isAdmin && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos' || menuActivo === 'carga-masiva')) { // ← AGREGADO
+    } else if (isOperador) {
+      setMenuActivo('toma-lecturas');
+    } else if (isRecaudador) {
+      setMenuActivo('caja');
+    } else if (!isAdmin && !isOperador && !isRecaudador && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos' || menuActivo === 'carga-masiva')) {
       setMenuActivo('mi-cuenta');
     }
-  }, [isAdmin]);
+  }, [isAdmin, isOperador]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -67,6 +68,10 @@ function Layout({ children }) {
     { id: 'prestamos', label: 'Préstamos', icon: '🔧' },
     { id: 'avisos', label: 'Avisos Masivos', icon: '📄' },
     { id: 'caja', label: 'Caja', icon: '💵' },
+  ] : isOperador ? [
+    { id: 'toma-lecturas', label: 'Tomar Lectura', icon: '📋' },
+  ] : isRecaudador ? [
+    { id: 'caja', label: 'Caja', icon: '💵' },
   ] : [
     { id: 'mi-cuenta', label: 'Mi Cuenta', icon: '🏠' },
     { id: 'mi-consumo', label: 'Mi Consumo', icon: '💧' },
@@ -89,7 +94,10 @@ function Layout({ children }) {
                   Sistema APR
                 </h1>
                 <p className="text-base md:text-lg mt-0.5 text-white/90"> {/* text-lg/xl -> text-base/lg, mt-1 -> mt-0.5 */}
-                  {isAdmin ? '👨‍💼 Panel Administrador' : '👤 Portal del Usuario'}
+                  {isAdmin ? '👨‍💼 Panel Administrador'
+                    : isOperador ? '📋 Panel Operador'
+                      : isRecaudador ? '💵 Panel Recaudador'
+                        : '👤 Portal del Usuario'}
                 </p>
               </div>
             </div>
@@ -141,8 +149,8 @@ function Layout({ children }) {
                   key={item.id}
                   onClick={() => setMenuActivo(item.id)}
                   className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${menuActivo === item.id
-                      ? 'text-white shadow-lg scale-105'
-                      : 'hover:scale-105'
+                    ? 'text-white shadow-lg scale-105'
+                    : 'hover:scale-105'
                     }`}
                   style={menuActivo === item.id
                     ? { background: 'linear-gradient(to right, #0ea5e9, #0284c7)', color: 'white' }

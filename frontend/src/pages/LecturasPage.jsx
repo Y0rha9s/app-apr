@@ -197,6 +197,8 @@ function LecturasPage() {
                 <th className="p-4 text-lg font-semibold">Lectura Actual</th>
                 <th className="p-4 text-lg font-semibold">Consumo (m³)</th>
                 <th className="p-4 text-lg font-semibold">Monto</th>
+                <th className="p-4 text-lg font-semibold">Operador</th>
+                <th className="p-4 text-lg font-semibold">Foto</th>
                 <th className="p-4 text-lg font-semibold">Acciones</th>
               </tr>
             </thead>
@@ -235,6 +237,22 @@ function LecturasPage() {
                     </td>
                     <td className="p-4 text-base font-bold text-green-600">
                       {formatearMonto(lectura.monto_calculado)}
+                    </td>
+                    <td className="p-4 text-base text-gray-500"> 
+                      {lectura.operador_nombre || '—'} 
+                    </td> 
+                    <td className="p-4"> 
+                      {lectura.foto_url ? ( 
+                        <a href={lectura.foto_url} target="_blank" rel="noopener noreferrer"> 
+                          <img 
+                            src={lectura.foto_url} 
+                            alt="Medidor" 
+                            className="w-14 h-14 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition cursor-pointer" 
+                          /> 
+                        </a> 
+                      ) : ( 
+                        <span className="text-gray-400 text-sm">Sin foto</span> 
+                      )} 
                     </td>
                     <td className="p-4">
                       {editando === lectura.id ? (

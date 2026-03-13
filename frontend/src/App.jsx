@@ -18,9 +18,10 @@ import RepactacionesPage from './pages/RepactacionesPage';
 import PrestamosPage from './pages/PrestamosPage';
 import AvisosPage from './pages/AvisosPage';
 import CargaSimplePage from './pages/CargaSimplePage';
+import OperadorLecturasPage from './pages/OperadorLecturasPage';
 
 function AppContent() {
-  const { usuario, loading, isAdmin } = useAuth();
+  const { usuario, loading, isAdmin, isOperador, isRecaudador } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -107,6 +108,9 @@ function AppContent() {
             }
             return <UploadExcel />;
           case 'caja':
+            if (!isAdmin && !isRecaudador) {
+              return <MiCuentaPage />;
+            }
             return <CajaPage />;
           case 'mi-cuenta':
             return <MiCuentaPage />;
@@ -141,6 +145,11 @@ function AppContent() {
               return <MiCuentaPage />;
             }
             return <CargaSimplePage />;
+          case 'toma-lecturas':
+            if (!isOperador) {
+              return <MiCuentaPage />;
+            }
+            return <OperadorLecturasPage />;
           default:
 
             // Por defecto, mostrar la página según el rol
