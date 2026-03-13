@@ -32,6 +32,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const cargaSimpleRoutes = require('./routes/cargaSimpleRoutes');
 const configuracionRoutes = require('./routes/configuracion.routes');
 const fotosRoutes = require('./routes/fotosRoutes');
+const reporteRoutes = require('./routes/reporteRoutes');
 
 app.use('/api/transacciones', transaccionRoutes);
 app.use('/api/auth', authRoutes);
@@ -53,6 +54,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/carga-simple', cargaSimpleRoutes);
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/fotos', fotosRoutes);
+app.use('/api/reporte', reporteRoutes);
 
 
 

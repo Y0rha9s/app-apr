@@ -4,6 +4,65 @@ const pool = require('../config/database');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const path = require('path');
+const bcrypt = require('bcryptjs');
+
+// Función para calcular total por tramos (reutilizar del upload.js)
+async function calcularTotalPorTramos(consumoM3, tipoUsuario = 'normal') {
+  const result = await pool.query(
+    'SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC'
+  );
+
+  const tarifas = result.rows;
+  let total = 0;
+  let m3Restantes = consumoM3;
+  let m3ProcesadosTotal = 0;
+
+  const LIMITE_SUBSIDIO = 15;
+  const DESCUENTO_SUBSIDIO = 0.5;
+
+  for (const tarifa of tarifas) {
+    if (m3Restantes <= 0) break;
+
+    const desde = tarifa.tramo_desde;
+    const hasta = tarifa.tramo_hasta || Infinity;
+    const rangoTramo = hasta - desde + 1;
+    const m3EnTramo = Math.min(m3Restantes, rangoTramo);
+    let precioFinal = parseFloat(tarifa.precio_por_m3);
+
+    if (tipoUsuario === 'subsidiado') {
+      const m3SubsidiablesEnTramo = Math.max(0, Math.min(
+        LIMITE_SUBSIDIO - m3ProcesadosTotal,
+        m3EnTramo
+      ));
+
+      if (m3SubsidiablesEnTramo > 0) {
+        const montoConDescuento = m3SubsidiablesEnTramo * precioFinal * DESCUENTO_SUBSIDIO;
+        const m3SinDescuento = m3EnTramo - m3SubsidiablesEnTramo;
+        const montoSinDescuento = m3SinDescuento * precioFinal;
+        total += montoConDescuento + montoSinDescuento;
+      } else {
+        total += m3EnTramo * precioFinal;
+      }
+    } else {
+      total += m3EnTramo * precioFinal;
+    }
+
+    m3ProcesadosTotal += m3EnTramo;
+    m3Restantes -= m3EnTramo;
+  }
+
+  let totalIVA = 0;
+  if (tipoUsuario === 'exento_iva') {
+    totalIVA = total * 0.19;
+    total = total + totalIVA;
+  }
+
+  return {
+    subtotal: total - totalIVA,
+    iva: totalIVA,
+    total: total
+  };
+}
 
 // Configurar multer para subir archivos
 const storage = multer.memoryStorage();
@@ -47,45 +106,115 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
       const numeroFila = i + 2; // Excel empieza en fila 2 (después del header)
       
       try {
-        // Validar campos requeridos
-        if (!fila.RUT && !fila['Nro Medidor']) {
-          throw new Error('Debe proporcionar RUT o Nro Medidor');
+        // Normalizar y limpiar datos de entrada para evitar errores "NaN"
+        const nombreFila = fila.Nombre ? fila.Nombre.toString().trim() : '';
+        const rutFila = fila.RUT ? fila.RUT.toString().trim() : '';
+        const medidorFila = fila['Nro Medidor'] ? fila['Nro Medidor'].toString().trim() : '';
+        
+        // Limpiar lectura actual (quitar caracteres no numéricos y parsear)
+        const lecturaActualStr = fila['Lectura Actual'] ? fila['Lectura Actual'].toString().replace(/[^0-9.-]/g, '') : '0';
+        const lecturaActual = parseFloat(lecturaActualStr) || 0;
+
+        // Validar campos requeridos mínimos
+        if (!rutFila && !medidorFila && !nombreFila) {
+          throw new Error('Debe proporcionar al menos un identificador (RUT, Nro Medidor o Nombre)');
         }
         
-        if (!fila['Lectura Actual'] && fila['Lectura Actual'] !== 0) {
-          throw new Error('Lectura Actual es requerida');
-        }
-        
-        // Buscar usuario por RUT o Número de Medidor
+        // Buscar usuario por RUT, Número de Cliente o Nombre
         let usuario = null;
         
-        if (fila.RUT) {
+        // 1. Buscar por RUT
+        if (rutFila) {
           const rutResult = await client.query(
-            'SELECT * FROM usuarios WHERE rut = $1 AND rol = $2',
-            [fila.RUT.toString().trim(), 'usuario']
+            'SELECT * FROM usuarios WHERE rut = $1',
+            [rutFila]
           );
           usuario = rutResult.rows[0];
         }
         
-        // Si no encontró por RUT, buscar por número de medidor
-        if (!usuario && fila['Nro Medidor']) {
+        // 2. Si no encontró por RUT, buscar por número de cliente
+        if (!usuario && medidorFila) {
           const medidorResult = await client.query(
-            'SELECT * FROM usuarios WHERE numero_medidor = $1 AND rol = $2',
-            [fila['Nro Medidor'].toString().trim(), 'usuario']
+            'SELECT * FROM usuarios WHERE numero_cliente = $1',
+            [medidorFila]
           );
           usuario = medidorResult.rows[0];
         }
-        
-        if (!usuario) {
-          throw new Error(`Usuario no encontrado (RUT: ${fila.RUT || 'N/A'}, Medidor: ${fila['Nro Medidor'] || 'N/A'})`);
+
+        // 3. Si no encontró, buscar por nombre exacto
+        if (!usuario && nombreFila) {
+          const nombreResult = await client.query(
+            'SELECT * FROM usuarios WHERE nombre ILIKE $1',
+            [nombreFila]
+          );
+          usuario = nombreResult.rows[0];
         }
         
-        // Actualizar número de medidor si cambió
-        if (fila['Nro Medidor'] && fila['Nro Medidor'] !== usuario.numero_medidor) {
-          await client.query(
-            'UPDATE usuarios SET numero_medidor = $1, updated_at = NOW() WHERE id = $2',
-            [fila['Nro Medidor'].toString().trim(), usuario.id]
+        // 4. Si SIGUE sin encontrar, CREAR usuario nuevo
+        if (!usuario) {
+          console.log(`👤 Creando usuario nuevo: ${nombreFila || 'Usuario Temporal'}`);
+          
+          let rutFinal = rutFila;
+          
+          // Si no hay RUT, generar uno ficticio 00.000.XXX-1
+          if (!rutFinal) {
+            const resultMaxFicticio = await client.query(
+              "SELECT rut FROM usuarios WHERE rut LIKE '00.000.%-1' ORDER BY rut DESC LIMIT 1"
+            );
+            
+            let siguienteNumero = 1;
+            if (resultMaxFicticio.rows.length > 0) {
+              const ultimoRut = resultMaxFicticio.rows[0].rut;
+              const match = ultimoRut.match(/00\.000\.(\d+)-1/);
+              if (match) {
+                siguienteNumero = parseInt(match[1]) + 1;
+              }
+            }
+            
+            rutFinal = `00.000.${siguienteNumero.toString().padStart(3, '0')}-1`;
+            console.log(`🆔 Generando RUT ficticio: ${rutFinal}`);
+          }
+          
+          // Generar contraseña: apr + 4 primeros dígitos RUT, o apr123 si no hay RUT
+          let passwordStr = 'apr123';
+          if (rutFila) {
+            const digitos = rutFila.replace(/[^0-9]/g, '').substring(0, 4);
+            if (digitos) passwordStr = `apr${digitos}`;
+          }
+          
+          const hashedPassword = await bcrypt.hash(passwordStr, 10);
+          const emailTemp = rutFinal ? `${rutFinal.replace(/[^0-9a-zA-Z]/g, '')}@temp.com` : `user_${Date.now()}@temp.com`;
+          
+          // Obtener el siguiente número de cliente si no viene en el Excel
+          let nroClienteFinal = medidorFila;
+          if (!nroClienteFinal) {
+            const maxResult = await client.query("SELECT COALESCE(MAX(CAST(numero_cliente AS BIGINT)), 0) + 1 as sig FROM usuarios WHERE numero_cliente ~ '^[0-9]+$'");
+            nroClienteFinal = maxResult.rows[0].sig.toString().padStart(3, '0');
+          }
+
+          const nuevoUsuarioRes = await client.query(
+            `INSERT INTO usuarios (nombre, rut, email, password, rol, numero_cliente, direccion) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [
+              nombreFila || 'Usuario Nuevo',
+              rutFinal,
+              emailTemp,
+              hashedPassword,
+              'socio',
+              nroClienteFinal,
+              'Dirección pendiente'
+            ]
           );
+          usuario = nuevoUsuarioRes.rows[0];
+        }
+        
+        // Actualizar número de cliente si cambió y viene en el Excel
+        if (medidorFila && medidorFila !== usuario.numero_cliente) {
+          await client.query(
+            'UPDATE usuarios SET numero_cliente = $1, updated_at = NOW() WHERE id = $2',
+            [medidorFila, usuario.id]
+          );
+          usuario.numero_cliente = medidorFila;
         }
         
         // Obtener última lectura del usuario
@@ -93,7 +222,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           `SELECT lectura_actual 
            FROM lecturas 
            WHERE usuario_id = $1 
-           ORDER BY fecha_lectura DESC 
+           ORDER BY fecha_lectura DESC, id DESC 
            LIMIT 1`,
           [usuario.id]
         );
@@ -102,83 +231,116 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           ? parseFloat(ultimaLecturaResult.rows[0].lectura_actual) 
           : 0;
         
-        const lecturaActual = parseFloat(fila['Lectura Actual']);
-        const consumo = lecturaActual - lecturaAnterior;
+        let consumo = lecturaActual - lecturaAnterior;
+        let observacionesExtra = '';
         
+        // Manejar consumo negativo
         if (consumo < 0) {
-          throw new Error(`Consumo negativo detectado (Anterior: ${lecturaAnterior}, Actual: ${lecturaActual})`);
+          console.log(`⚠️ Consumo negativo detectado para ${usuario.nombre}: ${consumo}`);
+          observacionesExtra = ` (ATENCIÓN: Consumo negativo detectado. Anterior: ${lecturaAnterior}, Actual: ${lecturaActual})`;
+          // Lo guardamos igual, el administrador decidirá qué hacer
         }
         
-        // Verificar si ya existe lectura para este mes
+        // Verificar si ya existe lectura para este mes/año (para no duplicar si se sube el mismo archivo)
         const lecturaExistenteResult = await client.query(
           `SELECT id FROM lecturas 
            WHERE usuario_id = $1 
-             AND EXTRACT(MONTH FROM fecha_lectura) = $2
-             AND EXTRACT(YEAR FROM fecha_lectura) = $3`,
+             AND mes = $2
+             AND anio = $3`,
           [usuario.id, mes, anio]
         );
         
         if (lecturaExistenteResult.rows.length > 0) {
-          throw new Error(`Ya existe lectura para ${mes}/${anio}`);
+          console.log(`ℹ️ Saltando lectura duplicada para ${usuario.nombre} (${mes}/${anio})`);
+          resultados.exitosos.push({
+            fila: numeroFila,
+            nombre: usuario.nombre,
+            rut: usuario.rut || 'N/A',
+            medidor: usuario.numero_cliente,
+            error: `Ya existe lectura registrada para ${mes}/${anio} (Ignorada)`,
+            saltado: true
+          });
+          continue; // Saltar a la siguiente fila
         }
         
-        // Crear fecha de lectura (primer día del mes)
+        // Crear fecha de lectura (primer día del mes seleccionado)
         const fechaLectura = new Date(anio, mes - 1, 1);
         
+        // Calcular monto de la boleta (si el consumo es negativo, el monto se basa en consumo 0 o el mínimo)
+        const consumoParaMonto = Math.max(0, consumo);
+        const calculoTotal = await calcularTotalPorTramos(consumoParaMonto, usuario.tipo_usuario || 'normal');
+        const montoCalculado = calculoTotal.total;
+
         // Crear lectura
         const lecturaResult = await client.query(
           `INSERT INTO lecturas 
-           (usuario_id, lectura_anterior, lectura_actual, consumo_m3, fecha_lectura, mes, anio, observaciones)
+           (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura, observaciones)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-           RETURNING id`,
+           RETURNING id, consumo_m3`,
           [
             usuario.id,
             lecturaAnterior,
             lecturaActual,
-            consumo,
-            fechaLectura,
             mes,
             anio,
-            `Carga masiva - ${fila.Nombre || usuario.nombre}`
+            montoCalculado,
+            fechaLectura,
+            `Carga masiva simple - ${nombreFila}${observacionesExtra}`
           ]
         );
         
-        // Calcular monto de la boleta (consumo * tarifa, ejemplo $1000 por m³)
-        const tarifa = 1000; // Ajustar según tu tarifa real
-        const montoConsumo = consumo * tarifa;
-        const cargoFijo = 5000; // Ajustar según tu cargo fijo
-        const totalMes = montoConsumo + cargoFijo;
+        const lecturaId = lecturaResult.rows[0].id;
+        const consumoM3 = lecturaResult.rows[0].consumo_m3; // consumo real guardado (puede ser negativo)
+        
+        // Obtener saldo anterior de la última boleta
+        const resultSaldoAnterior = await client.query(
+          `SELECT saldo_pendiente FROM boletas 
+           WHERE usuario_id = $1 
+           ORDER BY created_at DESC LIMIT 1`,
+          [usuario.id]
+        );
+
+        const saldoAnterior = resultSaldoAnterior.rows.length > 0
+          ? parseFloat(resultSaldoAnterior.rows[0].saldo_pendiente)
+          : 0;
+
+        const totalMes = montoCalculado;
+        const totalAPagar = totalMes + saldoAnterior;
+        const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
+        const fechaVencimiento = new Date(anio, mes - 1, 20); // Vence el 20 del mes
         
         // Crear boleta
-        const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
-        const fechaVencimiento = new Date(anio, mes - 1, 15); // Vence el 15 del mes
-        
         await client.query(
           `INSERT INTO boletas 
-           (usuario_id, periodo, consumo_m3, cargo_fijo, total_mes, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+           (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, 
+            total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
             usuario.id,
+            lecturaId,
             periodo,
-            consumo,
-            cargoFijo,
+            consumoM3,
             totalMes,
-            totalMes,
-            totalMes,
+            saldoAnterior,
+            totalAPagar,
+            totalAPagar, 
             'pendiente',
+            0,
+            calculoTotal.iva,
             fechaVencimiento
           ]
         );
         
         resultados.exitosos.push({
           fila: numeroFila,
-          nombre: fila.Nombre || usuario.nombre,
-          rut: usuario.rut,
-          medidor: fila['Nro Medidor'] || usuario.numero_medidor,
+          nombre: usuario.nombre,
+          rut: usuario.rut || 'N/A',
+          medidor: usuario.numero_cliente,
           lectura_anterior: lecturaAnterior,
           lectura_actual: lecturaActual,
-          consumo: consumo,
-          monto: totalMes
+          consumo: consumoM3,
+          monto: totalAPagar,
+          observaciones: observacionesExtra
         });
         
       } catch (error) {
@@ -220,14 +382,20 @@ router.get('/descargar-template', (req, res) => {
       {
         'Nombre': 'Juan Pérez',
         'RUT': '12345678-9',
-        'Nro Medidor': 'MED-001',
+        'Nro Medidor': '001',
         'Lectura Actual': 1250
       },
       {
         'Nombre': 'María López',
         'RUT': '98765432-1',
-        'Nro Medidor': 'MED-002',
+        'Nro Medidor': '002',
         'Lectura Actual': 890
+      },
+      {
+        'Nombre': 'Carlos Ruiz',
+        'RUT': '',
+        'Nro Medidor': '',
+        'Lectura Actual': 450
       }
     ];
     

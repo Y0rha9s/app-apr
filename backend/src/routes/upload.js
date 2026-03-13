@@ -344,7 +344,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     const tarifas = resultTarifas.rows;
 
     const resultMax = await client.query(`
-      SELECT COALESCE(MAX(CAST(numero_cliente AS INTEGER)), 0) as max_actual 
+      SELECT COALESCE(MAX(CAST(numero_cliente AS BIGINT)), 0) as max_actual 
       FROM usuarios 
       WHERE numero_cliente ~ '^[0-9]+$'
     `);

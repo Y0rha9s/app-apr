@@ -1,5 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
@@ -8,10 +8,8 @@ function Layout({ children }) {
   const [menuActivo, setMenuActivo] = useState(
     isAdmin ? 'dashboard' : isOperador ? 'toma-lecturas' : isRecaudador ? 'caja' : 'mi-cuenta'
   );
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const scrollRef = useRef(null);
-  const [showLeft, setShowLeft] = useState(false);
-  const [showRight, setShowRight] = useState(false);
 
   // Actualizar el menú inicial cuando cambie el rol o la URL
   useEffect(() => {
@@ -28,32 +26,7 @@ function Layout({ children }) {
     } else if (!isAdmin && !isOperador && !isRecaudador && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos' || menuActivo === 'carga-masiva')) {
       setMenuActivo('mi-cuenta');
     }
-  }, [isAdmin, isOperador]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    const update = () => {
-      if (!el) return;
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      setShowLeft(el.scrollLeft > 0);
-      setShowRight(el.scrollLeft < maxScroll - 1);
-    };
-    update();
-    if (el) el.addEventListener('scroll', update);
-    const onResize = () => update();
-    window.addEventListener('resize', onResize);
-    return () => {
-      if (el) el.removeEventListener('scroll', update);
-      window.removeEventListener('resize', onResize);
-    };
-  }, []);
-
-  const scrollByAmount = (dir) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const delta = Math.floor(el.clientWidth * 0.7) * (dir === 'right' ? 1 : -1);
-    el.scrollBy({ left: delta, behavior: 'smooth' });
-  };
+  }, [isAdmin, isOperador, isRecaudador]);
 
   const menuItems = isAdmin ? [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -80,145 +53,138 @@ function Layout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 overflow-x-hidden">
-      {/* Header Informativo */}
-      <header className="shadow-xl sticky top-0 z-50" style={{ background: 'linear-gradient(to right, #065f66, #054b52, #065f66)' }}>
-        <div className="container mx-auto px-4 md:px-6 py-4"> {/* px-6 -> px-4 md:px-6 */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-            <div className="flex items-center gap-3"> {/* gap-4 -> gap-3 */}
-              <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl flex items-center justify-center"> {/* p-4 -> p-2, rounded-2xl -> rounded-xl */}
-                <Logo size="md" className="drop-shadow-lg" /> {/* size="lg" -> size="md" */}
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white drop-shadow-lg"> {/* text-3xl/4xl -> text-2xl/3xl */}
-                  Sistema APR
-                </h1>
-                <p className="text-base md:text-lg mt-0.5 text-white/90"> {/* text-lg/xl -> text-base/lg, mt-1 -> mt-0.5 */}
-                  {isAdmin ? '👨‍💼 Panel Administrador'
-                    : isOperador ? '📋 Panel Operador'
-                      : isRecaudador ? '💵 Panel Recaudador'
-                        : '👤 Portal del Usuario'}
-                </p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex overflow-hidden">
+      {/* Overlay para móviles cuando el sidebar está abierto */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20"> {/* gap-6 -> gap-4, rounded-2xl -> rounded-xl, px-6 py-4 -> px-4 py-2, border-2 -> border */}
-              <div className="text-right">
-                <p className="text-base md:text-lg font-semibold text-white">{usuario.nombre}</p> {/* text-lg/xl -> text-base/lg */}
-                <p className="text-sm md:text-base text-white/90">{usuario.rut}</p> {/* text-base/lg -> text-sm/base */}
-              </div>
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm md:text-base font-semibold transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
-              /* px-6 py-3 -> px-4 py-2, rounded-xl -> rounded-lg, text-base/lg -> text-sm/base */
-              >
-                🚪 Salir
-              </button>
-            </div>
+      {/* Barra Lateral (Sidebar) */}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 shadow-2xl transition-all duration-300 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          } flex flex-col border-r border-sky-400`}
+        style={{ background: 'linear-gradient(to bottom, #0ea5e9, #0284c7)' }}
+      >
+        {/* Cabecera Sidebar */}
+        <div className="p-6 border-b border-white/20 flex items-center gap-3 bg-sky-900/10 backdrop-blur-sm">
+          <div className="bg-white p-2 rounded-xl shadow-md">
+            <Logo size="sm" />
           </div>
-        </div>
-      </header>
-
-      {/* Navigation mejorada */}
-      <nav className="shadow-lg border-b-2 sticky top-[88px] z-40 w-full" style={{ background: 'linear-gradient(to right, #7dd3fc, #bae6fd, #7dd3fc)', borderColor: '#38bdf8' }}> {/* top-[120px] -> top-[88px] (aprox 30% menos) */}
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="relative">
-            {showLeft && (
-              <button
-                onClick={() => scrollByAmount('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 text-sky-800 shadow hover:bg-white"
-                aria-label="Desplazar a la izquierda"
-              >
-                ‹
-              </button>
-            )}
-            {showRight && (
-              <button
-                onClick={() => scrollByAmount('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 text-sky-800 shadow hover:bg-white"
-                aria-label="Desplazar a la derecha"
-              >
-                ›
-              </button>
-            )}
-            <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-sky-200/80 to-transparent" />
-            <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-sky-200/80 to-transparent" />
-            <div ref={scrollRef} className="flex overflow-x-auto scroll-smooth gap-2 py-3 scrollbar-hide">
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setMenuActivo(item.id)}
-                  className={`flex items-center gap-3 px-8 py-4 text-lg md:text-xl font-semibold whitespace-nowrap rounded-xl transition-all duration-200 ${menuActivo === item.id
-                    ? 'text-white shadow-lg scale-105'
-                    : 'hover:scale-105'
-                    }`}
-                  style={menuActivo === item.id
-                    ? { background: 'linear-gradient(to right, #0ea5e9, #0284c7)', color: 'white' }
-                    : { color: '#075985' }
-                  }
-                  onMouseEnter={(e) => {
-                    if (menuActivo !== item.id) {
-                      e.currentTarget.style.backgroundColor = '#7dd3fc';
-                      e.currentTarget.style.color = '#0c4a6e';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (menuActivo !== item.id) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#075985';
-                    }
-                  }}
-                >
-                  <span className="text-2xl">{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content con mejor espaciado */}
-      <main className="container mx-auto px-6 py-10">
-        <div className="animate-fadeIn">
-          {children({ menuActivo })}
-        </div>
-      </main>
-
-      {/* Footer mejorado */}
-      <footer className="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 text-white mt-16">
-        <div className="container mx-auto px-6 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
-            <div>
-              <div className="flex items-center gap-3 justify-center md:justify-start mb-4">
-                <span className="text-4xl">💧</span>
-                <h3 className="text-2xl font-bold">Sistema APR</h3>
-              </div>
-              <p className="text-lg text-gray-300">
-                Gestión eficiente de agua potable para comunidades rurales
+          <div className="overflow-hidden">
+            <h2 className="text-xl font-black text-white tracking-tight truncate uppercase">Sistema APR</h2>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></span>
+              <p className="text-[10px] text-sky-100 uppercase tracking-widest font-bold truncate">
+                {isAdmin ? 'Administrador' : isOperador ? 'Operador' : isRecaudador ? 'Recaudador' : 'Socio'}
               </p>
             </div>
-
-            <div>
-              <h4 className="text-xl font-bold mb-4">Contacto</h4>
-              <p className="text-lg text-gray-300 mb-2">📞 +56 9 1234 5678</p>
-              <p className="text-lg text-gray-300">✉️ contacto@apr.cl</p>
-            </div>
-
-            <div>
-              <h4 className="text-xl font-bold mb-4">Horario de Atención</h4>
-              <p className="text-lg text-gray-300 mb-2">Lunes a Viernes</p>
-              <p className="text-lg text-gray-300">9:00 - 18:00 hrs</p>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center">
-            <p className="text-lg text-gray-400">
-              © 2026 Sistema APR - Todos los derechos reservados
-            </p>
           </div>
         </div>
-      </footer>
+
+        {/* Menú de Navegación */}
+        <nav className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setMenuActivo(item.id);
+                // Ocultar barra al seleccionar (tanto en móvil como en escritorio si se desea)
+                if (window.innerWidth < 1024) {
+                  setSidebarOpen(false);
+                }
+              }}
+              className={`w-full flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300 group relative ${menuActivo === item.id
+                ? 'bg-white text-sky-700 shadow-xl scale-[1.02] z-10'
+                : 'text-white/90 hover:bg-white/10 hover:text-white'
+                }`}
+            >
+              {menuActivo === item.id && (
+                <div className="absolute left-0 w-1.5 h-8 bg-sky-400 rounded-r-full shadow-[2px_0_10px_rgba(56,189,248,0.5)]" />
+              )}
+              <span className={`text-2xl transition-transform duration-300 group-hover:scale-110 ${menuActivo === item.id ? '' : 'brightness-0 invert'}`}>
+                {item.icon}
+              </span>
+              <span className={`font-bold text-base transition-colors duration-300 ${menuActivo === item.id ? 'text-sky-800' : 'text-white'}`}>
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
+
+        {/* Info Usuario & Salir (Pie de Sidebar) */}
+        <div className="p-4 border-t border-white/10 bg-sky-900/20 backdrop-blur-md">
+          <div className="flex items-center gap-3 mb-4 p-3 bg-white/10 rounded-2xl border border-white/10">
+            <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-sky-600 font-black shadow-lg ring-2 ring-white/20">
+              {usuario.nombre.charAt(0)}
+            </div>
+            <div className="overflow-hidden">
+              <p className="font-bold text-white truncate text-sm uppercase">{usuario.nombre}</p>
+              <p className="text-[10px] text-sky-100 font-medium opacity-80">{usuario.rut}</p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-white/10 text-white hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300 font-bold text-sm uppercase tracking-widest border border-white/20 hover:border-red-500 shadow-lg group"
+          >
+            <span className="text-xl group-hover:rotate-12 transition-transform">🚪</span> Salir
+          </button>
+        </div>
+      </aside>
+
+      {/* Área de Contenido Principal */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Cabecera Superior con Hamburguesa */}
+        <header className="bg-white/70 backdrop-blur-md border-b border-blue-50 shadow-sm px-4 lg:px-8 py-4 flex items-center justify-between z-30">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2.5 rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-600 hover:text-white transition-all duration-300 lg:hidden shadow-sm"
+            >
+              <div className="w-6 h-5 flex flex-col justify-between">
+                <span className={`h-0.5 bg-current rounded-full transition-all duration-300 ${sidebarOpen ? 'rotate-45 translate-y-2' : ''}`} />
+                <span className={`h-0.5 bg-current rounded-full transition-all duration-300 ${sidebarOpen ? 'opacity-0' : ''}`} />
+                <span className={`h-0.5 bg-current rounded-full transition-all duration-300 ${sidebarOpen ? '-rotate-45 -translate-y-2.5' : ''}`} />
+              </div>
+            </button>
+            <div className="flex flex-col">
+              <h2 className="text-xl lg:text-2xl font-black text-sky-900 tracking-tight leading-none mb-1">
+                {menuItems.find(i => i.id === menuActivo)?.label || 'Panel de Control'}
+              </h2>
+              <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                <span>Principal</span>
+                <span>/</span>
+                <span className="text-sky-500">{menuItems.find(i => i.id === menuActivo)?.label}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-4">
+            <div className="px-3 py-1.5 bg-sky-100/50 rounded-lg border border-sky-200/50 flex items-center gap-2">
+              <span className="text-sky-600 font-bold text-xs uppercase tracking-tighter">Versión</span>
+              <span className="text-sky-800 font-black text-xs">1.0.0</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Contenido de la Página */}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 bg-gray-50/30">
+          <div className="max-w-[1600px] mx-auto animate-fadeIn">
+            {children({ menuActivo })}
+          </div>
+
+          {/* Footer Simple */}
+          <footer className="mt-12 py-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 text-gray-400 font-medium text-sm">
+            <p>© 2026 Sistema APR - Gestión de Agua Potable</p>
+            <div className="flex items-center gap-6">
+              <span className="hover:text-sky-500 cursor-help transition-colors">Soporte Técnico</span>
+              <span className="hover:text-sky-500 cursor-help transition-colors">Manual de Usuario</span>
+            </div>
+          </footer>
+        </main>
+      </div>
     </div>
   );
 }

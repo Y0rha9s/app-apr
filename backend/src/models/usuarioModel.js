@@ -28,7 +28,7 @@ const usuarioModel = {
     // Obtener el siguiente número disponible
     const maxResult = await pool.query(`
       SELECT COALESCE(
-        MAX(CAST(numero_cliente AS INTEGER)),
+        MAX(CAST(numero_cliente AS BIGINT)),
         0
       ) + 1 as siguiente
       FROM usuarios
