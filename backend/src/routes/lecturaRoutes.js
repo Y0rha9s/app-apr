@@ -112,10 +112,12 @@ router.post('/crear-con-boleta', async (req, res) => {
     // 4. Insertar lectura
     const resultLectura = await client.query(
       `INSERT INTO lecturas 
-       (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW()) 
-       RETURNING id, consumo_m3`,
-      [usuario_id, lecturaAnterior, lectura_actual, mes, anio, montoCalculado]
+   (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura, foto_url, operador_id)
+   VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8) 
+   RETURNING id, consumo_m3`,
+      [usuario_id, lecturaAnterior, lectura_actual, mes, anio, montoCalculado,
+        req.body.foto_url || null,
+        req.body.operador_id || null]
     );
 
     const lecturaId = resultLectura.rows[0].id;
@@ -270,13 +272,14 @@ router.get('/', async (req, res) => {
     const result = await pool.query(`
       SELECT 
         l.*,
-        u.nombre as usuario_nombre,
-        u.rut as usuario_rut
+        u.nombre AS usuario_nombre,
+        u.rut AS usuario_rut,
+        op.nombre AS operador_nombre
       FROM lecturas l
       JOIN usuarios u ON l.usuario_id = u.id
+      LEFT JOIN usuarios op ON l.operador_id = op.id
       ORDER BY l.fecha_lectura DESC
     `);
-
     res.json(result.rows);
   } catch (error) {
     console.error('Error obteniendo lecturas:', error);
