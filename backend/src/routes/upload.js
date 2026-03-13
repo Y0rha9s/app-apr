@@ -21,15 +21,14 @@ router.post('/get-sheets', upload.single('file'), async (req, res) => {
     const workbook = XLSX.readFile(req.file.path);
     const sheets = workbook.SheetNames;
 
-    // Eliminar archivo temporal
-    fs.unlinkSync(req.file.path);
-
     res.json({ success: true, sheets: sheets });
   } catch (error) {
-    if (req.file && req.file.path) {
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    // esto se ejecuta SIEMPRE, incluso si hay throw
+    if (req.file?.path && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
-    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -531,10 +530,6 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
     await client.query('ROLLBACK');
     console.error('Error en carga masiva:', error);
 
-    if (req.file && req.file.path) {
-      fs.unlinkSync(req.file.path);
-    }
-
     res.status(500).json({
       success: false,
       error: error.message
@@ -542,6 +537,10 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
 
   } finally {
     client.release();
+    // esto se ejecuta SIEMPRE, incluso si hay throw o crash
+    if (req.file?.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 });
 
