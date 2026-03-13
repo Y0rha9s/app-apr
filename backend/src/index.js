@@ -31,6 +31,7 @@ const avisoRoutes = require('./routes/avisoRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const cargaSimpleRoutes = require('./routes/cargaSimpleRoutes');
 const configuracionRoutes = require('./routes/configuracion.routes');
+const fotosRoutes = require('./routes/fotosRoutes');
 
 app.use('/api/transacciones', transaccionRoutes);
 app.use('/api/auth', authRoutes);
@@ -51,6 +52,8 @@ app.use('/api/avisos', avisoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/carga-simple', cargaSimpleRoutes);
 app.use('/api/configuracion', configuracionRoutes);
+app.use('/api/fotos', fotosRoutes);
+
 
 
 // Ruta de prueba
