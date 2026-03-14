@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import Card from '../components/Card';
@@ -21,6 +21,10 @@ function AbrirCajaPage() {
   const [observacionesPago, setObservacionesPago] = useState('');
   const [pagosHoy, setPagosHoy] = useState([]);
   const [registrandoPago, setRegistrandoPago] = useState(false);
+  const [numeroOperacion, setNumeroOperacion] = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const [mostrarResultados, setMostrarResultados] = useState(false);
+  const buscadorRef = useRef(null);
 
   // Para registrar egresos
   const [categoriaEgreso, setCategoriaEgreso] = useState('');
@@ -48,6 +52,17 @@ function AbrirCajaPage() {
     }
   }, [usuarioSeleccionado]);
 
+  // Cerrar buscador al hacer clic fuera
+  useEffect(() => {
+    const handleClickAfuera = (event) => {
+      if (buscadorRef.current && !buscadorRef.current.contains(event.target)) {
+        setMostrarResultados(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickAfuera);
+    return () => document.removeEventListener('mousedown', handleClickAfuera);
+  }, []);
+
   const verificarCajaAbierta = async () => {
     try {
       const response = await api.get('/cajas/abierta');
@@ -62,10 +77,24 @@ function AbrirCajaPage() {
   const cargarUsuarios = async () => {
     try {
       const response = await api.get('/usuarios');
-      setUsuarios(response.data.filter(u => u.rol === 'socio'));
+      // Asegurar que filtramos por rol 'socio' o 'usuario' según como esté en tu DB
+      const filtrados = response.data.filter(u => u.rol === 'socio' || u.rol === 'usuario');
+      console.log('Usuarios cargados para caja:', filtrados.length);
+      setUsuarios(filtrados);
     } catch (error) {
       console.error('Error cargando usuarios:', error);
     }
+  };
+
+  const usuariosFiltrados = usuarios.filter(u => {
+    const term = busqueda.toLowerCase();
+    return u.nombre.toLowerCase().includes(term) || u.rut.toLowerCase().includes(term);
+  });
+
+  const handleSeleccionarUsuario = (u) => {
+    setUsuarioSeleccionado(u.id);
+    setBusqueda(`${u.nombre} (${u.rut})`);
+    setMostrarResultados(false);
   };
 
   const cargarPagosHoy = async () => {
@@ -125,6 +154,7 @@ function AbrirCajaPage() {
         caja_id: cajaAbierta.id,
         monto: parseFloat(montoPago),
         metodo_pago: metodoPago,
+        numero_operacion: numeroOperacion || null,
         observaciones: observacionesPago
       });
 
@@ -132,9 +162,11 @@ function AbrirCajaPage() {
 
       // Limpiar formulario
       setUsuarioSeleccionado('');
+      setBusqueda('');
       setDeudaUsuario(0);
       setMontoPago('');
       setMetodoPago('efectivo');
+      setNumeroOperacion('');
       setObservacionesPago('');
 
       // Recargar pagos
@@ -296,23 +328,43 @@ function AbrirCajaPage() {
 
         <form onSubmit={handleRegistrarPago} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div className="relative" ref={buscadorRef}>
               <label className="block text-xl font-bold text-gray-700 mb-3">
-                Seleccionar Usuario *
+                Buscar Usuario (Nombre o RUT) *
               </label>
-              <select
-                value={usuarioSeleccionado}
-                onChange={(e) => setUsuarioSeleccionado(e.target.value)}
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => {
+                  setBusqueda(e.target.value);
+                  setMostrarResultados(true);
+                  if (usuarioSeleccionado) setUsuarioSeleccionado('');
+                }}
+                onFocus={() => setMostrarResultados(true)}
+                placeholder="Escriba para buscar..."
                 className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                 required
-              >
-                <option value="">-- Seleccione un usuario --</option>
-                {usuarios.map(usuario => (
-                  <option key={usuario.id} value={usuario.id}>
-                    {usuario.nombre} ({usuario.rut})
-                  </option>
-                ))}
-              </select>
+              />
+              
+              {/* Lista desplegable de resultados */}
+              {mostrarResultados && busqueda.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                  {usuariosFiltrados.length > 0 ? (
+                    usuariosFiltrados.map(u => (
+                      <div
+                        key={u.id}
+                        onClick={() => handleSeleccionarUsuario(u)}
+                        className="p-4 hover:bg-blue-50 cursor-pointer border-b last:border-0 transition-colors"
+                      >
+                        <p className="font-bold text-lg">{u.nombre}</p>
+                        <p className="text-gray-600">RUT: {u.rut}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-gray-500 text-center">No se encontraron usuarios</div>
+                  )}
+                </div>
+              )}
             </div>
 
             {usuarioSeleccionado && (
@@ -353,8 +405,36 @@ function AbrirCajaPage() {
                 <option value="efectivo">💵 Efectivo</option>
                 <option value="transferencia">🏦 Transferencia</option>
                 <option value="tarjeta">💳 Tarjeta</option>
+                <option value="abono">🧾 Abono (Servipag / Caja Vecina)</option>
               </select>
             </div>
+
+            {/* N° Operación - aparece cuando NO es efectivo */}
+            {metodoPago !== 'efectivo' && (
+              <div>
+                <label className="block text-xl font-bold text-gray-700 mb-3">
+                  N° de Operación / Comprobante
+                  {metodoPago === 'abono' && <span className="text-red-500"> *</span>}
+                </label>
+                <input
+                  type="text"
+                  value={numeroOperacion}
+                  onChange={(e) => setNumeroOperacion(e.target.value)}
+                  placeholder={
+                    metodoPago === 'abono' ? 'Ej: 123456789 (Servipag)' :
+                      metodoPago === 'transferencia' ? 'Ej: N° transferencia banco' :
+                        'Ej: N° operación tarjeta'
+                  }
+                  className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+                  required={metodoPago === 'abono'}
+                />
+                <p className="text-base text-gray-500 mt-1">
+                  {metodoPago === 'abono' && 'Número del comprobante entregado por Servipag o Caja Vecina'}
+                  {metodoPago === 'transferencia' && 'Número de comprobante de la transferencia (opcional)'}
+                  {metodoPago === 'tarjeta' && 'Número de operación del voucher (opcional)'}
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -392,6 +472,7 @@ function AbrirCajaPage() {
                   <th className="p-4 text-lg font-semibold">Usuario</th>
                   <th className="p-4 text-lg font-semibold">Monto</th>
                   <th className="p-4 text-lg font-semibold">Método</th>
+                  <th className="p-4 text-lg font-semibold">N° Operación</th>
                   <th className="p-4 text-lg font-semibold">Observaciones</th>
                 </tr>
               </thead>
@@ -406,13 +487,18 @@ function AbrirCajaPage() {
                     <td className="p-4">
                       <span className={`px-3 py-1 rounded-full text-sm font-semibold ${pago.metodo_pago === 'efectivo' ? 'bg-green-100 text-green-800' :
                         pago.metodo_pago === 'tarjeta' ? 'bg-purple-100 text-purple-800' :
-                          'bg-blue-100 text-blue-800'
+                          pago.metodo_pago === 'abono' ? 'bg-orange-100 text-orange-800' :
+                            'bg-blue-100 text-blue-800'
                         }`}>
                         {pago.metodo_pago === 'efectivo' && '💵 Efectivo'}
                         {pago.metodo_pago === 'tarjeta' && '💳 Tarjeta'}
                         {pago.metodo_pago === 'transferencia' && '🏦 Transferencia'}
+                        {pago.metodo_pago === 'abono' && '🧾 Abono'}
                       </span>
                     </td>
+                    <td className="p-4 text-base font-mono"> 
+                      {pago.numero_operacion || '-'} 
+                    </td> 
                     <td className="p-4 text-base">{pago.observaciones || '-'}</td>
                   </tr>
                 ))}
@@ -420,7 +506,7 @@ function AbrirCajaPage() {
             </table>
 
             {/* Resumen */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-6 rounded-xl">
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-5 gap-4 bg-gray-50 p-6 rounded-xl text-center">
               <div>
                 <p className="text-lg font-semibold text-gray-700">Total Pagos</p>
                 <p className="text-2xl font-bold text-gray-900">{pagosHoy.length}</p>
@@ -441,6 +527,12 @@ function AbrirCajaPage() {
                 <p className="text-lg font-semibold text-purple-700">💳 Tarjetas</p>
                 <p className="text-2xl font-bold text-purple-600">
                   {formatearMonto(pagosHoy.filter(p => p.metodo_pago === 'tarjeta').reduce((sum, p) => sum + parseFloat(p.monto), 0))}
+                </p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-orange-700">🧾 Abonos</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {formatearMonto(pagosHoy.filter(p => p.metodo_pago === 'abono').reduce((sum, p) => sum + parseFloat(p.monto), 0))}
                 </p>
               </div>
             </div>

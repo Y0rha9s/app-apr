@@ -15,7 +15,10 @@ if ((isProduction || (connectionString && connectionString.includes('supabase.co
   };
 }
 
-const pool = new Pool(poolConfig);
+const pool = new Pool({
+  ...poolConfig,
+  family: 4
+});
 
 // Probar conexión
 pool.connect((err, client, release) => {

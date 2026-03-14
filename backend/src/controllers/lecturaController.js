@@ -54,20 +54,20 @@ const lecturaController = {
       
       // Actualizar lectura
       const result = await pool.query(
-        `UPDATE lecturas
-         SET lectura_anterior = $1,
-             lectura_actual = $2,
+        `UPDATE lecturas 
+         SET lectura_anterior = $1, 
+             lectura_actual = $2, 
              monto_calculado = $3,
              observaciones = $4
-         WHERE id = $5
+         WHERE id = $5 
          RETURNING *`,
         [lectura_anterior, lectura_actual, monto_calculado, observaciones, id]
       );
       
       // Registrar en auditoría
       await pool.query(
-        `INSERT INTO auditoria_lecturas
-         (lectura_id, usuario_modificador_id,
+        `INSERT INTO auditoria_lecturas 
+         (lectura_id, usuario_modificador_id, 
           lectura_anterior_old, lectura_actual_old, monto_calculado_old,
           lectura_anterior_new, lectura_actual_new, monto_calculado_new,
           razon)
@@ -96,7 +96,7 @@ const lecturaController = {
     try {
       const { id } = req.params;
       const result = await pool.query(
-        `SELECT a.*, u.nombre as modificado_por
+        `SELECT a.*, u.nombre as modificado_por 
          FROM auditoria_lecturas a
          LEFT JOIN usuarios u ON a.usuario_modificador_id = u.id
          WHERE a.lectura_id = $1

@@ -1,8 +1,14 @@
 import axios from 'axios';
 
-// URL de la API (cambiar a localhost para desarrollo local si el backend corre en tu máquina)
- const API_URL = 'https://app-apr.onrender.com/api'; 
-//const API_URL = 'http://localhost:5000/api';
+// Detectar entorno automáticamente
+const getBaseUrl = () => {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:5000/api';
+  }
+  return 'https://app-apr.onrender.com/api';
+};
+
+const API_URL = getBaseUrl();
 
 const api = axios.create({
   baseURL: API_URL,
@@ -25,6 +31,13 @@ export const usuariosService = {
   getById: (id) => api.get(`/usuarios/${id}`),
   getDeuda: (id) => api.get(`/usuarios/${id}/deuda`),
   getInfoCompleta: (id) => api.get(`/usuarios/${id}/info-completa`),
+  update: (id, data) => api.put(`/usuarios/${id}`, data),
+};
+
+// Servicios de Mercado Pago
+export const mercadoPagoService = {
+  createPreference: (data) => api.post('/mercadopago/create-preference', data),
+  checkPayment: (paymentId) => api.post('/mercadopago/check-payment', { paymentId }),
 };
 
 export default api;

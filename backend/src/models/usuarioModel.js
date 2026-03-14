@@ -9,7 +9,11 @@ const usuarioModel = {
 
   // Obtener usuario por RUT
   getByRut: async (rut) => {
-    const result = await pool.query('SELECT * FROM usuarios WHERE rut = $1', [rut]);
+    const rutNorm = rut.toLowerCase().replace(/\./g, '').replace(/-/g, '');
+    const result = await pool.query(
+      "SELECT * FROM usuarios WHERE replace(replace(lower(rut),'.',''),'-','') = $1",
+      [rutNorm]
+    );
     return result.rows[0];
   },
 
@@ -24,7 +28,7 @@ const usuarioModel = {
     // Obtener el siguiente número disponible
     const maxResult = await pool.query(`
       SELECT COALESCE(
-        MAX(CAST(numero_cliente AS INTEGER)),
+        MAX(CAST(numero_cliente AS BIGINT)),
         0
       ) + 1 as siguiente
       FROM usuarios
@@ -51,6 +55,19 @@ const usuarioModel = {
     const result = await pool.query(
       'INSERT INTO usuarios (rut, nombre, email, telefono, direccion, password, rol, numero_cliente) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
       [rut, nombre, email, telefono, direccion, password, rol, numeroCliente]
+    );
+    return result.rows[0];
+  },
+
+  // Actualizar usuario
+  update: async (id, usuario) => {
+    const { nombre, rut, email, telefono, direccion } = usuario;
+    const result = await pool.query(
+      `UPDATE usuarios 
+       SET nombre = $1, rut = $2, email = $3, telefono = $4, direccion = $5, updated_at = NOW()
+       WHERE id = $6 
+       RETURNING *`,
+      [nombre, rut, email, telefono, direccion, id]
     );
     return result.rows[0];
   }

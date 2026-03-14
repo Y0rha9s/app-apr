@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
 import { transaccionesService, usuariosService } from '../services/api';
+import api from '../services/api';
 import Card from '../components/Card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 function DashboardPage() {
   const [balance, setBalance] = useState({ total_ingresos: 0, total_egresos: 0 });
+  const [kpis, setKpis] = useState(null);
+  const [topConsumidores, setTopConsumidores] = useState([]);
+  const [topDeudores, setTopDeudores] = useState([]);
+  const [evolucionConsumo, setEvolucionConsumo] = useState([]);
+  const [alertas, setAlertas] = useState(null);
   const [loading, setLoading] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [busquedaUsuario, setBusquedaUsuario] = useState('');
@@ -12,31 +18,43 @@ function DashboardPage() {
   const [infoUsuario, setInfoUsuario] = useState(null);
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
   const [errorBusqueda, setErrorBusqueda] = useState(null);
-  const [pestanaPrincipal, setPestanaPrincipal] = useState('busqueda');
-  const [tabActiva, setTabActiva] = useState('resumen');
+  const [pestanaPrincipal, setPestanaPrincipal] = useState('kpis');
 
   useEffect(() => {
     cargarDatos();
-    cargarUsuarios();
   }, []);
 
   const cargarDatos = async () => {
     try {
-      const balanceResponse = await transaccionesService.getBalance(1, 2026);
-      setBalance(balanceResponse.data);
+      const [
+        balanceRes,
+        kpisRes,
+        consumidoresRes,
+        deudoresRes,
+        evolucionRes,
+        alertasRes,
+        usuariosRes
+      ] = await Promise.all([
+        transaccionesService.getBalance(new Date().getMonth() + 1, new Date().getFullYear()),
+        api.get('/dashboard/kpis'),
+        api.get('/dashboard/top-consumidores'),
+        api.get('/dashboard/top-deudores'),
+        api.get('/dashboard/evolucion-consumo'),
+        api.get('/dashboard/alertas'),
+        usuariosService.getAll()
+      ]);
+      
+      setBalance(balanceRes.data);
+      setKpis(kpisRes.data.kpis);
+      setTopConsumidores(consumidoresRes.data.consumidores || []);
+      setTopDeudores(deudoresRes.data.deudores || []);
+      setEvolucionConsumo(evolucionRes.data.evolucion || []);
+      setAlertas(alertasRes.data.alertas);
+      setUsuarios(usuariosRes.data);
       setLoading(false);
     } catch (error) {
       console.error('Error cargando datos:', error);
       setLoading(false);
-    }
-  };
-
-  const cargarUsuarios = async () => {
-    try {
-      const response = await usuariosService.getAll();
-      setUsuarios(response.data);
-    } catch (error) {
-      console.error('Error cargando usuarios:', error);
     }
   };
 
@@ -51,7 +69,6 @@ function DashboardPage() {
     setCargandoUsuario(true);
     try {
       const termino = busquedaUsuario.toLowerCase();
-      // Buscar por número de cliente, RUT o nombre
       const usuario = usuarios.find(u => 
         u.numero_cliente?.toLowerCase().includes(termino) ||
         u.rut?.toLowerCase().includes(termino) ||
@@ -86,130 +103,319 @@ function DashboardPage() {
   };
 
   const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-CL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return new Date(fecha).toLocaleDateString('es-CL');
   };
-
-  // Preparar datos para gráfico de morosidad por mes
-  const prepararDatosMorosidad = () => {
-    if (!infoUsuario || !infoUsuario.lecturas || !infoUsuario.pagos) {
-      return [];
-    }
-
-    // Agrupar lecturas por mes/año y calcular morosidad
-    const lecturasPorMes = {};
-    
-    infoUsuario.lecturas.historial.forEach(lectura => {
-      const key = `${lectura.anio}-${String(lectura.mes).padStart(2, '0')}`;
-      if (!lecturasPorMes[key]) {
-        lecturasPorMes[key] = {
-          mes: lectura.mes,
-          anio: lectura.anio,
-          monto: 0,
-          pagado: 0,
-          fecha: lectura.fecha
-        };
-      }
-      lecturasPorMes[key].monto += parseFloat(lectura.monto || 0);
-    });
-
-    // Calcular pagos por mes
-    infoUsuario.pagos.historial.forEach(pago => {
-      const fechaPago = new Date(pago.fecha);
-      const mesPago = fechaPago.getMonth() + 1;
-      const anioPago = fechaPago.getFullYear();
-
-      // Buscar lecturas que corresponden a este pago
-      Object.keys(lecturasPorMes).forEach(key => {
-        const lectura = lecturasPorMes[key];
-        const fechaLectura = new Date(lectura.fecha);
-        
-        // Si el pago es posterior o igual a la lectura, se aplica
-        if (fechaPago >= fechaLectura) {
-          const montoRestante = lectura.monto - lectura.pagado;
-          if (montoRestante > 0) {
-            const montoAplicar = Math.min(pago.monto, montoRestante);
-            lectura.pagado += montoAplicar;
-          }
-        }
-      });
-    });
-
-    // Convertir a array y calcular morosidad
-    const datos = Object.values(lecturasPorMes)
-      .filter(item => item.monto > item.pagado)
-      .map(item => ({
-        mes: `${new Date(item.anio, item.mes - 1).toLocaleDateString('es-CL', { month: 'short', year: 'numeric' })}`,
-        monto: item.monto - item.pagado,
-        montoTotal: item.monto,
-        pagado: item.pagado
-      }))
-      .sort((a, b) => {
-        // Ordenar por fecha
-        const fechaA = new Date(a.mes);
-        const fechaB = new Date(b.mes);
-        return fechaA - fechaB;
-      });
-
-    return datos;
-  };
-
-  const balanceTotal = parseFloat(balance.total_ingresos || 0) - parseFloat(balance.total_egresos || 0);
-
-  const dataGrafico = [
-    {
-      name: 'Enero 2026',
-      Ingresos: parseFloat(balance.total_ingresos || 0),
-      Egresos: parseFloat(balance.total_egresos || 0),
-    }
-  ];
-
-  const COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'];
-  const datosMorosidad = prepararDatosMorosidad();
 
   if (loading) {
-    return <div className="text-center text-3xl py-12">⏳ Cargando...</div>;
+    return <div className="text-center text-3xl py-12">⏳ Cargando dashboard...</div>;
   }
 
   return (
     <div>
-      <h2 className="text-4xl font-bold mb-8 text-gray-800">📊 Dashboard General</h2>
+      <h2 className="text-4xl font-bold mb-8 text-gray-800">📊 Dashboard Administrativo</h2>
 
       {/* Pestañas Principales */}
       <div className="mb-6">
-        <div className="flex gap-2 border-b-2 border-gray-200">
+        <div className="flex gap-2 border-b-2 border-gray-200 overflow-x-auto">
+          <button
+            onClick={() => setPestanaPrincipal('kpis')}
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
+              pestanaPrincipal === 'kpis'
+                ? 'border-b-4 border-blue-600 text-blue-600'
+                : 'text-gray-600 hover:text-blue-600'
+            }`}
+          >
+            📊 KPIs y Métricas
+          </button>
+          <button
+            onClick={() => setPestanaPrincipal('analisis')}
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
+              pestanaPrincipal === 'analisis'
+                ? 'border-b-4 border-blue-600 text-blue-600'
+                : 'text-gray-600 hover:text-blue-600'
+            }`}
+          >
+            📈 Análisis y Rankings
+          </button>
+          <button
+            onClick={() => setPestanaPrincipal('alertas')}
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
+              pestanaPrincipal === 'alertas'
+                ? 'border-b-4 border-blue-600 text-blue-600'
+                : 'text-gray-600 hover:text-blue-600'
+            }`}
+          >
+            🔔 Alertas Tempranas
+          </button>
           <button
             onClick={() => setPestanaPrincipal('busqueda')}
-            className={`px-8 py-4 text-xl font-semibold transition-colors ${
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
               pestanaPrincipal === 'busqueda'
                 ? 'border-b-4 border-blue-600 text-blue-600'
                 : 'text-gray-600 hover:text-blue-600'
             }`}
           >
-            🔍 Búsqueda de Usuarios
-          </button>
-          <button
-            onClick={() => setPestanaPrincipal('resumen')}
-            className={`px-8 py-4 text-xl font-semibold transition-colors ${
-              pestanaPrincipal === 'resumen'
-                ? 'border-b-4 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-blue-600'
-            }`}
-          >
-            📊 Resumen General
+            🔍 Búsqueda de Usuario
           </button>
         </div>
       </div>
 
-      {/* Contenido de Pestaña: Búsqueda de Usuarios */}
+      {/* KPIs Y MÉTRICAS */}
+      {pestanaPrincipal === 'kpis' && kpis && (
+        <div className="space-y-6">
+          {/* KPIs Principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-l-4 border-blue-600">
+              <h3 className="text-base font-semibold text-gray-700 mb-2">👥 Total Usuarios</h3>
+              <p className="text-4xl font-bold text-blue-700">{kpis.total_usuarios}</p>
+              <p className="text-sm text-gray-600 mt-2">{kpis.usuarios_activos} activos</p>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-red-50 to-red-100 border-l-4 border-red-600">
+              <h3 className="text-base font-semibold text-gray-700 mb-2">⚠️ Tasa Morosidad</h3>
+              <p className="text-4xl font-bold text-red-700">{kpis.tasa_morosidad}%</p>
+              <p className="text-sm text-gray-600 mt-2">{kpis.usuarios_morosos} usuarios</p>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-l-4 border-orange-600">
+              <h3 className="text-base font-semibold text-gray-700 mb-2">💰 Deuda Total</h3>
+              <p className="text-3xl font-bold text-orange-700">{formatearMonto(kpis.deuda_total)}</p>
+              <p className="text-sm text-gray-600 mt-2">Pendiente de pago</p>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-l-4 border-cyan-600">
+              <h3 className="text-base font-semibold text-gray-700 mb-2">💧 Consumo Promedio</h3>
+              <p className="text-4xl font-bold text-cyan-700">{kpis.consumo_promedio}</p>
+              <p className="text-sm text-gray-600 mt-2">m³ por usuario</p>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-l-4 border-green-600">
+              <h3 className="text-base font-semibold text-gray-700 mb-2">💵 Ingresos Mes</h3>
+              <p className="text-3xl font-bold text-green-700">{formatearMonto(kpis.ingresos_mes_actual)}</p>
+              <p className="text-sm text-gray-600 mt-2">Mes actual</p>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-l-4 border-purple-600">
+              <h3 className="text-base font-semibold text-gray-700 mb-2">📊 Balance</h3>
+              <p className="text-3xl font-bold text-purple-700">
+                {formatearMonto(parseFloat(balance.total_ingresos || 0) - parseFloat(balance.total_egresos || 0))}
+              </p>
+              <p className="text-sm text-gray-600 mt-2">Ingresos - Egresos</p>
+            </Card>
+          </div>
+
+          {/* Gráfico de Evolución de Consumo */}
+          <Card title="📈 Evolución de Consumo (Últimos 6 Meses)">
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={evolucionConsumo}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis />
+                <Tooltip formatter={(value) => `${parseFloat(value).toFixed(1)} m³`} />
+                <Legend />
+                <Line type="monotone" dataKey="consumo_promedio" stroke="#0ea5e9" strokeWidth={3} name="Consumo Promedio" />
+                <Line type="monotone" dataKey="consumo_total" stroke="#8b5cf6" strokeWidth={3} name="Consumo Total" />
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        </div>
+      )}
+
+      {/* ANÁLISIS Y RANKINGS */}
+      {pestanaPrincipal === 'analisis' && (
+        <div className="space-y-6">
+          {/* Top Consumidores */}
+          <Card title="🏆 Top 10 Mayores Consumidores">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-100 border-b-2">
+                  <tr>
+                    <th className="p-3 text-base font-semibold">#</th>
+                    <th className="p-3 text-base font-semibold">Usuario</th>
+                    <th className="p-3 text-base font-semibold">N° Cliente</th>
+                    <th className="p-3 text-base font-semibold">Consumo Total (3 meses)</th>
+                    <th className="p-3 text-base font-semibold">Promedio Mensual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topConsumidores.map((consumidor, index) => (
+                    <tr key={consumidor.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3 font-bold text-lg">{index + 1}</td>
+                      <td className="p-3 font-semibold">{consumidor.nombre}</td>
+                      <td className="p-3 font-mono">{consumidor.numero_cliente}</td>
+                      <td className="p-3 font-bold text-cyan-600">{parseFloat(consumidor.consumo_total).toFixed(1)} m³</td>
+                      <td className="p-3">{parseFloat(consumidor.consumo_promedio).toFixed(1)} m³</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Top Deudores */}
+          <Card title="⚠️ Top 10 Mayores Deudores">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-100 border-b-2">
+                  <tr>
+                    <th className="p-3 text-base font-semibold">#</th>
+                    <th className="p-3 text-base font-semibold">Usuario</th>
+                    <th className="p-3 text-base font-semibold">RUT</th>
+                    <th className="p-3 text-base font-semibold">Deuda Total</th>
+                    <th className="p-3 text-base font-semibold">Boletas Pendientes</th>
+                    <th className="p-3 text-base font-semibold">Días Mora</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topDeudores.map((deudor, index) => (
+                    <tr key={deudor.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3 font-bold text-lg">{index + 1}</td>
+                      <td className="p-3 font-semibold">{deudor.nombre}</td>
+                      <td className="p-3 font-mono text-sm">{deudor.rut}</td>
+                      <td className="p-3 font-bold text-red-600">{formatearMonto(deudor.deuda_total)}</td>
+                      <td className="p-3 text-center">{deudor.boletas_pendientes}</td>
+                      <td className="p-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          deudor.dias_morosidad > 90 ? 'bg-red-100 text-red-800' :
+                          deudor.dias_morosidad > 60 ? 'bg-orange-100 text-orange-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {deudor.dias_morosidad} días
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Gráfico de Top Consumidores */}
+          <Card title="📊 Comparativa de Consumo">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={topConsumidores.slice(0, 5)}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="nombre" angle={-15} textAnchor="end" height={80} />
+                <YAxis />
+                <Tooltip formatter={(value) => `${parseFloat(value).toFixed(1)} m³`} />
+                <Legend />
+                <Bar dataKey="consumo_total" fill="#0ea5e9" name="Consumo Total (3 meses)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </div>
+      )}
+
+      {/* ALERTAS TEMPRANAS */}
+      {pestanaPrincipal === 'alertas' && alertas && (
+        <div className="space-y-6">
+          {/* Nuevos Morosos */}
+          <Card title="🆕 Nuevos Morosos (Últimos 7 días)" className="bg-red-50">
+            {alertas.nuevos_morosos.length === 0 ? (
+              <p className="text-center py-6 text-gray-600">✅ No hay nuevos morosos en los últimos 7 días</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-3 text-base font-semibold">Usuario</th>
+                      <th className="p-3 text-base font-semibold">Período</th>
+                      <th className="p-3 text-base font-semibold">Deuda</th>
+                      <th className="p-3 text-base font-semibold">Vencimiento</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {alertas.nuevos_morosos.map((moroso, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="p-3 font-semibold">{moroso.nombre}</td>
+                        <td className="p-3">{moroso.periodo}</td>
+                        <td className="p-3 font-bold text-red-600">{formatearMonto(moroso.saldo_pendiente)}</td>
+                        <td className="p-3">{formatearFecha(moroso.fecha_vencimiento)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+
+          {/* Consumo Anormal */}
+          <Card title="⚡ Consumo Anormal Detectado" className="bg-yellow-50">
+            {alertas.consumo_anormal.length === 0 ? (
+              <p className="text-center py-6 text-gray-600">✅ No se detectó consumo anormal</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-3 text-base font-semibold">Usuario</th>
+                      <th className="p-3 text-base font-semibold">Consumo Actual</th>
+                      <th className="p-3 text-base font-semibold">Promedio</th>
+                      <th className="p-3 text-base font-semibold">Variación</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {alertas.consumo_anormal.map((alerta, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="p-3 font-semibold">{alerta.nombre}</td>
+                        <td className="p-3">{parseFloat(alerta.consumo_actual).toFixed(1)} m³</td>
+                        <td className="p-3">{parseFloat(alerta.consumo_promedio).toFixed(1)} m³</td>
+                        <td className="p-3">
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            parseFloat(alerta.variacion_porcentaje) > 0 
+                              ? 'bg-red-100 text-red-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {parseFloat(alerta.variacion_porcentaje) > 0 ? '↑' : '↓'} 
+                            {Math.abs(parseFloat(alerta.variacion_porcentaje)).toFixed(1)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+
+          {/* Cortes Próximos */}
+          <Card title="✂️ Cortes Programados (Próximos 7 días)" className="bg-orange-50">
+            {alertas.cortes_proximos.length === 0 ? (
+              <p className="text-center py-6 text-gray-600">✅ No hay cortes programados próximamente</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-3 text-base font-semibold">Usuario</th>
+                      <th className="p-3 text-base font-semibold">Fecha Corte</th>
+                      <th className="p-3 text-base font-semibold">Motivo</th>
+                      <th className="p-3 text-base font-semibold">Monto Corte</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {alertas.cortes_proximos.map((corte, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="p-3 font-semibold">{corte.nombre}</td>
+                        <td className="p-3">{formatearFecha(corte.fecha_corte)}</td>
+                        <td className="p-3">{corte.motivo}</td>
+                        <td className="p-3 font-bold text-orange-600">{formatearMonto(corte.monto_corte)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+
+      {/* BÚSQUEDA DE USUARIO (mantener funcionalidad existente) */}
       {pestanaPrincipal === 'busqueda' && (
         <div>
           <Card className="mb-8 bg-gradient-to-r from-blue-50 to-cyan-50">
             <h3 className="text-2xl font-bold mb-4 text-gray-800">🔍 Búsqueda de Usuario</h3>
-            <div className="flex flex-col md:flex-row gap-4 w-full">
+            <div className="flex gap-4">
               <input
                 type="text"
                 placeholder="Buscar por número de cliente..."
@@ -228,7 +434,6 @@ function DashboardPage() {
             </div>
           </Card>
 
-          {/* Información del Usuario Seleccionado */}
           {errorBusqueda && (
             <Card className="mb-6 bg-red-50 border-l-8 border-red-500">
               <div className="flex items-center">
@@ -240,7 +445,6 @@ function DashboardPage() {
 
           {infoUsuario && (
             <div className="space-y-6">
-              {/* Información Básica */}
               <Card>
                 <h3 className="text-2xl font-bold mb-4 text-gray-800">👤 Información del Cliente</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -263,7 +467,6 @@ function DashboardPage() {
                 </div>
               </Card>
 
-              {/* Resumen de Morosidad */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="bg-red-50 border-l-8 border-red-600">
                   <h4 className="text-xl font-bold mb-2 text-red-800">⚠️ Deuda Total</h4>
@@ -278,284 +481,14 @@ function DashboardPage() {
                   <p className="text-3xl font-bold text-yellow-700">{formatearMonto(infoUsuario.saldo_anterior_pendiente)}</p>
                 </Card>
               </div>
-
-              {/* Convenio y Notificaciones */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className={infoUsuario.usuario.tiene_convenio ? 'bg-green-50 border-l-8 border-green-600' : 'bg-gray-50 border-l-8 border-gray-400'}>
-                  <h4 className="text-xl font-bold mb-2">🤝 Convenio</h4>
-                  {infoUsuario.usuario.tiene_convenio ? (
-                    <div>
-                      <p className="text-green-700 font-bold text-lg mb-2">✅ Tiene Convenio</p>
-                      {infoUsuario.usuario.convenio_detalle && (
-                        <p className="text-gray-700">{infoUsuario.usuario.convenio_detalle}</p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-gray-600">❌ Sin Convenio</p>
-                  )}
-                </Card>
-                <Card className={infoUsuario.usuario.tiene_notificacion ? 'bg-yellow-50 border-l-8 border-yellow-600' : 'bg-gray-50 border-l-8 border-gray-400'}>
-                  <h4 className="text-xl font-bold mb-2">🔔 Notificaciones</h4>
-                  {infoUsuario.usuario.tiene_notificacion ? (
-                    <div>
-                      <p className="text-yellow-700 font-bold text-lg mb-2">⚠️ Tiene Notificación</p>
-                      {infoUsuario.usuario.notificacion_detalle && (
-                        <p className="text-gray-700">{infoUsuario.usuario.notificacion_detalle}</p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-gray-600">✅ Sin Notificaciones</p>
-                  )}
-                </Card>
-              </div>
-
-              {/* Gráfico de Morosidad por Mes */}
-              {datosMorosidad.length > 0 && (
-                <Card>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800">📊 Gráfico de Morosidad por Mes</h3>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={datosMorosidad}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" style={{ fontSize: '14px' }} />
-                      <YAxis style={{ fontSize: '14px' }} />
-                      <Tooltip 
-                        contentStyle={{ fontSize: '16px' }}
-                        formatter={(value) => formatearMonto(value)}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '16px' }} />
-                      <Bar dataKey="monto" fill="#ef4444" radius={[8, 8, 0, 0]} name="Monto en Mora" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 text-center text-gray-600">
-                    <p>Total de meses en mora: <strong>{datosMorosidad.length}</strong></p>
-                    <p>Monto total en mora: <strong className="text-red-600">{formatearMonto(datosMorosidad.reduce((sum, item) => sum + item.monto, 0))}</strong></p>
-                  </div>
-                </Card>
-              )}
-
-              {/* Información de Pagos */}
-              {infoUsuario.pagos.ultimo_pago && (
-                <Card>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800">💰 Información de Pagos</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Pagado</p>
-                      <p className="text-2xl font-bold text-green-600">{formatearMonto(infoUsuario.pagos.total_pagado)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Cantidad de Pagos</p>
-                      <p className="text-2xl font-bold">{infoUsuario.pagos.cantidad_pagos}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Último Pago</p>
-                      <p className="text-lg font-semibold">{formatearFecha(infoUsuario.pagos.ultimo_pago.fecha)}</p>
-                      <p className="text-xl font-bold text-green-600">{formatearMonto(infoUsuario.pagos.ultimo_pago.monto)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Método de Pago</p>
-                      <p className="text-lg font-semibold capitalize">{infoUsuario.pagos.ultimo_pago.metodo}</p>
-                    </div>
-                  </div>
-                </Card>
-              )}
             </div>
           )}
 
           {!infoUsuario && usuarioSeleccionado === null && !errorBusqueda && (
             <Card className="text-center py-12">
-              <p className="text-xl text-gray-500">🔍 Busca un usuario para ver su información y gráficos</p>
+              <p className="text-xl text-gray-500">🔍 Busca un usuario para ver su información detallada</p>
             </Card>
           )}
-        </div>
-      )}
-
-      {/* Contenido de Pestaña: Resumen General */}
-      {pestanaPrincipal === 'resumen' && (
-        <div>
-          {/* Cards de resumen */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-l-8 border-green-600 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">💵 Total Ingresos</h3>
-                  <p className="text-4xl font-bold text-green-700">
-                    {formatearMonto(balance.total_ingresos || 0)}
-                  </p>
-                </div>
-                <div className="text-6xl">📈</div>
-              </div>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-red-50 to-red-100 border-l-8 border-red-600 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">💸 Total Egresos</h3>
-                  <p className="text-4xl font-bold text-red-700">
-                    {formatearMonto(balance.total_egresos || 0)}
-                  </p>
-                </div>
-                <div className="text-6xl">📉</div>
-              </div>
-            </Card>
-
-            <Card className={`bg-gradient-to-br ${balanceTotal >= 0 ? 'from-blue-50 to-blue-100 border-blue-600' : 'from-orange-50 to-orange-100 border-orange-600'} border-l-8 hover:shadow-xl transition-shadow`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">💰 Balance</h3>
-                  <p className={`text-4xl font-bold ${balanceTotal >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                    {formatearMonto(balanceTotal)}
-                  </p>
-                </div>
-                <div className="text-6xl">{balanceTotal >= 0 ? '✅' : '⚠️'}</div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Pestañas para Gráficos */}
-          <Card>
-            <div className="mb-6">
-              <div className="flex gap-2 border-b-2 border-gray-200">
-                <button
-                  onClick={() => setTabActiva('resumen')}
-                  className={`px-6 py-3 font-semibold transition-colors ${
-                    tabActiva === 'resumen'
-                      ? 'border-b-4 border-blue-600 text-blue-600'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  📊 Resumen
-                </button>
-                <button
-                  onClick={() => setTabActiva('ingresos-egresos')}
-                  className={`px-6 py-3 font-semibold transition-colors ${
-                    tabActiva === 'ingresos-egresos'
-                      ? 'border-b-4 border-blue-600 text-blue-600'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  💰 Ingresos vs Egresos
-                </button>
-                <button
-                  onClick={() => setTabActiva('tendencias')}
-                  className={`px-6 py-3 font-semibold transition-colors ${
-                    tabActiva === 'tendencias'
-                      ? 'border-b-4 border-blue-600 text-blue-600'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  📈 Tendencias
-                </button>
-                <button
-                  onClick={() => setTabActiva('distribucion')}
-                  className={`px-6 py-3 font-semibold transition-colors ${
-                    tabActiva === 'distribucion'
-                      ? 'border-b-4 border-blue-600 text-blue-600'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  🥧 Distribución
-                </button>
-              </div>
-            </div>
-
-            {/* Contenido de las pestañas */}
-            <div className="mt-6">
-              {tabActiva === 'resumen' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800">📊 Resumen General</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 p-6 rounded-lg">
-                      <h4 className="text-xl font-bold mb-3 text-blue-800">ℹ️ Información del Sistema</h4>
-                      <div className="space-y-3 text-lg">
-                        <p><strong>Período:</strong> Enero 2026</p>
-                        <p><strong>Estado:</strong> <span className="text-green-600 font-semibold">✅ Operativo</span></p>
-                        <p><strong>Última actualización:</strong> {new Date().toLocaleDateString('es-CL')}</p>
-                      </div>
-                    </div>
-                    <div className="bg-yellow-50 p-6 rounded-lg">
-                      <h4 className="text-xl font-bold mb-3 text-yellow-800">⚡ Acciones Rápidas</h4>
-                      <div className="space-y-3">
-                        <button className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors">
-                          ➕ Registrar Ingreso
-                        </button>
-                        <button className="w-full px-6 py-3 bg-red-600 text-white rounded-lg text-lg font-semibold hover:bg-red-700 transition-colors">
-                          ➖ Registrar Egreso
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {tabActiva === 'ingresos-egresos' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800">📊 Comparativa Ingresos vs Egresos</h3>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={dataGrafico}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" style={{ fontSize: '16px' }} />
-                      <YAxis style={{ fontSize: '16px' }} />
-                      <Tooltip 
-                        contentStyle={{ fontSize: '18px' }}
-                        formatter={(value) => formatearMonto(value)}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '18px' }} />
-                      <Bar dataKey="Ingresos" fill="#10b981" radius={[8, 8, 0, 0]} />
-                      <Bar dataKey="Egresos" fill="#ef4444" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
-              {tabActiva === 'tendencias' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800">📈 Tendencias</h3>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={dataGrafico}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" style={{ fontSize: '16px' }} />
-                      <YAxis style={{ fontSize: '16px' }} />
-                      <Tooltip 
-                        contentStyle={{ fontSize: '18px' }}
-                        formatter={(value) => formatearMonto(value)}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '18px' }} />
-                      <Line type="monotone" dataKey="Ingresos" stroke="#10b981" strokeWidth={3} />
-                      <Line type="monotone" dataKey="Egresos" stroke="#ef4444" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
-              {tabActiva === 'distribucion' && (
-                <div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800">🥧 Distribución</h3>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: 'Ingresos', value: parseFloat(balance.total_ingresos || 0) },
-                          { name: 'Egresos', value: parseFloat(balance.total_egresos || 0) }
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={120}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {[COLORS[0], COLORS[1]].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatearMonto(value)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </div>
-          </Card>
         </div>
       )}
     </div>

@@ -16,7 +16,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  const API_URL = 'https://app-apr.onrender.com/api';
+  // Detectar entorno automáticamente
+  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://app-apr.onrender.com/api';
 
   // Verificar token al cargar
   useEffect(() => {
@@ -45,16 +48,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/login`, { rut, password });
       const { token: newToken, usuario: userData } = response.data;
-      
+
       localStorage.setItem('token', newToken);
       setToken(newToken);
       setUsuario(userData);
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Error al iniciar sesión' 
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Error al iniciar sesión'
       };
     }
   };
@@ -70,8 +73,11 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    refreshUser: verificarToken,
     isAuthenticated: !!usuario,
-    isAdmin: usuario?.rol === 'admin'
+    isAdmin: usuario?.rol === 'admin',
+    isOperador: usuario?.rol === 'operador',
+    isRecaudador: usuario?.rol === 'recaudador',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

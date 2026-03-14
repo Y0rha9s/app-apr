@@ -27,7 +27,7 @@ function TransaccionesPage() {
       setTransacciones(response.data);
 
       // Cargar balance
-      const balanceResponse = await transaccionesService.getBalance(1, 2026);
+      const balanceResponse = await transaccionesService.getBalance(new Date().getMonth() + 1, new Date().getFullYear());
       setBalance(balanceResponse.data);
       
       setLoading(false);
@@ -83,9 +83,9 @@ function TransaccionesPage() {
       </div>
 
       {/* Filtros */}
-      <Card className="mb-6">
-        <div className="flex flex-wrap gap-4">
-          <Button 
+      <Card className="mb-8">
+        <div className="flex flex-wrap gap-4 mb-6">
+          <Button
             variant={filtro === 'todas' ? 'primary' : 'neutral'}
             onClick={() => setFiltro('todas')}
             className="flex-1 md:flex-none"

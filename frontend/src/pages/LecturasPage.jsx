@@ -1,22 +1,42 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import { useAuth } from '../contexts/AuthContext';
+import FormularioNuevaLectura from '../components/FormularioNuevaLectura';
 
 function LecturasPage() {
+
   const { usuario } = useAuth();
   const [lecturas, setLecturas] = useState([]);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mesActual] = useState(new Date().getMonth() + 1);
-  const [anioActual] = useState(new Date().getFullYear());
-  
-  // Estado para edición
+  const [mesFiltro, setMesFiltro] = useState(new Date().getMonth() + 1);
+  const [anioFiltro, setAnioFiltro] = useState(new Date().getFullYear());
+
+  // Estados para edición
   const [editando, setEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({});
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
   const [razonModificacion, setRazonModificacion] = useState('');
+
+
+  const handleNuevaLectura = () => {
+    setMostrarFormulario(true);
+  };
+
+  const handleCerrarFormulario = () => {
+    setMostrarFormulario(false);
+  };
+
+  const handleLecturaCreada = (data) => {
+    // Recargar lecturas
+    cargarDatos();
+
+    // Mostrar mensaje de éxito
+    alert(`✅ ${data.mensaje}\n\nConsumo: ${data.lectura.consumo_m3} m³\nTotal a pagar: $${data.boleta.total_a_pagar.toLocaleString()}`);
+  };
 
   useEffect(() => {
     cargarDatos();
@@ -29,7 +49,7 @@ function LecturasPage() {
         api.get('/usuarios')
       ]);
       setLecturas(lecturasRes.data);
-      setUsuarios(usuariosRes.data.filter(u => u.rol === 'socio'));
+      setUsuarios(usuariosRes.data.filter(u => u.rol === 'usuario'));
       setLoading(false);
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -54,44 +74,77 @@ function LecturasPage() {
     return usuario ? usuario.nombre : 'Desconocido';
   };
 
-  const handleSolicitarGuardar = (id) => {
-    const lectura = lecturas.find(l => l.id === id);
-    if (lectura) {
-      setEditando(id);
-      setFormEdit({
-        lectura_anterior: lectura.lectura_anterior,
-        lectura_actual: lectura.lectura_actual,
-        monto_calculado: lectura.monto_calculado,
-        observaciones: lectura.observaciones
-      });
-      setMostrarModalEdicion(true);
-    }
+  const descargarExcel = () => {
+    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/reporte/lecturas-excel?mes=${mesFiltro}&anio=${anioFiltro}`;
+    window.open(url, '_blank');
   };
 
-  const handleGuardarConRazon = async (id) => {
+  // Funciones de Edición
+  const handleEditar = (lectura) => {
+    setEditando(lectura.id);
+    setFormEdit({
+      lectura_anterior: lectura.lectura_anterior,
+      lectura_actual: lectura.lectura_actual,
+      monto_calculado: lectura.monto_calculado,
+      observaciones: lectura.observaciones || '',
+      fecha_lectura: lectura.fecha_lectura.split('T')[0]
+    });
+  };
+
+  const handleCancelarEdicion = () => {
+    setEditando(null);
+    setFormEdit({});
+    setMostrarModalEdicion(false);
+    setRazonModificacion('');
+  };
+
+  const handleGuardarConRazon = async () => {
     if (!razonModificacion.trim()) {
       alert('⚠️ Debe ingresar una razón para modificar la lectura');
       return;
     }
-    
     try {
-      await api.put(`/lecturas/${id}`, {
-        ...formEdit,
+      await api.put(`/lecturas/${editando}`, {
+        lectura_anterior: parseInt(formEdit.lectura_anterior),
+        lectura_actual: parseInt(formEdit.lectura_actual),
+        monto_calculado: parseFloat(formEdit.monto_calculado),
+        observaciones: formEdit.observaciones,
         razon_modificacion: razonModificacion,
-        usuario_modificador_id: usuario.id // Desde el contexto de auth
+        usuario_modificador_id: usuario.id
       });
       alert('✅ Lectura actualizada correctamente');
       setEditando(null);
       setMostrarModalEdicion(false);
       setRazonModificacion('');
+      setFormEdit({});
       cargarDatos();
     } catch (error) {
-      alert('❌ Error al actualizar lectura: ' + error.message);
+      const errorMsg = error.response?.data?.error || error.message;
+      alert('❌ Error al actualizar lectura: ' + errorMsg);
     }
   };
 
-  const lecturasDelMes = lecturas.filter(l => l.mes === mesActual && l.anio === anioActual);
-  const consumoTotal = lecturasDelMes.reduce((sum, l) => sum + (l.consumo_m3 || 0), 0);
+  const handleSolicitarGuardar = () => {
+    // Recalcular el consumo antes de abrir el modal
+    const consumoNuevo = parseInt(formEdit.lectura_actual) - parseInt(formEdit.lectura_anterior);
+
+    if (consumoNuevo < 0) {
+      alert('⚠️ La lectura actual no puede ser menor que la anterior');
+      return;
+    }
+
+    setMostrarModalEdicion(true);
+  };
+
+  const lecturasFiltradas = lecturas.filter(l => l.mes === parseInt(mesFiltro) && l.anio === parseInt(anioFiltro));
+  const consumoTotal = lecturasFiltradas.reduce((sum, l) => sum + (l.consumo_m3 || 0), 0);
+
+  const meses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+
+  const anios = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
   if (loading) {
     return <div className="text-center text-3xl py-12">⏳ Cargando lecturas...</div>;
@@ -99,71 +152,128 @@ function LecturasPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
         <h2 className="text-4xl font-bold text-gray-800">💧 Gestión de Lecturas</h2>
-        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700">
-          ➕ Nueva Lectura
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
+            <label className="text-sm font-bold text-gray-600">Mes:</label>
+            <select 
+              value={mesFiltro} 
+              onChange={(e) => setMesFiltro(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600"
+            >
+              {meses.map((mes, idx) => (
+                <option key={idx} value={idx + 1}>{mes}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
+            <label className="text-sm font-bold text-gray-600">Año:</label>
+            <select 
+              value={anioFiltro} 
+              onChange={(e) => setAnioFiltro(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600"
+            >
+              {anios.map(anio => (
+                <option key={anio} value={anio}>{anio}</option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={descargarExcel}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 flex items-center gap-2"
+          >
+            📥 Excel
+          </button>
+          
+          <button
+            onClick={handleNuevaLectura}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
+          >
+            ➕ Nueva Lectura
+          </button>
+        </div>
+        
+        {/* Modal del formulario */}
+        {mostrarFormulario && (
+          <FormularioNuevaLectura
+            onClose={handleCerrarFormulario}
+            onSuccess={handleLecturaCreada}
+          />
+        )}
       </div>
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="bg-blue-50 border-l-4 border-blue-600">
-          <h3 className="text-lg font-semibold text-gray-700">Lecturas del Mes</h3>
-          <p className="text-3xl font-bold text-blue-700">{lecturasDelMes.length}</p>
+          <h3 className="text-lg font-semibold text-gray-700">Lecturas Filtradas</h3>
+          <p className="text-3xl font-bold text-blue-700">{lecturasFiltradas.length}</p>
           <p className="text-sm text-gray-600 mt-2">
-            {new Date(anioActual, mesActual - 1).toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
+            {meses[mesFiltro - 1]} {anioFiltro}
           </p>
         </Card>
 
         <Card className="bg-cyan-50 border-l-4 border-cyan-600">
           <h3 className="text-lg font-semibold text-gray-700">Consumo Total</h3>
           <p className="text-3xl font-bold text-cyan-700">{consumoTotal} m³</p>
-          <p className="text-sm text-gray-600 mt-2">Metros cúbicos del mes</p>
+          <p className="text-sm text-gray-600 mt-2">Metros cúbicos del periodo</p>
         </Card>
 
         <Card className="bg-green-50 border-l-4 border-green-600">
           <h3 className="text-lg font-semibold text-gray-700">Promedio por Usuario</h3>
           <p className="text-3xl font-bold text-green-700">
-            {lecturasDelMes.length > 0 ? Math.round(consumoTotal / lecturasDelMes.length) : 0} m³
+            {lecturasFiltradas.length > 0 ? Math.round(consumoTotal / lecturasFiltradas.length) : 0} m³
           </p>
           <p className="text-sm text-gray-600 mt-2">Consumo promedio</p>
         </Card>
       </div>
 
       {/* Tabla de lecturas */}
-      <Card title="📋 Historial de Lecturas">
+      <Card title={`📋 Historial de Lecturas - ${meses[mesFiltro - 1]} ${anioFiltro}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-gray-100 border-b-2 border-gray-300">
               <tr>
                 <th className="p-4 text-lg font-semibold">Usuario</th>
                 <th className="p-4 text-lg font-semibold">Fecha</th>
-                <th className="p-4 text-lg font-semibold">Período</th>
-                <th className="p-4 text-lg font-semibold">Lectura Anterior</th>
-                <th className="p-4 text-lg font-semibold">Lectura Actual</th>
-                <th className="p-4 text-lg font-semibold">Consumo (m³)</th>
+                <th className="p-4 text-lg font-semibold text-center">Lectura Anterior</th>
+                <th className="p-4 text-lg font-semibold text-center">Lectura Actual</th>
+                <th className="p-4 text-lg font-semibold text-center">Consumo (m³)</th>
                 <th className="p-4 text-lg font-semibold">Monto</th>
+                <th className="p-4 text-lg font-semibold">Operador</th>
+                <th className="p-4 text-lg font-semibold">Foto</th>
+                <th className="p-4 text-lg font-semibold text-center">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {lecturas.length === 0 ? (
+              {lecturasFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-xl text-gray-500">
-                    No hay lecturas registradas
+                  <td colSpan="10" className="p-8 text-center text-xl text-gray-500">
+                    No hay lecturas registradas para este periodo
                   </td>
                 </tr>
               ) : (
-                lecturas.slice().reverse().map((lectura) => (
+                lecturasFiltradas.slice().reverse().map((lectura) => (
                   <tr key={lectura.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-base font-semibold">{getNombreUsuario(lectura.usuario_id)}</td>
+                    <td className="p-4 text-base font-semibold">{lectura.usuario_nombre || 'Desconocido'}</td>
                     <td className="p-4 text-base">{formatearFecha(lectura.fecha_lectura)}</td>
                     <td className="p-4 text-base">
                       {new Date(lectura.anio, lectura.mes - 1).toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
                     </td>
                     <td className="p-4 text-base text-center font-mono">{lectura.lectura_anterior}</td>
                     <td className="p-4 text-base text-center font-mono font-bold text-blue-600">
-                      {lectura.lectura_actual}
+                      {editando === lectura.id ? (
+                        <input
+                          type="number"
+                          value={formEdit.lectura_actual}
+                          onChange={(e) => setFormEdit({ ...formEdit, lectura_actual: e.target.value })}
+                          className="w-24 px-2 py-1 border rounded"
+                        />
+                      ) : (
+                        lectura.lectura_actual
+                      )}
                     </td>
                     <td className="p-4 text-base text-center">
                       <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full font-bold">
@@ -173,15 +283,46 @@ function LecturasPage() {
                     <td className="p-4 text-base font-bold text-green-600">
                       {formatearMonto(lectura.monto_calculado)}
                     </td>
+                    <td className="p-4 text-base text-gray-500">
+                      {lectura.operador_nombre || '—'}
+                    </td>
                     <td className="p-4">
-                      <Button 
-                        variant="success" 
-                        size="sm"
-                        onClick={() => handleSolicitarGuardar(lectura.id)}
-                        disabled={lectura.estado === 'completada' && !usuario?.es_admin}
-                      >
-                        Guardar
-                      </Button>
+                      {lectura.foto_url ? (
+                        <a href={lectura.foto_url} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={lectura.foto_url}
+                            alt="Medidor"
+                            className="w-14 h-14 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition cursor-pointer"
+                          />
+                        </a>
+                      ) : (
+                        <span className="text-gray-400 text-sm">Sin foto</span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      {editando === lectura.id ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSolicitarGuardar(lectura.id)}
+                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                          >
+                            ✅ Guardar
+                          </button>
+                          <button
+                            onClick={handleCancelarEdicion}
+                            className="text-red-600 hover:text-red-800 font-bold"
+                          >
+                            ❌
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleEditar(lectura)}
+                          className="text-blue-600 hover:text-blue-800 font-bold"
+                        >
+                          ✏️ Editar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -190,6 +331,7 @@ function LecturasPage() {
           </table>
         </div>
       </Card>
+
       {/* Modal de confirmación de edición */}
       {mostrarModalEdicion && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -198,7 +340,7 @@ function LecturasPage() {
             <p className="text-lg mb-4">
               Está a punto de modificar una lectura. Por razones de auditoría, debe indicar el motivo:
             </p>
-            
+
             <textarea
               value={razonModificacion}
               onChange={(e) => setRazonModificacion(e.target.value)}
@@ -207,17 +349,16 @@ function LecturasPage() {
               className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 mb-4"
               required
             />
-            
             <div className="flex gap-4">
-              <Button 
-                variant="success" 
+              <Button
+                variant="success"
                 onClick={() => handleGuardarConRazon(editando)}
                 className="flex-1"
               >
                 ✅ Confirmar Cambios
               </Button>
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setMostrarModalEdicion(false);
                   setRazonModificacion('');

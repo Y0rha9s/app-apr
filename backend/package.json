@@ -12,16 +12,28 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.1",
+    "archiver": "^7.0.1",
+    "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
+    "cloudinary": "^2.9.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
+    "express-fileupload": "^1.5.2",
+    "express-rate-limit": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "mercadopago": "^2.12.0",
+    "mercury-sdk": "^1.0.0",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
     "pdfkit": "^0.17.2",
-    "pg": "^8.17.1",
-    "qrcode": "^1.5.4"
+    "pg": "^8.20.0",
+    "qrcode": "^1.5.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.14"
   }
 }

@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Ocultar barra de desplazamiento en elementos con clase .scrollbar-hide */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 /* Animaciones personalizadas */
 @keyframes fadeIn {
   from {
@@ -24,4 +33,15 @@
 
 .animate-shake {
   animation: shake 0.4s ease-in-out;
+}
+
+/* Prevenir scroll horizontal */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+#root {
+  overflow-x: hidden;
+  max-width: 100%;
 }
