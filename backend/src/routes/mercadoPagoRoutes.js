@@ -15,6 +15,15 @@ const client = new MercadoPagoConfig({
 const preferenceClient = new Preference(client);
 const paymentClient = new Payment(client);
 
+function normalizarUrl(value, fallback) {
+    let url = (value ?? fallback ?? '').toString().trim();
+    url = url.replace(/^[`"' ]+/, '').replace(/[`"' ]+$/, '').trim();
+    if (url.endsWith('/')) {
+        url = url.slice(0, -1);
+    }
+    return url;
+}
+
 // Crear preferencia de pago
 router.post('/create-preference', async (req, res) => {
     const { boletaId, monto, descripcion, usuarioEmail, usuarioId } = req.body;
@@ -23,17 +32,16 @@ router.post('/create-preference', async (req, res) => {
         // Detectar si el backend está corriendo en localhost
         const host = req.get('host') || '';
         const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
-        let frontendUrl = isLocal 
-            ? 'http://localhost:5173' 
-            : (process.env.FRONTEND_URL || 'https://app-apr-frontend.vercel.app');
-        
-        // Limpieza robusta de URL
-        frontendUrl = frontendUrl.trim();
-        if (frontendUrl.endsWith('/')) {
-            frontendUrl = frontendUrl.slice(0, -1);
-        }
-        
-        const backendUrl = process.env.BACKEND_URL || (isLocal ? 'http://localhost:5000' : 'https://app-apr.onrender.com');
+        const defaultFrontendUrl = 'https://app-apr-frontend.vercel.app';
+        const frontendUrl = normalizarUrl(
+            process.env.FRONTEND_URL || (isLocal ? 'http://localhost:5173' : defaultFrontendUrl),
+            defaultFrontendUrl
+        );
+
+        const backendUrl = normalizarUrl(
+            process.env.BACKEND_URL || (isLocal ? 'http://localhost:5000' : 'https://app-apr.onrender.com'),
+            isLocal ? 'http://localhost:5000' : 'https://app-apr.onrender.com'
+        );
         
         console.log('🔗 URL de retorno configurada:', frontendUrl);
         console.log('🔗 URL de backend configurada:', backendUrl);

@@ -176,7 +176,7 @@ function Layout({ children }) {
           </div>
 
           {/* Footer Simple */}
-          <footer className="mt-12 py-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 text-gray-400 font-medium text-sm">
+          <footer className="mt-4 py-3 border-t border-gray-200/60 flex flex-col md:flex-row items-center justify-between gap-3 text-gray-400 font-medium text-xs">
             <p>© 2026 Sistema APR - Gestión de Agua Potable</p>
             <div className="flex items-center gap-6">
               <span className="hover:text-sky-500 cursor-help transition-colors">Soporte Técnico</span>

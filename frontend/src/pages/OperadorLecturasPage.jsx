@@ -8,11 +8,14 @@ const STORE_NAME = 'lecturas_pendientes';
 // IndexedDB helpers
 function abrirDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
+    const req = indexedDB.open(DB_NAME, 2); // ← versión 2
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('usuarios_cache')) {
+        db.createObjectStore('usuarios_cache', { keyPath: 'id' }); // ← nuevo store
       }
     };
     req.onsuccess = (e) => resolve(e.target.result);
@@ -47,6 +50,28 @@ async function eliminarPendiente(id) {
     tx.objectStore(STORE_NAME).delete(id);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function guardarUsuariosCache(usuarios) {
+  const db = await abrirDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('usuarios_cache', 'readwrite');
+    const store = tx.objectStore('usuarios_cache');
+    store.clear();
+    usuarios.forEach(u => store.add(u));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function cargarUsuariosCache() {
+  const db = await abrirDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('usuarios_cache', 'readonly');
+    const req = tx.objectStore('usuarios_cache').getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
   });
 }
 
@@ -90,10 +115,8 @@ function OperadorLecturasPage() {
   // Cargar datos iniciales
   useEffect(() => {
     cargarPendientes();
-    if (online) {
-      cargarUsuarios();
-      cargarCiclo();
-    }
+    cargarUsuarios();
+    if (online) cargarCiclo();
   }, [online]);
 
   // Auto-sincronizar cuando vuelve la conexión
@@ -120,8 +143,20 @@ function OperadorLecturasPage() {
       const soloUsuarios = data.filter(u => u.rol === 'usuario');
       setUsuarios(soloUsuarios);
       setUsuariosFiltrados(soloUsuarios);
+      // Guardar en cache para uso offline
+      await guardarUsuariosCache(soloUsuarios);
     } catch (err) {
-      console.error('Error cargando usuarios:', err);
+      console.error('Sin conexión, cargando usuarios desde cache...');
+      // Fallback a IndexedDB
+      try {
+        const cached = await cargarUsuariosCache();
+        if (cached.length > 0) {
+          setUsuarios(cached);
+          setUsuariosFiltrados(cached);
+        }
+      } catch (cacheErr) {
+        console.error('Error cargando cache:', cacheErr);
+      }
     }
   };
 
@@ -355,8 +390,8 @@ function OperadorLecturasPage() {
       {/* Mensaje feedback */}
       {mensaje && (
         <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-semibold ${mensaje.tipo === 'error' ? 'bg-red-100 text-red-800' :
-            mensaje.tipo === 'warning' ? 'bg-orange-100 text-orange-800' :
-              'bg-green-100 text-green-800'
+          mensaje.tipo === 'warning' ? 'bg-orange-100 text-orange-800' :
+            'bg-green-100 text-green-800'
           }`}>
           {mensaje.texto}
         </div>
