@@ -251,7 +251,7 @@ function SociosPage() {
                 <tr key={usuario.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <a 
-                      href={`https://app-apr.onrender.com/api/boletas/pdf/${usuario.id}`} 
+                      href={`https://apr-safip.onrender.com/api/boletas/pdf/${usuario.id}`} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="text-base font-bold text-blue-600 cursor-pointer hover:underline"

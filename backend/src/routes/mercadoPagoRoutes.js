@@ -39,8 +39,8 @@ router.post('/create-preference', async (req, res) => {
         );
 
         const backendUrl = normalizarUrl(
-            process.env.BACKEND_URL || (isLocal ? 'http://localhost:5000' : 'https://app-apr.onrender.com'),
-            isLocal ? 'http://localhost:5000' : 'https://app-apr.onrender.com'
+            process.env.BACKEND_URL || (isLocal ? 'http://localhost:5000' : 'https://apr-safip.onrender.com'),
+            isLocal ? 'http://localhost:5000' : 'https://apr-safip.onrender.com'
         );
         
         console.log('🔗 URL de retorno configurada:', frontendUrl);

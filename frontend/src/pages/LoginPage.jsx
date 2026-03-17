@@ -134,23 +134,7 @@ function LoginPage() {
             </button>
           </form>
 
-          {/* Usuarios de prueba */}
-          <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-100">
-            <p className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="text-2xl">ℹ️</span>
-              Usuarios de prueba:
-            </p>
-            <div className="space-y-3 text-base text-gray-700">
-              <div className="bg-white px-4 py-3 rounded-lg">
-                <p className="font-semibold">👨‍💼 Administrador:</p>
-                <p className="font-mono">11111111-1 / demo123</p>
-              </div>
-              <div className="bg-white px-4 py-3 rounded-lg">
-                <p className="font-semibold">👤 Usuario:</p>
-                <p className="font-mono">12345678-9 / demo123</p>
-              </div>
-            </div>
-          </div>
+          
         </div>
 
         {/* Footer */}
