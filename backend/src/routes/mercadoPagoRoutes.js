@@ -32,7 +32,7 @@ router.post('/create-preference', async (req, res) => {
         // Detectar si el backend está corriendo en localhost
         const host = req.get('host') || '';
         const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
-        const defaultFrontendUrl = 'https://app-apr-frontend.vercel.app';
+        const defaultFrontendUrl = 'https://apr-safip.vercel.app';
         const frontendUrl = normalizarUrl(
             process.env.FRONTEND_URL || (isLocal ? 'http://localhost:5173' : defaultFrontendUrl),
             defaultFrontendUrl

@@ -29,7 +29,7 @@ Plataforma web para la administración de un Comité APR: gestión de socios/usu
 
 ## Despliegues (producción)
 
-- **Frontend (Vercel):** `https://app-apr-frontend.vercel.app`
+- **Frontend (Vercel):** `https://apr-safip.vercel.app`
 - **Backend/API (Render):** `https://apr-safip.onrender.com`
 - **DB (Supabase Postgres):** vía `DATABASE_URL`
 - **Storage (Supabase):** bucket para fotos (operador/medidor)
@@ -74,7 +74,7 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB
 JWT_SECRET=TU_SECRETO
 
 # URLs
-FRONTEND_URL=https://app-apr-frontend.vercel.app
+FRONTEND_URL=https://apr-safip.vercel.app
 BACKEND_URL=https://apr-safip.onrender.com
 
 # Mercado Pago
