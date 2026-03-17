@@ -66,7 +66,7 @@ router.post('/create-preference', async (req, res) => {
                 failure: `${frontendUrl}/pago-fallido`,
                 pending: `${frontendUrl}/pago-pendiente`
             },
-            auto_return: 'approved',
+            ...(frontendUrl.includes('localhost') ? {} : { auto_return: 'approved' }),
             external_reference: externalReference,
             payer: {
                 email: usuarioEmail || 'test@test.com'
