@@ -53,7 +53,7 @@ function Layout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex overflow-hidden">
       {/* Overlay para móviles cuando el sidebar está abierto */}
       {sidebarOpen && (
         <div
@@ -170,17 +170,17 @@ function Layout({ children }) {
         </header>
 
         {/* Contenido de la Página */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8 bg-gray-50/30">
-          <div className="max-w-[1600px] mx-auto animate-fadeIn">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 bg-gray-50/30 flex flex-col">
+          <div className="max-w-[1600px] mx-auto animate-fadeIn flex-1 w-full">
             {children({ menuActivo })}
           </div>
 
           {/* Footer Simple */}
-          <footer className="mt-4 py-3 border-t border-gray-200/60 flex flex-col md:flex-row items-center justify-between gap-3 text-gray-400 font-medium text-xs">
-            <p>© 2026 Sistema APR - Gestión de Agua Potable</p>
-            <div className="flex items-center gap-6">
-              <span className="hover:text-sky-500 cursor-help transition-colors">Soporte Técnico</span>
-              <span className="hover:text-sky-500 cursor-help transition-colors">Manual de Usuario</span>
+          <footer className="mt-auto pt-2 pb-1.5 border-t border-gray-200/40 flex items-center justify-between gap-3 text-gray-400 font-medium text-[11px]">
+            <p className="truncate">© 2026 Sistema APR</p>
+            <div className="hidden md:flex items-center gap-4">
+              <span className="hover:text-sky-500 cursor-help transition-colors">Soporte</span>
+              <span className="hover:text-sky-500 cursor-help transition-colors">Manual</span>
             </div>
           </footer>
         </main>

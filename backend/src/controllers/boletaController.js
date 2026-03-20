@@ -4,27 +4,12 @@ const PDFDocument = require('pdfkit');
 const pool = require('../config/database');
 
 const APR_CONFIG = {
-  nombre: 'Sistema APR',
-  subtitulo: 'Empresa de Servicios Sanitarios',
-  rut: '00.000.000-0',
-  direccion: 'Dirección',
+  nombre: 'APR SAFIP',
+  subtitulo: 'Venta y traslado de agua potable',
+  rut: '71810200-6',
+  direccion: 'Kilometro 16,5 camino al cohihue',
   telefono: '+56900000000'
 };
-
-function calcularBoleta(lecturaAnterior, lecturaActual, saldoPendiente, subsidio, multa, incluirIVA) {
-  const consumo = Math.max(0, (lecturaActual || 0) - (lecturaAnterior || 0));
-  const cargoFijo = 3000;
-  const baseConsumo = Math.min(consumo, 15);
-  const excedente16_30Consumo = Math.max(0, Math.min(consumo - 15, 15));
-  const excedente30PlusConsumo = Math.max(0, consumo - 30);
-  const montoBase = baseConsumo * 800;
-  const excedente16_30 = excedente16_30Consumo * 900;
-  const excedente30plus = excedente30PlusConsumo * 1000;
-  const subtotal = cargoFijo + montoBase + excedente16_30 + excedente30plus + (multa || 0) + (saldoPendiente || 0) - (subsidio || 0);
-  const iva = incluirIVA ? Math.round(subtotal * 0.19) : 0;
-  const total = subtotal + iva;
-  return { consumo, cargoFijo, montoBase, excedente16_30, excedente30plus, multa: multa || 0, saldoPendiente: saldoPendiente || 0, iva, total };
-}
 
 const boletaController = {
 generarPDF: async (req, res) => {
@@ -38,6 +23,26 @@ generarPDF: async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
+
+    const boletaResult = await pool.query(
+      `SELECT 
+        b.*,
+        l.lectura_anterior,
+        l.lectura_actual,
+        l.consumo_m3 as lectura_consumo_m3,
+        l.fecha_lectura as lectura_fecha
+      FROM boletas b
+      LEFT JOIN lecturas l ON l.id = b.lectura_id
+      WHERE b.usuario_id = $1
+      ORDER BY b.created_at DESC NULLS LAST, b.id DESC
+      LIMIT 1`,
+      [usuarioId]
+    );
+
+    const boleta = boletaResult.rows[0];
+    if (!boleta) {
+      return res.status(404).json({ error: 'No hay boletas registradas para este usuario' });
+    }
     
     // Obtener últimas 3 lecturas para el gráfico
     const lecturasResult = await pool.query(
@@ -46,68 +51,52 @@ generarPDF: async (req, res) => {
     );
     
     const lecturas = lecturasResult.rows.reverse(); // Orden cronológico
-    
-    if (lecturas.length === 0) {
-      return res.status(404).json({ error: 'No hay lecturas registradas para este usuario' });
-    }
-    
-    const lecturaActual = lecturas[lecturas.length - 1];
-    
-    // Calcular deuda total
-    const lecturasTotal = await pool.query(
-      'SELECT COALESCE(SUM(monto_calculado), 0) as total FROM lecturas WHERE usuario_id = $1',
-      [usuarioId]
-    );
-    
-    const pagosTotal = await pool.query(
-      'SELECT COALESCE(SUM(monto), 0) as total FROM pagos WHERE usuario_id = $1',
-      [usuarioId]
-    );
-    
-    const deudaTotal = parseFloat(lecturasTotal.rows[0].total) - parseFloat(pagosTotal.rows[0].total);
-    const saldoPendiente = deudaTotal > lecturaActual.monto_calculado ? deudaTotal - lecturaActual.monto_calculado : 0;
-    
-    const subsidio = 0; // Por ahora en 0, después agregar lógica
-    
-    const calculo = calcularBoleta(
-      lecturaActual.lectura_anterior,
-      lecturaActual.lectura_actual,
-      saldoPendiente,
-      subsidio,
-      0, // multa
-      false // IVA
-    );
-    
-    const numeroBoletaGen = `${usuario.numero_cliente}-${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, '0')}`;
-    
+
+    const frontendUrl = (process.env.FRONTEND_URL || 'https://apr-safip.vercel.app').toString().trim().replace(/\/$/, '');
+    const periodoCompacto = boleta.periodo ? boleta.periodo.toString().replace('-', '') : null;
+    const numeroBoletaGen = periodoCompacto
+      ? `${usuario.numero_cliente || `USR-${usuario.id}`}-${periodoCompacto}`
+      : `${usuario.numero_cliente || `USR-${usuario.id}`}`;
+
+    const consumoM3 = boleta.consumo_m3 ?? boleta.lectura_consumo_m3 ?? Math.max(0, (boleta.lectura_actual || 0) - (boleta.lectura_anterior || 0));
+    const estadoBoleta = boleta.estado || (Number(boleta.saldo_pendiente || 0) <= 0 ? 'pagado' : 'pendiente');
+
     const boletaData = {
       numero: numeroBoletaGen,
       cliente: usuario.nombre,
       rut: usuario.rut,
-      medidor: usuario.numero_cliente,
-      lecturaAnterior: lecturaActual.lectura_anterior,
-      lecturaActual: lecturaActual.lectura_actual,
-      emision: new Date().toLocaleDateString('es-CL'),
-      vencimiento: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString('es-CL'),
-      calculo,
-      subsidio,
-      estado: usuario.estado === 'moroso' ? 'PENDIENTE' : 'AL DÍA'
+      numero_cliente: usuario.numero_cliente,
+      medidor: usuario.medidor || '—',
+      lecturaAnterior: boleta.lectura_anterior ?? '—',
+      lecturaActual: boleta.lectura_actual ?? '—',
+      consumo_m3: consumoM3,
+      emision: boleta.created_at ? new Date(boleta.created_at).toLocaleDateString('es-CL') : new Date().toLocaleDateString('es-CL'),
+      vencimiento: boleta.fecha_vencimiento ? new Date(boleta.fecha_vencimiento).toLocaleDateString('es-CL') : '—',
+      total_mes: Number(boleta.total_mes || 0),
+      saldo_anterior: Number(boleta.saldo_anterior || 0),
+      monto_corte: Number(boleta.monto_corte || 0),
+      monto_reposicion: Number(boleta.monto_reposicion || 0),
+      cuota_repactacion: Number(boleta.cuota_repactacion || 0),
+      descuento_subsidio: Number(boleta.descuento_subsidio || 0),
+      monto_iva: Number(boleta.monto_iva || 0),
+      total_a_pagar: Number(boleta.total_a_pagar || 0),
+      estado: estadoBoleta.toString().toUpperCase()
     };
     
     // Generar código QR
-    const qrData = `https://miempresa.cl/pagar?boleta=${boletaData.numero}&monto=${boletaData.calculo.total}`;
+    const qrData = `${frontendUrl}/pagos?boleta=${encodeURIComponent(boletaData.numero)}&monto=${encodeURIComponent(boletaData.total_a_pagar)}`;
     const qrImage = await QRCode.toDataURL(qrData);
     
     // Generar PDF
     const doc = new PDFDocument({ size: 'LETTER', margin: 40 });
     
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=boleta_${usuario.numero_cliente}.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=boleta_${boletaData.numero}.pdf`);
     
     doc.pipe(res);
     
     // HEADER CON LOGO (compacto)
-    const logoPath = path.join(__dirname, '../assets/LogoApr.png');
+    const logoPath = path.join(__dirname, '../assets/logoaprpedregoso.png');
     
     try {
       doc.image(logoPath, 40, 30, { width: 60 });
@@ -134,6 +123,8 @@ generarPDF: async (req, res) => {
     doc.font('Helvetica-Bold').text('RUT: ', 40, doc.y, { continued: true })
        .font('Helvetica').text(boletaData.rut);
     doc.font('Helvetica-Bold').text('N° Cliente: ', 40, doc.y, { continued: true })
+       .font('Helvetica').text(boletaData.numero_cliente || '—');
+    doc.font('Helvetica-Bold').text('Medidor: ', 40, doc.y, { continued: true })
        .font('Helvetica').text(boletaData.medidor);
     
     // Columna derecha - Boleta info
@@ -154,9 +145,9 @@ generarPDF: async (req, res) => {
     // Consumo del periodo (compacto)
     doc.fontSize(10).font('Helvetica-Bold').text('Consumo del periodo');
     doc.fontSize(9).font('Helvetica')
-       .text(`Lectura Anterior: ${boletaData.lecturaAnterior} m³  •  Lectura Actual: ${boletaData.lecturaActual} m³  •  Consumo Total: ${boletaData.calculo.consumo} m³`);
-    if (boletaData.subsidio > 0) {
-      doc.text(`Subsidio aplicado: $${boletaData.subsidio.toLocaleString('es-CL')}`);
+       .text(`Lectura Anterior: ${boletaData.lecturaAnterior} m³  •  Lectura Actual: ${boletaData.lecturaActual} m³  •  Consumo Total: ${boletaData.consumo_m3} m³`);
+    if (boletaData.descuento_subsidio > 0) {
+      doc.text(`Subsidio aplicado: $${boletaData.descuento_subsidio.toLocaleString('es-CL')}`);
     }
     doc.moveDown(0.5);
     
@@ -221,15 +212,14 @@ generarPDF: async (req, res) => {
     doc.text('Monto ($)', colMonto, tableTop + 5);
     
     const conceptos = [
-      { label: 'Cargo Fijo', valor: boletaData.calculo.cargoFijo },
-      { label: 'Consumo (0-15m³)', valor: boletaData.calculo.montoBase },
-      { label: 'Excedente (16-30m³)', valor: boletaData.calculo.excedente16_30 },
-      { label: 'Excedente (>30m³)', valor: boletaData.calculo.excedente30plus },
-      { label: 'Multa', valor: boletaData.calculo.multa },
-      { label: 'Saldo Pendiente', valor: boletaData.calculo.saldoPendiente },
-      { label: 'Subsidio', valor: -boletaData.subsidio },
-      { label: 'IVA (19%)', valor: boletaData.calculo.iva }
-    ];
+      { label: 'Total mes', valor: boletaData.total_mes },
+      { label: 'Saldo anterior', valor: boletaData.saldo_anterior },
+      { label: 'Corte', valor: boletaData.monto_corte },
+      { label: 'Reposición', valor: boletaData.monto_reposicion },
+      { label: 'Cuota repactación', valor: boletaData.cuota_repactacion },
+      { label: 'Subsidio', valor: -boletaData.descuento_subsidio },
+      { label: 'IVA', valor: boletaData.monto_iva }
+    ].filter((c) => c.label === 'Total mes' || c.label === 'Saldo anterior' || c.valor !== 0);
     
     let currentY = tableTop + rowHeight;
     
@@ -258,7 +248,7 @@ generarPDF: async (req, res) => {
     doc.rect(tableLeft, currentY, tableWidth, rowHeight + 5).fillAndStroke('#1e40af', '#1e3a8a');
     doc.fontSize(11).font('Helvetica-Bold').fillColor('white');
     doc.text('TOTAL A PAGAR', colLabel, currentY + 7);
-    doc.text(`$${boletaData.calculo.total.toLocaleString('es-CL')}`, colMonto, currentY + 7, { width: 75, align: 'right' });
+    doc.text(`$${boletaData.total_a_pagar.toLocaleString('es-CL')}`, colMonto, currentY + 7, { width: 75, align: 'right' });
     
     // Estado
     doc.fillColor('black');

@@ -8,6 +8,7 @@ function SociosPage() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [actualizandoTipo, setActualizandoTipo] = useState({});
 
   // Formulario nuevo usuario
   const [formData, setFormData] = useState({
@@ -79,11 +80,48 @@ function SociosPage() {
     }
   };
 
+  const handleToggleAfectoIva = async (u) => {
+    setActualizandoTipo((prev) => ({ ...prev, [u.id]: true }));
+    try {
+      const tipoActual = u.tipo_usuario || 'normal';
+      const nuevoTipo = tipoActual === 'exento_iva' ? 'normal' : 'exento_iva';
+      await api.put(`/usuarios/${u.id}/tipo`, { tipo_usuario: nuevoTipo });
+      setUsuarios((prev) => prev.map((x) => (x.id === u.id ? { ...x, tipo_usuario: nuevoTipo } : x)));
+    } catch (error) {
+      alert('❌ Error al actualizar IVA: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setActualizandoTipo((prev) => ({ ...prev, [u.id]: false }));
+    }
+  };
+
   const usuariosFiltrados = usuarios.filter(usuario =>
     usuario.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     usuario.rut.toLowerCase().includes(busqueda.toLowerCase()) ||
-    usuario.numero_cliente?.toLowerCase().includes(busqueda.toLowerCase())
+    usuario.numero_cliente?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    usuario.medidor?.toLowerCase().includes(busqueda.toLowerCase())
   );
+
+  const clienteKey = (numeroCliente) => {
+    if (!numeroCliente) return { prefix: 'ZZZ', num: Number.POSITIVE_INFINITY, raw: '' };
+    const raw = numeroCliente.toString().trim();
+    const match = raw.match(/^([A-Z]+)-0*(\d+)$/i);
+    if (match) {
+      return { prefix: match[1].toUpperCase(), num: parseInt(match[2], 10), raw };
+    }
+    const onlyNum = raw.match(/^0*(\d+)$/);
+    if (onlyNum) {
+      return { prefix: '', num: parseInt(onlyNum[1], 10), raw };
+    }
+    return { prefix: 'ZZZ', num: Number.POSITIVE_INFINITY, raw };
+  };
+
+  const usuariosOrdenados = usuariosFiltrados.slice().sort((a, b) => {
+    const ak = clienteKey(a.numero_cliente);
+    const bk = clienteKey(b.numero_cliente);
+    if (ak.prefix !== bk.prefix) return ak.prefix.localeCompare(bk.prefix);
+    if (ak.num !== bk.num) return ak.num - bk.num;
+    return (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' });
+  });
 
   const estadoBadge = (estado) => {
     const colores = {
@@ -237,17 +275,19 @@ function SociosPage() {
             <thead className="bg-gray-100 border-b-2 border-gray-300">
               <tr>
                 <th className="p-4 text-lg font-semibold">Nº Cliente</th>
+                <th className="p-4 text-lg font-semibold">Nº Medidor</th>
                 <th className="p-4 text-lg font-semibold">RUT</th>
                 <th className="p-4 text-lg font-semibold">Nombre</th>
                 <th className="p-4 text-lg font-semibold">Teléfono</th>
                 <th className="p-4 text-lg font-semibold">Dirección</th>
                 <th className="p-4 text-lg font-semibold">Rol</th>
+                <th className="p-4 text-lg font-semibold text-center">Afecto a IVA</th>
                 <th className="p-4 text-lg font-semibold">Estado</th>
                 <th className="p-4 text-lg font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {usuariosFiltrados.map((usuario) => (
+              {usuariosOrdenados.map((usuario) => (
                 <tr key={usuario.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <a 
@@ -259,6 +299,9 @@ function SociosPage() {
                       {usuario.numero_cliente || '-'}
                     </a>
                   </td>
+                  <td className="p-4 text-base font-mono">
+                    {usuario.medidor || usuario.numero_medidor || '-'}
+                  </td>
                   <td className="p-4 text-base font-mono">{usuario.rut}</td>
                   <td className="p-4 text-base font-semibold">{usuario.nombre}</td>
                   <td className="p-4 text-base">{usuario.telefono || '-'}</td>
@@ -268,6 +311,20 @@ function SociosPage() {
                       }`}>
                       {usuario.rol === 'admin' ? '👨‍💼 Admin' : '👤 Usuario'}
                     </span>
+                  </td>
+                  <td className="p-4 text-center">
+                    <button
+                      type="button"
+                      disabled={!!actualizandoTipo[usuario.id]}
+                      onClick={() => handleToggleAfectoIva(usuario)}
+                      className={`inline-flex items-center justify-center min-w-16 px-3 py-1 rounded-full text-sm font-bold border transition-colors ${
+                        (usuario.tipo_usuario || 'normal') === 'exento_iva'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200'
+                          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                      } ${actualizandoTipo[usuario.id] ? 'opacity-60 cursor-wait' : ''}`}
+                    >
+                      {(usuario.tipo_usuario || 'normal') === 'exento_iva' ? 'Sí' : 'No'}
+                    </button>
                   </td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${estadoBadge(usuario.estado)}`}>

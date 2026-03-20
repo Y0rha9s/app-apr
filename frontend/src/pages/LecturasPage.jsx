@@ -49,7 +49,7 @@ function LecturasPage() {
         api.get('/usuarios')
       ]);
       setLecturas(lecturasRes.data);
-      setUsuarios(usuariosRes.data.filter(u => u.rol === 'usuario'));
+      setUsuarios(usuariosRes.data);
       setLoading(false);
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -72,6 +72,11 @@ function LecturasPage() {
   const getNombreUsuario = (usuarioId) => {
     const usuario = usuarios.find(u => u.id === usuarioId);
     return usuario ? usuario.nombre : 'Desconocido';
+  };
+
+  const getMedidorUsuario = (usuarioId) => {
+    const usuario = usuarios.find(u => u.id === usuarioId);
+    return usuario?.medidor || usuario?.numero_medidor || '—';
   };
 
   const descargarExcel = () => {
@@ -138,6 +143,28 @@ function LecturasPage() {
 
   const lecturasFiltradas = lecturas.filter(l => l.mes === parseInt(mesFiltro) && l.anio === parseInt(anioFiltro));
   const consumoTotal = lecturasFiltradas.reduce((sum, l) => sum + (l.consumo_m3 || 0), 0);
+
+  const clienteKey = (numeroCliente) => {
+    if (!numeroCliente) return { prefix: 'ZZZ', num: Number.POSITIVE_INFINITY, raw: '' };
+    const raw = numeroCliente.toString().trim();
+    const match = raw.match(/^([A-Z]+)-0*(\d+)$/i);
+    if (match) {
+      return { prefix: match[1].toUpperCase(), num: parseInt(match[2], 10), raw };
+    }
+    const onlyNum = raw.match(/^0*(\d+)$/);
+    if (onlyNum) {
+      return { prefix: '', num: parseInt(onlyNum[1], 10), raw };
+    }
+    return { prefix: 'ZZZ', num: Number.POSITIVE_INFINITY, raw };
+  };
+
+  const lecturasOrdenadas = lecturasFiltradas.slice().sort((a, b) => {
+    const ak = clienteKey(a.usuario_numero_cliente);
+    const bk = clienteKey(b.usuario_numero_cliente);
+    if (ak.prefix !== bk.prefix) return ak.prefix.localeCompare(bk.prefix);
+    if (ak.num !== bk.num) return ak.num - bk.num;
+    return (a.usuario_nombre || '').localeCompare(b.usuario_nombre || '', 'es', { sensitivity: 'base' });
+  });
 
   const meses = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -236,6 +263,7 @@ function LecturasPage() {
           <table className="w-full text-left">
             <thead className="bg-gray-100 border-b-2 border-gray-300">
               <tr>
+                <th className="p-4 text-lg font-semibold">Nº Medidor</th>
                 <th className="p-4 text-lg font-semibold">Usuario</th>
                 <th className="p-4 text-lg font-semibold">Fecha</th>
                 <th className="p-4 text-lg font-semibold text-center">Lectura Anterior</th>
@@ -255,13 +283,13 @@ function LecturasPage() {
                   </td>
                 </tr>
               ) : (
-                lecturasFiltradas.slice().reverse().map((lectura) => (
+                lecturasOrdenadas.map((lectura) => (
                   <tr key={lectura.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-base font-semibold">{lectura.usuario_nombre || 'Desconocido'}</td>
-                    <td className="p-4 text-base">{formatearFecha(lectura.fecha_lectura)}</td>
-                    <td className="p-4 text-base">
-                      {new Date(lectura.anio, lectura.mes - 1).toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
+                    <td className="p-4 text-base font-mono">
+                      {lectura.usuario_medidor || getMedidorUsuario(lectura.usuario_id)}
                     </td>
+                    <td className="p-4 text-base font-semibold">{lectura.usuario_nombre || getNombreUsuario(lectura.usuario_id)}</td>
+                    <td className="p-4 text-base">{formatearFecha(lectura.fecha_lectura)}</td>
                     <td className="p-4 text-base text-center font-mono">{lectura.lectura_anterior}</td>
                     <td className="p-4 text-base text-center font-mono font-bold text-blue-600">
                       {editando === lectura.id ? (

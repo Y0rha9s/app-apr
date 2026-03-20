@@ -441,35 +441,6 @@ function OperadorLecturasPage() {
           )}
         </div>
 
-        {/* Lectura anterior — solo lectura */}
-        <div>
-          <label className="block text-base font-semibold text-gray-700 mb-2">
-            Lectura anterior (m³)
-          </label>
-          <input
-            type="text"
-            value={ultimaLectura ? ultimaLectura.lectura_actual : '—'}
-            readOnly
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-xl font-mono bg-gray-50 text-gray-500 cursor-not-allowed"
-          />
-          {ultimaLectura && (
-            <p className="text-xs text-gray-400 mt-1">
-              Registrada en {new Date(ultimaLectura.anio, ultimaLectura.mes - 1).toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
-            </p>
-          )}
-        </div>
-
-        {/* Última lectura */}
-        {ultimaLectura && (
-          <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm">
-            <p className="font-semibold text-blue-800 mb-1">Última lectura registrada</p>
-            <div className="flex gap-6 text-blue-700">
-              <span>Lectura: <strong>{ultimaLectura.lectura_actual}</strong></span>
-              <span>Consumo: <strong>{ultimaLectura.consumo_m3} m³</strong></span>
-            </div>
-          </div>
-        )}
-
         {/* Lectura actual */}
         <div>
           <label className="block text-base font-semibold text-gray-700 mb-2">
@@ -480,16 +451,11 @@ function OperadorLecturasPage() {
             inputMode="numeric"
             value={formData.lectura_actual}
             onChange={(e) => setFormData(prev => ({ ...prev, lectura_actual: e.target.value }))}
-            placeholder={ultimaLectura ? `Anterior: ${ultimaLectura.lectura_actual}` : 'Ej: 1600'}
+            placeholder="Ej: 1600"
             className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-xl font-mono focus:outline-none focus:border-blue-500"
             min="0"
             required
           />
-          {formData.lectura_actual && ultimaLectura && (
-            <p className="text-sm text-gray-500 mt-1">
-              Consumo estimado: <strong>{Math.max(0, parseInt(formData.lectura_actual) - ultimaLectura.lectura_actual)} m³</strong>
-            </p>
-          )}
         </div>
 
         {/* Foto obligatoria */}

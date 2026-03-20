@@ -18,7 +18,9 @@ const lecturaModel = {
         l.created_at,
         u.nombre as usuario_nombre,
         u.rut as usuario_rut,
-        u.direccion as usuario_direccion
+        u.direccion as usuario_direccion,
+        u.numero_cliente as usuario_numero_cliente,
+        u.medidor as usuario_medidor
       FROM lecturas l
       JOIN usuarios u ON l.usuario_id = u.id
       ORDER BY l.fecha_lectura DESC
@@ -43,7 +45,9 @@ const lecturaModel = {
         l.created_at,
         u.nombre as usuario_nombre,
         u.rut as usuario_rut,
-        u.direccion as usuario_direccion
+        u.direccion as usuario_direccion,
+        u.numero_cliente as usuario_numero_cliente,
+        u.medidor as usuario_medidor
       FROM lecturas l
       JOIN usuarios u ON l.usuario_id = u.id
       WHERE l.usuario_id = $1 
@@ -70,7 +74,9 @@ const lecturaModel = {
       `SELECT 
         l.*,
         u.nombre as usuario_nombre,
-        u.rut as usuario_rut
+        u.rut as usuario_rut,
+        u.numero_cliente as usuario_numero_cliente,
+        u.medidor as usuario_medidor
       FROM lecturas l
       JOIN usuarios u ON l.usuario_id = u.id
       WHERE l.id = $1`,

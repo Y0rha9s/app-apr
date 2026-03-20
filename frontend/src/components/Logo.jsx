@@ -26,11 +26,11 @@ function Logo({ className = '', size = 'md' }) {
 
   return (
     <img 
-      src="/LogoApr.png" 
-      alt="Logo APR" 
+      src="/logoaprpedregoso.png" 
+      alt="Logo APR SAFIP" 
       className={`${sizeClasses[size]} ${className} object-contain`}
       onError={() => {
-        console.log('Error cargando logo: /LogoApr.png no encontrado');
+        console.log('Error cargando logo: /logoaprpedregoso.png no encontrado');
         setImageError(true);
       }}
       onLoad={() => {

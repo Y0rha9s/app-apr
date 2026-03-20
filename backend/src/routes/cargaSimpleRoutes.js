@@ -120,7 +120,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           throw new Error('Debe proporcionar al menos un identificador (RUT, Nro Medidor o Nombre)');
         }
         
-        // Buscar usuario por RUT, Número de Cliente o Nombre
+        // Buscar usuario por RUT, Medidor/Nº Cliente o Nombre
         let usuario = null;
         
         // 1. Buscar por RUT
@@ -132,10 +132,10 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           usuario = rutResult.rows[0];
         }
         
-        // 2. Si no encontró por RUT, buscar por número de cliente
+        // 2. Si no encontró por RUT, buscar por medidor o número de cliente
         if (!usuario && medidorFila) {
           const medidorResult = await client.query(
-            'SELECT * FROM usuarios WHERE numero_cliente = $1',
+            'SELECT * FROM usuarios WHERE medidor = $1 OR numero_cliente = $1',
             [medidorFila]
           );
           usuario = medidorResult.rows[0];
@@ -185,16 +185,12 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           const hashedPassword = await bcrypt.hash(passwordStr, 10);
           const emailTemp = rutFinal ? `${rutFinal.replace(/[^0-9a-zA-Z]/g, '')}@temp.com` : `user_${Date.now()}@temp.com`;
           
-          // Obtener el siguiente número de cliente si no viene en el Excel
-          let nroClienteFinal = medidorFila;
-          if (!nroClienteFinal) {
-            const maxResult = await client.query("SELECT COALESCE(MAX(CAST(numero_cliente AS BIGINT)), 0) + 1 as sig FROM usuarios WHERE numero_cliente ~ '^[0-9]+$'");
-            nroClienteFinal = maxResult.rows[0].sig.toString().padStart(3, '0');
-          }
+          const maxResult = await client.query("SELECT COALESCE(MAX(CAST(numero_cliente AS BIGINT)), 0) + 1 as sig FROM usuarios WHERE numero_cliente ~ '^[0-9]+$'");
+          const nroClienteFinal = maxResult.rows[0].sig.toString().padStart(3, '0');
 
           const nuevoUsuarioRes = await client.query(
-            `INSERT INTO usuarios (nombre, rut, email, password, rol, numero_cliente, direccion) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            `INSERT INTO usuarios (nombre, rut, email, password, rol, numero_cliente, medidor, direccion) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
             [
               nombreFila || 'Usuario Nuevo',
               rutFinal,
@@ -202,19 +198,20 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
               hashedPassword,
               'socio',
               nroClienteFinal,
+              medidorFila || null,
               'Dirección pendiente'
             ]
           );
           usuario = nuevoUsuarioRes.rows[0];
         }
         
-        // Actualizar número de cliente si cambió y viene en el Excel
-        if (medidorFila && medidorFila !== usuario.numero_cliente) {
+        // Actualizar medidor si viene en el Excel
+        if (medidorFila && medidorFila !== usuario.medidor) {
           await client.query(
-            'UPDATE usuarios SET numero_cliente = $1, updated_at = NOW() WHERE id = $2',
+            'UPDATE usuarios SET medidor = $1, updated_at = NOW() WHERE id = $2',
             [medidorFila, usuario.id]
           );
-          usuario.numero_cliente = medidorFila;
+          usuario.medidor = medidorFila;
         }
         
         // Obtener última lectura del usuario
@@ -256,7 +253,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
             fila: numeroFila,
             nombre: usuario.nombre,
             rut: usuario.rut || 'N/A',
-            medidor: usuario.numero_cliente,
+            medidor: usuario.medidor || '—',
             error: `Ya existe lectura registrada para ${mes}/${anio} (Ignorada)`,
             saltado: true
           });
@@ -335,7 +332,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           fila: numeroFila,
           nombre: usuario.nombre,
           rut: usuario.rut || 'N/A',
-          medidor: usuario.numero_cliente,
+          medidor: usuario.medidor || '—',
           lectura_anterior: lecturaAnterior,
           lectura_actual: lecturaActual,
           consumo: consumoM3,
@@ -437,7 +434,7 @@ router.get('/descargar-usuarios', async (req, res) => {
       `SELECT 
         u.nombre,
         u.rut,
-        u.numero_medidor,
+        u.medidor,
         u.numero_cliente,
         l.lectura_actual as ultima_lectura
        FROM usuarios u
@@ -464,8 +461,8 @@ router.get('/descargar-usuarios', async (req, res) => {
     const datos = result.rows.map(u => ({
       'Nombre': u.nombre,
       'RUT': u.rut,
-      'Nro Medidor': u.numero_medidor || `MED-${u.numero_cliente}`,
-      'Lectura Actual': '' // Vacío para que lo llenen
+      'Nro Medidor': u.medidor || '',
+      'Lectura Actual': '' 
     }));
     
     // Crear workbook
