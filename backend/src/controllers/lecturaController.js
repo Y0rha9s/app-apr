@@ -37,33 +37,53 @@ const lecturaController = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { lectura_anterior, lectura_actual, monto_calculado, observaciones, razon_modificacion, usuario_modificador_id } = req.body;
-      
+      const { lectura_anterior, lectura_actual, monto_calculado, observaciones, razon_modificacion, usuario_modificador_id, medidor } = req.body;
+
       if (!razon_modificacion) {
         return res.status(400).json({ error: 'Debe proporcionar una razón para la modificación' });
       }
-      
+
       // Obtener valores actuales antes de modificar
       const lecturaActualResult = await pool.query('SELECT * FROM lecturas WHERE id = $1', [id]);
-      
+
       if (lecturaActualResult.rows.length === 0) {
         return res.status(404).json({ error: 'Lectura no encontrada' });
       }
-      
+
       const lecturaAnterior = lecturaActualResult.rows[0];
-      
+
+      let medidorAnterior = null;
+      if (typeof medidor === 'string') {
+        const usuarioRes = await pool.query('SELECT medidor FROM usuarios WHERE id = $1', [lecturaAnterior.usuario_id]);
+        medidorAnterior = usuarioRes.rows[0]?.medidor ?? null;
+      }
+
       // Actualizar lectura
       const result = await pool.query(
-        `UPDATE lecturas 
-         SET lectura_anterior = $1, 
-             lectura_actual = $2, 
-             monto_calculado = $3,
-             observaciones = $4
-         WHERE id = $5 
-         RETURNING *`,
+       `UPDATE lecturas 
+       SET lectura_anterior = $1, 
+       lectura_actual = $2, 
+       monto_calculado = $3,
+       observaciones = $4
+       WHERE id = $5 
+       RETURNING *`,
         [lectura_anterior, lectura_actual, monto_calculado, observaciones, id]
       );
-      
+
+      if (typeof medidor === 'string') {
+        const nuevoMedidor = medidor.trim() || null;
+        if (nuevoMedidor !== medidorAnterior) {
+          await pool.query(
+            'UPDATE usuarios SET medidor = $1 WHERE id = $2',
+            [nuevoMedidor, lecturaAnterior.usuario_id]
+          );
+        }
+      }
+
+      const razonFinal = typeof medidor === 'string'
+        ? `${razon_modificacion} | Medidor: ${medidorAnterior || '—'} -> ${(medidor || '').trim() || '—'}`
+        : razon_modificacion;
+
       // Registrar en auditoría
       await pool.query(
         `INSERT INTO auditoria_lecturas 
@@ -81,10 +101,10 @@ const lecturaController = {
           lectura_anterior,
           lectura_actual,
           monto_calculado,
-          razon_modificacion
+          razonFinal
         ]
       );
-      
+
       res.json(result.rows[0]);
     } catch (error) {
       res.status(500).json({ error: error.message });

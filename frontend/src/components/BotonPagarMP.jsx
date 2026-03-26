@@ -22,6 +22,7 @@ function BotonPagarMP({ boleta, onSuccess }) {
       const data = response.data;
 
       if (data.init_point) {
+        if (typeof onSuccess === 'function') onSuccess(data);
         // Redirigir a Mercado Pago
         window.location.href = data.init_point; 
       } else {

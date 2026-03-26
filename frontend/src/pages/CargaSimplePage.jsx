@@ -10,6 +10,36 @@ function CargaSimplePage() {
     const [procesando, setProcesando] = useState(false);
     const [resultados, setResultados] = useState(null);
     const [mostrarResultados, setMostrarResultados] = useState(false);
+    const [conflictos, setConflictos] = useState([]);
+    const [resolviendo, setResolviendo] = useState({});
+    const [mensajeProceso, setMensajeProceso] = useState('');
+    const [archivoContactos, setArchivoContactos] = useState(null);
+    const [procesandoContactos, setProcesandoContactos] = useState(false);
+    const [resultadosContactos, setResultadosContactos] = useState(null);
+
+    const handleProcesarContactos = async () => {
+        if (!archivoContactos) return;
+        if (!window.confirm('¿Actualizar teléfonos y domicilios?')) return;
+
+        setProcesandoContactos(true);
+        setResultadosContactos(null);
+        try {
+            const formData = new FormData();
+            formData.append('archivo', archivoContactos);
+
+            const response = await api.post('/carga-simple/actualizar-contactos', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            setResultadosContactos(response.data);
+            setArchivoContactos(null);
+            document.getElementById('fileContactos').value = '';
+        } catch (error) {
+            alert('❌ Error: ' + (error.response?.data?.error || error.message));
+        } finally {
+            setProcesandoContactos(false);
+        }
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -83,6 +113,8 @@ function CargaSimplePage() {
         setProcesando(true);
         setResultados(null);
         setMostrarResultados(false);
+        setConflictos([]);
+        setMensajeProceso('');
 
         try {
             const formData = new FormData();
@@ -98,7 +130,8 @@ function CargaSimplePage() {
 
             setResultados(response.data.resultados);
             setMostrarResultados(true);
-            alert(`✅ ${response.data.mensaje}`);
+            setConflictos((response.data.resultados?.conflictos || []).map((c) => ({ ...c, decision: null })));
+            setMensajeProceso(response.data.mensaje || '');
 
             // Limpiar archivo
             setArchivo(null);
@@ -109,6 +142,33 @@ function CargaSimplePage() {
         } finally {
             setProcesando(false);
         }
+    };
+
+    const handleConfirmarConflicto = async (c) => {
+        setResolviendo((prev) => ({ ...prev, [c.lectura_id_existente]: true }));
+        try {
+            await api.put('/carga-simple/resolver-conflicto', {
+                lectura_id: c.lectura_id_existente,
+                lectura_actual: c.lectura_nueva
+            });
+            setConflictos((prev) =>
+                prev.map((x) =>
+                    x.lectura_id_existente === c.lectura_id_existente ? { ...x, decision: 'confirmado' } : x
+                )
+            );
+        } catch (e) {
+            alert('❌ Error aplicando lectura para ' + c.nombre + ': ' + (e.response?.data?.error || e.message));
+        } finally {
+            setResolviendo((prev) => ({ ...prev, [c.lectura_id_existente]: false }));
+        }
+    };
+
+    const handleRechazarConflicto = (c) => {
+        setConflictos((prev) =>
+            prev.map((x) =>
+                x.lectura_id_existente === c.lectura_id_existente ? { ...x, decision: 'rechazado' } : x
+            )
+        );
     };
 
     const formatearMonto = (monto) => {
@@ -162,6 +222,12 @@ function CargaSimplePage() {
                         className="px-6 py-3 bg-gray-600 text-white rounded-lg text-lg font-semibold hover:bg-gray-700 transition-colors"
                     >
                         📥 Descargar Template Vacío
+                    </button>
+                    <button
+                        onClick={handleDescargarUsuarios}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                        👥 Descargar Usuarios
                     </button>
                 </div>
             </Card>
@@ -235,6 +301,70 @@ function CargaSimplePage() {
             {/* Resultados */}
             {mostrarResultados && resultados && (
                 <div className="space-y-6">
+                    {mensajeProceso && (
+                        <Card className="bg-green-50 border-l-4 border-green-600">
+                            <p className="text-lg font-semibold text-green-800">{mensajeProceso}</p>
+                        </Card>
+                    )}
+
+                    {conflictos.length > 0 && (
+                        <Card title="⚠️ Conflictos de Lecturas" className="bg-yellow-50 border-l-4 border-yellow-500">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-100 border-b-2">
+                                        <tr>
+                                            <th className="p-3 text-base font-semibold">Fila</th>
+                                            <th className="p-3 text-base font-semibold">Usuario</th>
+                                            <th className="p-3 text-base font-semibold">RUT</th>
+                                            <th className="p-3 text-base font-semibold">Periodo</th>
+                                            <th className="p-3 text-base font-semibold text-center">Lectura Sistema</th>
+                                            <th className="p-3 text-base font-semibold text-center">Lectura Excel</th>
+                                            <th className="p-3 text-base font-semibold text-center">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {conflictos.map((c) => (
+                                            <tr key={`${c.lectura_id_existente}-${c.fila}`} className="border-b hover:bg-white/50">
+                                                <td className="p-3 text-center font-semibold">{c.fila}</td>
+                                                <td className="p-3">{c.nombre}</td>
+                                                <td className="p-3 font-mono text-sm">{c.rut}</td>
+                                                <td className="p-3 font-mono text-sm">{String(c.mes).padStart(2, '0')}/{c.anio}</td>
+                                                <td className="p-3 text-center font-bold">{c.lectura_existente}</td>
+                                                <td className="p-3 text-center font-bold text-blue-700">{c.lectura_nueva}</td>
+                                                <td className="p-3">
+                                                    {c.decision ? (
+                                                        <div className={`text-center font-bold ${c.decision === 'confirmado' ? 'text-green-700' : 'text-gray-600'}`}>
+                                                            {c.decision === 'confirmado' ? '✅ Confirmado' : '🚫 Rechazado'}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex gap-3 justify-center">
+                                                            <Button
+                                                                variant="success"
+                                                                size="sm"
+                                                                disabled={!!resolviendo[c.lectura_id_existente]}
+                                                                onClick={() => handleConfirmarConflicto(c)}
+                                                            >
+                                                                Confirmar
+                                                            </Button>
+                                                            <Button
+                                                                variant="neutral"
+                                                                size="sm"
+                                                                disabled={!!resolviendo[c.lectura_id_existente]}
+                                                                onClick={() => handleRechazarConflicto(c)}
+                                                            >
+                                                                Rechazar
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+                    )}
+
                     {/* Resumen */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <Card className="bg-blue-50 border-l-4 border-blue-600">
@@ -324,6 +454,62 @@ function CargaSimplePage() {
                     )}
                 </div>
             )}
+            {/* Sección actualizar contactos */}
+            <Card className="mt-8 border-l-4 border-purple-600">
+                <h3 className="text-2xl font-bold mb-4 text-gray-800">📱 Actualizar Teléfonos y Domicilios</h3>
+                <p className="text-gray-600 mb-4">
+                    Sube un Excel con columnas <strong>NOMBRE, TELEFONO, RUT, DOMICILIO</strong>.
+                    El sistema buscará por RUT primero, luego por nombre.
+                    El teléfono siempre se reemplaza. El domicilio solo se agrega si el usuario no tiene uno.
+                </p>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-lg font-semibold text-gray-700 mb-2">Archivo Excel</label>
+                        <input
+                            id="fileContactos"
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                const ext = file?.name.split('.').pop().toLowerCase();
+                                if (!['xlsx', 'xls'].includes(ext)) {
+                                    alert('⚠️ Solo archivos Excel');
+                                    e.target.value = '';
+                                    return;
+                                }
+                                setArchivoContactos(file);
+                            }}
+                            className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
+                        />
+                        {archivoContactos && (
+                            <p className="mt-2 text-green-600 font-semibold">✅ {archivoContactos.name}</p>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={handleProcesarContactos}
+                        disabled={!archivoContactos || procesandoContactos}
+                        className="w-full py-3 bg-purple-600 text-white rounded-xl text-lg font-semibold hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                        {procesandoContactos ? '⏳ Procesando...' : '📱 Actualizar Contactos'}
+                    </button>
+
+                    {resultadosContactos && (
+                        <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                            <p className="font-semibold text-purple-800 mb-2">{resultadosContactos.mensaje}</p>
+                            {resultadosContactos.resultados?.noEncontrados?.length > 0 && (
+                                <div className="mt-2">
+                                    <p className="text-sm font-semibold text-red-700 mb-1">No encontrados:</p>
+                                    {resultadosContactos.resultados.noEncontrados.map((u, i) => (
+                                        <p key={i} className="text-sm text-red-600">· {u.nombre} {u.rut && `(${u.rut})`}</p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </Card>
         </div>
     );
 }

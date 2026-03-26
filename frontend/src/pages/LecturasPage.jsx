@@ -88,6 +88,7 @@ function LecturasPage() {
   const handleEditar = (lectura) => {
     setEditando(lectura.id);
     setFormEdit({
+      medidor: lectura.usuario_medidor || getMedidorUsuario(lectura.usuario_id),
       lectura_anterior: lectura.lectura_anterior,
       lectura_actual: lectura.lectura_actual,
       monto_calculado: lectura.monto_calculado,
@@ -110,6 +111,7 @@ function LecturasPage() {
     }
     try {
       await api.put(`/lecturas/${editando}`, {
+        medidor: (formEdit.medidor || '').toString().trim(),
         lectura_anterior: parseInt(formEdit.lectura_anterior),
         lectura_actual: parseInt(formEdit.lectura_actual),
         monto_calculado: parseFloat(formEdit.monto_calculado),
@@ -184,8 +186,8 @@ function LecturasPage() {
         <div className="flex flex-wrap gap-3">
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
             <label className="text-sm font-bold text-gray-600">Mes:</label>
-            <select 
-              value={mesFiltro} 
+            <select
+              value={mesFiltro}
               onChange={(e) => setMesFiltro(e.target.value)}
               className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600"
             >
@@ -197,8 +199,8 @@ function LecturasPage() {
 
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
             <label className="text-sm font-bold text-gray-600">Año:</label>
-            <select 
-              value={anioFiltro} 
+            <select
+              value={anioFiltro}
               onChange={(e) => setAnioFiltro(e.target.value)}
               className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600"
             >
@@ -214,7 +216,7 @@ function LecturasPage() {
           >
             📥 Excel
           </button>
-          
+
           <button
             onClick={handleNuevaLectura}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
@@ -222,7 +224,7 @@ function LecturasPage() {
             ➕ Nueva Lectura
           </button>
         </div>
-        
+
         {/* Modal del formulario */}
         {mostrarFormulario && (
           <FormularioNuevaLectura
@@ -286,11 +288,31 @@ function LecturasPage() {
                 lecturasOrdenadas.map((lectura) => (
                   <tr key={lectura.id} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-base font-mono">
-                      {lectura.usuario_medidor || getMedidorUsuario(lectura.usuario_id)}
+                      {editando === lectura.id ? (
+                        <input
+                          type="text"
+                          value={formEdit.medidor}
+                          onChange={(e) => setFormEdit({ ...formEdit, medidor: e.target.value })}
+                          className="w-28 px-2 py-1 border rounded font-mono"
+                        />
+                      ) : (
+                        lectura.usuario_medidor || getMedidorUsuario(lectura.usuario_id)
+                      )}
                     </td>
                     <td className="p-4 text-base font-semibold">{lectura.usuario_nombre || getNombreUsuario(lectura.usuario_id)}</td>
                     <td className="p-4 text-base">{formatearFecha(lectura.fecha_lectura)}</td>
-                    <td className="p-4 text-base text-center font-mono">{lectura.lectura_anterior}</td>
+                    <td className="p-4 text-base text-center font-mono">
+                      {editando === lectura.id ? (
+                        <input
+                          type="number"
+                          value={formEdit.lectura_anterior}
+                          onChange={(e) => setFormEdit({ ...formEdit, lectura_anterior: e.target.value })}
+                          className="w-24 px-2 py-1 border rounded"
+                        />
+                      ) : (
+                        lectura.lectura_anterior
+                      )}
+                    </td>
                     <td className="p-4 text-base text-center font-mono font-bold text-blue-600">
                       {editando === lectura.id ? (
                         <input

@@ -166,8 +166,8 @@ async function obtenerOCrearUsuario(row, client) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const resultNuevo = await client.query(
-    `INSERT INTO usuarios (nombre, rut, direccion, email, password, rol) 
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+    `INSERT INTO usuarios (nombre, rut, direccion, email, password, rol, es_socio) 
+     VALUES ($1, $2, $3, $4, $5, $6, true) RETURNING id`,
     [
       row.NOMBRE,
       rut,

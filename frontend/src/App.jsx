@@ -19,6 +19,7 @@ import PrestamosPage from './pages/PrestamosPage';
 import AvisosPage from './pages/AvisosPage';
 import CargaSimplePage from './pages/CargaSimplePage';
 import OperadorLecturasPage from './pages/OperadorLecturasPage';
+import BoletasPage from './pages/BoletasPage';
 
 function AppContent() {
   const { usuario, loading, isAdmin, isOperador, isRecaudador } = useAuth();
@@ -140,6 +141,9 @@ function AppContent() {
               return <MiCuentaPage />;
             }
             return <AvisosPage />;
+          case 'boletas':
+            if (!isAdmin) return <MiCuentaPage />;
+            return <BoletasPage />;
           case 'carga-simple':
             if (!isAdmin) {
               return <MiCuentaPage />;

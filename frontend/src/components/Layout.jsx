@@ -1,5 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Logo from './Logo';
 
@@ -10,6 +10,10 @@ function Layout({ children }) {
   );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const scrollRef = useRef(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(false);
+  const [submenuAbierto, setSubmenuAbierto] = useState(null);
 
   // Actualizar el menú inicial cuando cambie el rol o la URL
   useEffect(() => {
@@ -17,29 +21,56 @@ function Layout({ children }) {
       setMenuActivo('pagos');
       return;
     }
-    if (isAdmin && (menuActivo === 'mi-cuenta' || menuActivo === 'mi-consumo' || menuActivo === 'pagos' || menuActivo === 'reclamos')) {
-      setMenuActivo('dashboard');
-    } else if (isOperador) {
-      setMenuActivo('toma-lecturas');
-    } else if (isRecaudador) {
-      setMenuActivo('caja');
-    } else if (!isAdmin && !isOperador && !isRecaudador && (menuActivo === 'dashboard' || menuActivo === 'transacciones' || menuActivo === 'socios' || menuActivo === 'lecturas' || menuActivo === 'morosos' || menuActivo === 'carga-masiva')) {
-      setMenuActivo('mi-cuenta');
+    if (!isAdmin && !isOperador && !isRecaudador) {
+      if (location.pathname === '/mi-cuenta') {
+        setMenuActivo('mi-cuenta');
+        return;
+      }
+      if (location.pathname === '/mi-consumo') {
+        setMenuActivo('mi-consumo');
+        return;
+      }
+      if (location.pathname === '/reclamos') {
+        setMenuActivo('reclamos');
+        return;
+      }
     }
-  }, [isAdmin, isOperador, isRecaudador]);
+    if (isAdmin) {
+      setMenuActivo('dashboard');
+      return;
+    }
+    if (isOperador) {
+      setMenuActivo('toma-lecturas');
+      return;
+    }
+    if (isRecaudador) {
+      setMenuActivo('caja');
+      return;
+    }
+    setMenuActivo('mi-cuenta');
+  }, [isAdmin, isOperador, isRecaudador, location.pathname]);
 
   const menuItems = isAdmin ? [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'transacciones', label: 'Ingresos/Egresos', icon: '💰' },
     { id: 'socios', label: 'Usuarios', icon: '👥' },
     { id: 'lecturas', label: 'Lecturas', icon: '💧' },
-    { id: 'carga-masiva', label: 'Carga Masiva', icon: '📤' },
-    { id: 'carga-simple', label: 'Carga Simple', icon: '📤' },
+    {
+      id: 'carga-archivos', label: 'Carga Archivos', icon: '📤', submenu: [
+        { id: 'carga-masiva', label: 'Carga Masiva' },
+        { id: 'carga-simple', label: 'Carga Simple' },
+      ]
+    },
     { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
     { id: 'cortes', label: 'Cortes', icon: '✂️' },
     { id: 'repactaciones', label: 'Repactaciones', icon: '💳' },
     { id: 'prestamos', label: 'Préstamos', icon: '🔧' },
-    { id: 'avisos', label: 'Avisos Masivos', icon: '📄' },
+    {
+      id: 'comunicaciones', label: 'Comunicaciones', icon: '📨', submenu: [
+        { id: 'boletas', label: 'Boletas' },
+        { id: 'avisos', label: 'Avisos de corte' },
+      ]
+    },
     { id: 'caja', label: 'Caja', icon: '💵' },
   ] : isOperador ? [
     { id: 'toma-lecturas', label: 'Tomar Lectura', icon: '📋' },
@@ -74,7 +105,7 @@ function Layout({ children }) {
             <Logo size="sm" />
           </div>
           <div className="overflow-hidden">
-            <h2 className="text-xl font-black text-white tracking-tight truncate uppercase">Sistema APR</h2>
+            <h2 className="text-xl font-black text-white tracking-tight truncate uppercase">SAFIP</h2>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></span>
               <p className="text-[10px] text-sky-100 uppercase tracking-widest font-bold truncate">
@@ -85,32 +116,53 @@ function Layout({ children }) {
         </div>
 
         {/* Menú de Navegación */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
           {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setMenuActivo(item.id);
-                // Ocultar barra al seleccionar (tanto en móvil como en escritorio si se desea)
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(false);
-                }
-              }}
-              className={`w-full flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300 group relative ${menuActivo === item.id
-                ? 'bg-white text-sky-700 shadow-xl scale-[1.02] z-10'
-                : 'text-white/90 hover:bg-white/10 hover:text-white'
-                }`}
-            >
-              {menuActivo === item.id && (
-                <div className="absolute left-0 w-1.5 h-8 bg-sky-400 rounded-r-full shadow-[2px_0_10px_rgba(56,189,248,0.5)]" />
+            <div key={item.id}>
+              <button
+                onClick={() => {
+                  if (item.submenu) {
+                    setSubmenuAbierto(submenuAbierto === item.id ? null : item.id);
+                  } else {
+                    setMenuActivo(item.id);
+                    setSubmenuAbierto(null);
+                    setSidebarOpen(false);
+                  }
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${menuActivo === item.id || (item.submenu && item.submenu.some(s => s.id === menuActivo))
+                  ? 'bg-white text-sky-700 shadow-md'
+                  : 'text-white hover:bg-white/20'
+                  }`}
+              >
+                <span className="text-xl">{item.icon}</span>
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.submenu && (
+                  <span className="text-xs">{submenuAbierto === item.id ? '▲' : '▼'}</span>
+                )}
+              </button>
+
+              {/* Submenu vertical */}
+              {item.submenu && submenuAbierto === item.id && (
+                <div className="ml-8 mt-1 space-y-1">
+                  {item.submenu.map((sub) => (
+                    <button
+                      key={sub.id}
+                      onClick={() => {
+                        setMenuActivo(sub.id);
+                        setSubmenuAbierto(null);
+                        setSidebarOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${menuActivo === sub.id
+                        ? 'bg-white text-sky-700 shadow'
+                        : 'text-white hover:bg-white/20'
+                        }`}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
               )}
-              <span className={`text-2xl transition-transform duration-300 group-hover:scale-110 ${menuActivo === item.id ? '' : 'brightness-0 invert'}`}>
-                {item.icon}
-              </span>
-              <span className={`font-bold text-base transition-colors duration-300 ${menuActivo === item.id ? 'text-sky-800' : 'text-white'}`}>
-                {item.label}
-              </span>
-            </button>
+            </div>
           ))}
         </nav>
 
@@ -151,12 +203,32 @@ function Layout({ children }) {
             </button>
             <div className="flex flex-col">
               <h2 className="text-xl lg:text-2xl font-black text-sky-900 tracking-tight leading-none mb-1">
-                {menuItems.find(i => i.id === menuActivo)?.label || 'Panel de Control'}
+                {(() => {
+                  for (const item of menuItems) {
+                    if (item.id === menuActivo) return item.label;
+                    if (item.submenu) {
+                      const sub = item.submenu.find(s => s.id === menuActivo);
+                      if (sub) return sub.label;
+                    }
+                  }
+                  return 'Panel de Control';
+                })()}
               </h2>
               <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                 <span>Principal</span>
                 <span>/</span>
-                <span className="text-sky-500">{menuItems.find(i => i.id === menuActivo)?.label}</span>
+                <span className="text-sky-500">
+                  {(() => {
+                    for (const item of menuItems) {
+                      if (item.id === menuActivo) return item.label;
+                      if (item.submenu) {
+                        const sub = item.submenu.find(s => s.id === menuActivo);
+                        if (sub) return sub.label;
+                      }
+                    }
+                    return 'Panel de Control';
+                  })()}
+                </span>
               </div>
             </div>
           </div>
@@ -177,7 +249,7 @@ function Layout({ children }) {
 
           {/* Footer Simple */}
           <footer className="mt-auto pt-2 pb-1.5 border-t border-gray-200/40 flex items-center justify-between gap-3 text-gray-400 font-medium text-[11px]">
-            <p className="truncate">© 2026 Sistema APR</p>
+            <p className="truncate">© 2026 APR SANTA FILOMENA DE PEDREGOSO, Todos los derechos reservados</p>
             <div className="hidden md:flex items-center gap-4">
               <span className="hover:text-sky-500 cursor-help transition-colors">Soporte</span>
               <span className="hover:text-sky-500 cursor-help transition-colors">Manual</span>

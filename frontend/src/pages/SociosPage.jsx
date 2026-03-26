@@ -17,7 +17,8 @@ function SociosPage() {
     email: '',
     telefono: '',
     direccion: '',
-    rol: 'socio'
+    medidor: '',
+    rol: 'usuario'
   });
 
   useEffect(() => {
@@ -67,12 +68,8 @@ function SociosPage() {
       alert('✅ Usuario creado exitosamente');
       setMostrarFormulario(false);
       setFormData({
-        rut: '',
-        nombre: '',
-        email: '',
-        telefono: '',
-        direccion: '',
-        rol: 'socio'
+        rut: '', nombre: '', email: '',
+        telefono: '', direccion: '', medidor: '', rol: 'usuario'
       });
       cargarUsuarios();
     } catch (error) {
@@ -153,79 +150,65 @@ function SociosPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-2">RUT *</label>
-                <input
-                  type="text"
-                  value={formData.rut}
+                <input type="text" value={formData.rut}
                   onChange={(e) => setFormData({ ...formData, rut: e.target.value })}
                   placeholder="12345678-9"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
-                  required
-                />
+                  required />
               </div>
-
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Nombre Completo *</label>
-                <input
-                  type="text"
-                  value={formData.nombre}
+                <input type="text" value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Juan Pérez"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
-                  required
-                />
+                  required />
               </div>
-
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
+                <input type="email" value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="correo@ejemplo.cl"
-                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
-                />
+                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500" />
               </div>
-
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Teléfono</label>
-                <input
-                  type="tel"
-                  value={formData.telefono}
+                <input type="tel" value={formData.telefono}
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   placeholder="+56912345678"
-                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
-                />
+                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500" />
               </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-lg font-semibold text-gray-700 mb-2">Dirección</label>
-                <input
-                  type="text"
-                  value={formData.direccion}
-                  onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                  placeholder="Calle 123, Comuna"
-                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
-                />
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-2">N° Medidor</label>
+                <input type="text" value={formData.medidor}
+                  onChange={(e) => setFormData({ ...formData, medidor: e.target.value })}
+                  placeholder="Ej: 8912083263"
+                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500" />
               </div>
-
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Rol</label>
-                <select
-                  value={formData.rol}
+                <select value={formData.rol}
                   onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
-                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
-                >
-                  <option value="socio">Usuario/Socio</option>
-                  <option value="admin">Administrador</option>
+                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500">
+                  <option value="usuario">👤 Socio/Usuario</option>
+                  <option value="admin">👨‍💼 Administrador</option>
+                  <option value="recaudador">💰 Recaudador</option>
+                  <option value="operador">🔧 Operador</option>
                 </select>
               </div>
+              <div className="md:col-span-2">
+                <label className="block text-lg font-semibold text-gray-700 mb-2">Dirección</label>
+                <input type="text" value={formData.direccion}
+                  onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                  placeholder="Calle 123, Sector Villa Alegre"
+                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500" />
+              </div>
             </div>
-
             <Button type="submit" variant="success" className="w-full">
               ✅ Crear Usuario
             </Button>
             <p className="text-base text-gray-600 text-center">
-              La contraseña predeterminada es: <strong>demo123</strong>
+              La contraseña inicial será: <strong>apr + primeros 4 dígitos del RUT</strong>
             </p>
           </form>
         </Card>
@@ -290,10 +273,10 @@ function SociosPage() {
               {usuariosOrdenados.map((usuario) => (
                 <tr key={usuario.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
-                    <a 
-                      href={`https://apr-safip.onrender.com/api/boletas/pdf/${usuario.id}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <a
+                      href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/boletas/pdf/${usuario.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-base font-bold text-blue-600 cursor-pointer hover:underline"
                     >
                       {usuario.numero_cliente || '-'}
@@ -317,11 +300,10 @@ function SociosPage() {
                       type="button"
                       disabled={!!actualizandoTipo[usuario.id]}
                       onClick={() => handleToggleAfectoIva(usuario)}
-                      className={`inline-flex items-center justify-center min-w-16 px-3 py-1 rounded-full text-sm font-bold border transition-colors ${
-                        (usuario.tipo_usuario || 'normal') === 'exento_iva'
-                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200'
-                          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
-                      } ${actualizandoTipo[usuario.id] ? 'opacity-60 cursor-wait' : ''}`}
+                      className={`inline-flex items-center justify-center min-w-16 px-3 py-1 rounded-full text-sm font-bold border transition-colors ${(usuario.tipo_usuario || 'normal') === 'exento_iva'
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200'
+                        : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                        } ${actualizandoTipo[usuario.id] ? 'opacity-60 cursor-wait' : ''}`}
                     >
                       {(usuario.tipo_usuario || 'normal') === 'exento_iva' ? 'Sí' : 'No'}
                     </button>

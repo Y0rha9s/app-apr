@@ -33,6 +33,7 @@ const cargaSimpleRoutes = require('./routes/cargaSimpleRoutes');
 const configuracionRoutes = require('./routes/configuracion.routes');
 const fotosRoutes = require('./routes/fotosRoutes');
 const reporteRoutes = require('./routes/reporteRoutes');
+const comprobanteRoutes = require('./routes/comprobanteRoutes');
 
 app.use('/api/transacciones', transaccionRoutes);
 app.use('/api/auth', authRoutes);
@@ -55,6 +56,7 @@ app.use('/api/carga-simple', cargaSimpleRoutes);
 app.use('/api/configuracion', configuracionRoutes);
 app.use('/api/fotos', fotosRoutes);
 app.use('/api/reporte', reporteRoutes);
+app.use('/api/comprobantes', comprobanteRoutes);
 
 
 

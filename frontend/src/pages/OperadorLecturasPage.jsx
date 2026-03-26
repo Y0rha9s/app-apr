@@ -84,7 +84,6 @@ function OperadorLecturasPage() {
   const [busqueda, setBusqueda] = useState('');
   const [usuariosFiltrados, setUsuariosFiltrados] = useState([]);
   const [mostrarLista, setMostrarLista] = useState(false);
-  const [ultimaLectura, setUltimaLectura] = useState(null);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(null);
@@ -145,7 +144,7 @@ function OperadorLecturasPage() {
       setUsuariosFiltrados(soloUsuarios);
       // Guardar en cache para uso offline
       await guardarUsuariosCache(soloUsuarios);
-    } catch (err) {
+    } catch {
       console.error('Sin conexión, cargando usuarios desde cache...');
       // Fallback a IndexedDB
       try {
@@ -189,24 +188,11 @@ function OperadorLecturasPage() {
     setFormData(prev => ({ ...prev, usuario_id: u.id, usuario_nombre: u.nombre }));
     setBusqueda(u.nombre);
     setMostrarLista(false);
-    if (online) {
-      try {
-        const res = await fetch(`${API_URL}/api/lecturas`);
-        const lecturas = await res.json();
-        const del_usuario = lecturas
-          .filter(l => l.usuario_id === u.id)
-          .sort((a, b) => b.anio !== a.anio ? b.anio - a.anio : b.mes - a.mes);
-        setUltimaLectura(del_usuario[0] || null);
-      } catch (err) {
-        console.error('Error cargando última lectura:', err);
-      }
-    }
   };
 
   const limpiarSeleccion = () => {
     setFormData(prev => ({ ...prev, usuario_id: '', usuario_nombre: '' }));
     setBusqueda('');
-    setUltimaLectura(null);
   };
 
   const handleFoto = (e) => {
@@ -299,7 +285,6 @@ function OperadorLecturasPage() {
         anio: new Date().getFullYear()
       });
       setBusqueda('');
-      setUltimaLectura(null);
       setFotoFile(null);
       setFotoPreview(null);
       if (fotoRef.current) fotoRef.current.value = '';

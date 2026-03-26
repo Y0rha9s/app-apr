@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
 import { usuariosService } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 function MiCuentaPage() {
   const { usuario, refreshUser } = useAuth();
+  const navigate = useNavigate();
   
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
@@ -82,7 +84,7 @@ function MiCuentaPage() {
 
   return (
     <div>
-      <h2 className="text-4xl font-bold mb-8 text-gray-800">🏠 Mi Cuenta</h2>
+      <h2 className="text-4xl font-bold mb-8 text-gray-800">🏠 Mi Cuenta — APR SAFIP</h2>
 
       {message.text && (
         <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -109,15 +111,28 @@ function MiCuentaPage() {
               )}
             </div>
             
-            {usuario.rol === 'socio' && usuario.numero_cliente && (
-              <div>
-                <label className="block text-lg font-semibold text-gray-700 mb-1">Número de Cliente</label>
-                <p className="text-xl text-gray-900 font-mono font-bold text-blue-600">
-                  {usuario.numero_cliente} 
-                  {isEditing && <span className="text-xs text-gray-500 font-normal ml-2">(No editable)</span>}
-                </p>
-              </div>
-            )}
+            <div>
+              <label className="block text-lg font-semibold text-gray-700 mb-1">Tipo de cuenta</label>
+              <p className="text-xl text-gray-900">
+                {usuario.rol === 'admin' ? 'Administrador' : usuario.rol === 'operador' ? 'Operador' : usuario.rol === 'recaudador' ? 'Recaudador' : 'Usuario'}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-lg font-semibold text-gray-700 mb-1">N° Cliente</label>
+              <p className="text-xl text-gray-900 font-mono font-bold text-blue-600">
+                {usuario.numero_cliente || '—'}
+                {isEditing && <span className="text-xs text-gray-500 font-normal ml-2">(No editable)</span>}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-lg font-semibold text-gray-700 mb-1">N° Medidor</label>
+              <p className="text-xl text-gray-900 font-mono font-bold text-blue-600">
+                {usuario.medidor || usuario.numero_medidor || '—'}
+                {isEditing && <span className="text-xs text-gray-500 font-normal ml-2">(No editable)</span>}
+              </p>
+            </div>
 
             <div>
               <label className="block text-lg font-semibold text-gray-700 mb-1">RUT</label>
@@ -325,13 +340,22 @@ function MiCuentaPage() {
       <Card className="mt-8 bg-blue-50">
         <h3 className="text-2xl font-bold mb-6 text-gray-800">⚡ Acciones Rápidas</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="px-6 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700">
+          <button
+            onClick={() => navigate('/mi-consumo')}
+            className="px-6 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
+          >
             💧 Ver Mi Consumo
           </button>
-          <button className="px-6 py-4 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700">
+          <button
+            onClick={() => navigate('/pagos')}
+            className="px-6 py-4 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700"
+          >
             💰 Pagar Cuenta
           </button>
-          <button className="px-6 py-4 bg-orange-600 text-white rounded-lg text-lg font-semibold hover:bg-orange-700">
+          <button
+            onClick={() => navigate('/reclamos')}
+            className="px-6 py-4 bg-orange-600 text-white rounded-lg text-lg font-semibold hover:bg-orange-700"
+          >
             📝 Hacer Reclamo
           </button>
         </div>
