@@ -2,6 +2,7 @@ const pool = require('../config/database');
 const PDFDocument = require('pdfkit');
 const path = require('path');
 
+
 // ─── GET /api/boletas?periodo=2025-03 ───────────────────────────────────────
 const getAll = async (req, res) => {
   try {
@@ -438,4 +439,182 @@ const generarPDF = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getByUsuario, generarMasivo, actualizarEstado, marcarEnviada, generarPDF };
+// ─── GET /api/boletas/zip/:periodo ──────────────────────────────────────────
+const generarZIP = async (req, res) => {
+  try {
+    const { periodo } = req.params;
+    const QRCode = require('qrcode');
+    const archiver = require('archiver');
+
+    const { rows: boletas } = await pool.query(`
+      SELECT 
+        b.*,
+        u.nombre, u.rut, u.direccion, u.telefono, u.numero_cliente, u.medidor,
+        l.lectura_anterior, l.lectura_actual
+      FROM boletas b
+      JOIN usuarios u ON u.id = b.usuario_id
+      LEFT JOIN lecturas l ON l.id = b.lectura_id
+      WHERE b.periodo = $1
+      ORDER BY u.numero_cliente ASC
+    `, [periodo]);
+
+    if (boletas.length === 0)
+      return res.status(404).json({ error: 'No hay boletas para este período' });
+
+    const { rows: tramos } = await pool.query(
+      `SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC`
+    );
+    const { rows: configRows } = await pool.query(
+      `SELECT clave, valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`
+    );
+    const cargoFijo = parseFloat(configRows[0]?.valor || 3000);
+
+    const calcularTramos = (consumo) => {
+      let resultado = { tramo1: 0, tramo2: 0, tramo3: 0 };
+      let restante = parseFloat(consumo || 0);
+      tramos.forEach((t, i) => {
+        if (restante <= 0) return;
+        const hasta = t.tramo_hasta ? parseFloat(t.tramo_hasta) : Infinity;
+        const efectivo_desde = i === 0 ? 0 : parseFloat(t.tramo_desde) - 1;
+        const capacidad = hasta === Infinity ? restante : hasta - efectivo_desde;
+        const consumido = Math.min(restante, capacidad);
+        const monto = consumido * parseFloat(t.precio_por_m3);
+        if (i === 0) resultado.tramo1 = monto;
+        else if (i === 1) resultado.tramo2 = monto;
+        else resultado.tramo3 = monto;
+        restante -= consumido;
+      });
+      return resultado;
+    };
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=boletas-${periodo}.zip`);
+
+    const archive = archiver('zip', { zlib: { level: 6 } });
+    archive.pipe(res);
+
+    for (const b of boletas) {
+      const { tramo1, tramo2, tramo3 } = calcularTramos(b.consumo_m3);
+      const qrData = `APR SAFIP | Boleta #${b.numero_folio || b.id} | ${b.nombre} | Total: $${Number(b.total_a_pagar || 0).toLocaleString('es-CL')} | Período: ${b.periodo}`;
+      const qrBuffer = await QRCode.toBuffer(qrData, { width: 120, margin: 1 });
+
+      const pdfBuffer = await new Promise((resolve, reject) => {
+        const doc = new PDFDocument({ margin: 0, size: 'A4' });
+        const chunks = [];
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+
+        const W = 595;
+        const BLUE = '#0284c7';
+        const ORANGE = '#f97316';
+        const GRAY_LIGHT = '#f1f5f9';
+        const GRAY_BORDER = '#cbd5e1';
+        const TEXT_DARK = '#1e293b';
+        const TEXT_MID = '#475569';
+        const MARGIN = 40;
+
+        doc.rect(0, 0, W, 90).fill(BLUE);
+        const logoPath = path.join(__dirname, '../assets/logoaprpedregoso.png');
+        try { doc.image(logoPath, 18, 8, { width: 72, height: 72 }); } catch {
+          doc.circle(75, 45, 32).fill('white');
+          doc.fontSize(9).fillColor(BLUE).font('Helvetica-Bold').text('APR', 57, 38).text('SAFIP', 53, 48);
+        }
+        doc.fillColor('white').font('Helvetica-Bold').fontSize(16).text('COMITE AGUA POTABLE RURAL', 105, 18);
+        doc.font('Helvetica').fontSize(9)
+          .text('SANTA FILOMENA PEDREGOSO  •  RUT: 71.810.200-6', 105, 40)
+          .text(`SECTOR VILLA ALEGRE S/N VILLARRICA  •  Tel: ${b.telefono || '33554455'}`, 105, 54);
+
+        const boxY = 105, boxH = 90;
+        doc.rect(MARGIN, boxY, W - MARGIN * 2, boxH).fillAndStroke(GRAY_LIGHT, GRAY_BORDER);
+        doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(10)
+          .text(`Cliente: ${b.nombre}`, MARGIN + 14, boxY + 12)
+          .text(`RUT: ${b.rut}`, MARGIN + 14, boxY + 28);
+        doc.font('Helvetica').fontSize(10)
+          .text(`Medidor N°: ${b.medidor || '-'}`, MARGIN + 14, boxY + 44)
+          .text(`Dirección: ${b.direccion || '-'}`, MARGIN + 14, boxY + 60);
+        const col2X = W / 2 + 20;
+        doc.font('Helvetica-Bold').fontSize(10)
+          .text(`Boleta #: ${b.numero_folio || b.id}`, col2X, boxY + 12)
+          .text(`Período: ${b.periodo}`, col2X, boxY + 28);
+        doc.font('Helvetica').fontSize(10)
+          .text(`Emisión: ${b.fecha_emision ? new Date(b.fecha_emision).toLocaleDateString('es-CL') : '-'}`, col2X, boxY + 44)
+          .text(`Vencimiento: ${b.fecha_vencimiento ? new Date(b.fecha_vencimiento).toLocaleDateString('es-CL') : '-'}`, col2X, boxY + 60);
+
+        doc.font('Helvetica-Oblique').fontSize(8).fillColor(TEXT_MID)
+          .text('A partir de esta fecha se originarán intereses y se cobrará un cargo adicional por pago fuera de plazo.', MARGIN, boxY + boxH + 10, { width: W - MARGIN * 2 });
+
+        let y = boxY + boxH + 35;
+        doc.font('Helvetica-Bold').fontSize(10).fillColor(TEXT_DARK).text('Consumo del periodo', MARGIN, y);
+        y += 16;
+        doc.font('Helvetica-Oblique').fontSize(9).fillColor(TEXT_MID)
+          .text(`Lectura Anterior: ${b.lectura_anterior ?? 0} m³`, MARGIN, y)
+          .text(`Lectura Actual: ${b.lectura_actual ?? 0} m³`, W / 2, y);
+        y += 14;
+        doc.text(`Consumo Total: ${b.consumo_m3 ?? 0} m³`, MARGIN, y);
+
+        y += 28;
+        const tableX = MARGIN, tableW = W - MARGIN * 2, colMonto = 140, rowH = 22;
+        const conceptos = [
+          { label: 'Cargo Fijo mensual', valor: cargoFijo },
+          { label: `Monto Base (≤${tramos[0]?.tramo_hasta ?? 15} m³)`, valor: tramo1 },
+          { label: `Excedente (${tramos[1]?.tramo_desde ?? 16}-${tramos[1]?.tramo_hasta ?? 30} m³)`, valor: tramo2 },
+          { label: `Excedente (>${tramos[1]?.tramo_hasta ?? 30} m³)`, valor: tramo3 },
+          { label: 'Multa', valor: b.monto_multas || 0 },
+          { label: 'Monto Corte', valor: b.monto_corte || 0 },
+          { label: 'Cuota Préstamo', valor: b.cuota_prestamo || 0 },
+          { label: 'Saldo Anterior', valor: b.saldo_anterior || 0 },
+          { label: 'IVA', valor: b.monto_iva || 0 },
+        ].filter(c => parseFloat(c.valor) !== 0 || c.label.includes('Cargo') || c.label.includes('Base'));
+
+        doc.rect(tableX, y, tableW, rowH).fill(BLUE);
+        doc.fillColor('white').font('Helvetica-Bold').fontSize(9)
+          .text('Concepto', tableX + 10, y + 6)
+          .text('Monto ($)', tableX + tableW - colMonto + 10, y + 6);
+        y += rowH;
+        conceptos.forEach((c, i) => {
+          doc.rect(tableX, y, tableW, rowH).fill(i % 2 === 0 ? 'white' : GRAY_LIGHT);
+          doc.rect(tableX, y, tableW, rowH).stroke(GRAY_BORDER);
+          doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9)
+            .text(c.label, tableX + 10, y + 6)
+            .text(`$${Number(c.valor).toLocaleString('es-CL')}`, tableX + tableW - colMonto + 10, y + 6);
+          y += rowH;
+        });
+        doc.rect(tableX, y, tableW, rowH + 2).fill(GRAY_LIGHT);
+        doc.rect(tableX, y, tableW, rowH + 2).stroke(GRAY_BORDER);
+        doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(10)
+          .text('TOTAL A PAGAR', tableX + 10, y + 6)
+          .text(`$${Number(b.total_a_pagar || 0).toLocaleString('es-CL')}`, tableX + tableW - colMonto + 10, y + 6);
+        y += rowH + 10;
+
+        const estadoColor = b.estado === 'pagada' ? '#16a34a' : ORANGE;
+        doc.font('Helvetica-Bold').fontSize(13).fillColor(estadoColor)
+          .text(`Estado: ${(b.estado || 'PENDIENTE').toUpperCase()}`, MARGIN, y);
+
+        y += 30;
+        doc.image(qrBuffer, W - MARGIN - 130, y - 10, { width: 110, height: 110 });
+
+        const footerY = 780;
+        doc.rect(0, footerY, W, 62).fill(GRAY_LIGHT);
+        doc.moveTo(0, footerY).lineTo(W, footerY).strokeColor(GRAY_BORDER).lineWidth(1).stroke();
+        doc.fillColor(TEXT_MID).font('Helvetica').fontSize(8)
+          .text('Pago por transferencia: Banco Estado  |  Cta. Corriente: 123456789  |  RUT: 71.810.200-6', MARGIN, footerY + 10, { align: 'center', width: W - MARGIN * 2 })
+          .text('Sistema APR SAFIP  •  Santa Filomena Pedregoso  •  Villarrica', MARGIN, footerY + 26, { align: 'center', width: W - MARGIN * 2 })
+          .text(`Documento generado el ${new Date().toLocaleDateString('es-CL')} — Solo válido como liquidación de cobro interno`, MARGIN, footerY + 42, { align: 'center', width: W - MARGIN * 2 });
+
+        doc.end();
+      });
+
+      const nombreArchivo = `boleta-${String(b.numero_cliente).padStart(3, '0')}-${b.nombre.replace(/\s+/g, '_')}.pdf`;
+      archive.append(pdfBuffer, { name: nombreArchivo });
+    }
+
+    await archive.finalize();
+  } catch (err) {
+    console.error('generarZIP:', err);
+    if (!res.headersSent)
+      res.status(500).json({ error: 'Error al generar ZIP: ' + err.message });
+  }
+};
+
+module.exports = { getAll, getByUsuario, generarMasivo, actualizarEstado, marcarEnviada, generarPDF, generarZIP };
