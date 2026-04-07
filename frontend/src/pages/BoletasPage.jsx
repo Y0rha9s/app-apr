@@ -70,12 +70,7 @@ export default function BoletasPage() {
     };
 
     const abrirPDF = (id) => {
-        const base = import.meta.env.VITE_API_URL
-            ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
-            : 'http://localhost:5000/api';
-        console.log('URL PDF:', `${base}/boletas/pdf/${id}`);
-        console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-        window.open(`${base}/boletas/pdf/${id}`, '_blank');
+        window.open(`https://apr-safip-xtxh.onrender.com/api/boletas/pdf/${id}`, '_blank');
     };
 
     const enviarWhatsapp = async (boleta) => {
