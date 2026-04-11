@@ -50,37 +50,49 @@ function Layout({ children }) {
     setMenuActivo('mi-cuenta');
   }, [isAdmin, isOperador, isRecaudador, location.pathname]);
 
-  const menuItems = isAdmin ? [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'transacciones', label: 'Ingresos/Egresos', icon: '💰' },
-    { id: 'socios', label: 'Usuarios', icon: '👥' },
-    { id: 'lecturas', label: 'Lecturas', icon: '💧' },
-    {
-      id: 'carga-archivos', label: 'Carga Archivos', icon: '📤', submenu: [
-        { id: 'carga-masiva', label: 'Carga Masiva' },
-        { id: 'carga-simple', label: 'Carga Simple' },
-      ]
-    },
-    { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
-    { id: 'cortes', label: 'Cortes', icon: '✂️' },
-    { id: 'repactaciones', label: 'Repactaciones', icon: '💳' },
-    { id: 'prestamos', label: 'Préstamos', icon: '🔧' },
-    {
-      id: 'comunicaciones', label: 'Comunicaciones', icon: '📨', submenu: [
-        { id: 'boletas', label: 'Boletas' },
-        { id: 'avisos', label: 'Avisos de corte' },
-      ]
-    },
-    { id: 'caja', label: 'Caja', icon: '💵' },
-  ] : isOperador ? [
-    { id: 'toma-lecturas', label: 'Tomar Lectura', icon: '📋' },
-  ] : isRecaudador ? [
-    { id: 'caja', label: 'Caja', icon: '💵' },
-  ] : [
-    { id: 'mi-cuenta', label: 'Mi Cuenta', icon: '🏠' },
-    { id: 'mi-consumo', label: 'Mi Consumo', icon: '💧' },
-    { id: 'pagos', label: 'Pagos', icon: '💳' },
-    { id: 'reclamos', label: 'Reclamos', icon: '📝' },
+  // Reemplaza toda la declaración de menuItems:
+  const menuItems = [
+    ...(isAdmin ? [
+      { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+      { id: 'transacciones', label: 'Ingresos/Egresos', icon: '💰' },
+      { id: 'socios', label: 'Usuarios', icon: '👥' },
+      { id: 'lecturas', label: 'Lecturas', icon: '💧' },
+      {
+        id: 'carga-archivos', label: 'Carga Archivos', icon: '📤', submenu: [
+          { id: 'carga-masiva', label: 'Carga Masiva' },
+          { id: 'carga-simple', label: 'Carga Simple' },
+        ]
+      },
+      { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
+      { id: 'cortes', label: 'Cortes', icon: '✂️' },
+      { id: 'repactaciones', label: 'Repactaciones', icon: '💳' },
+      { id: 'prestamos', label: 'Préstamos', icon: '🔧' },
+      {
+        id: 'comunicaciones', label: 'Comunicaciones', icon: '📨', submenu: [
+          { id: 'boletas', label: 'Boletas' },
+          { id: 'avisos', label: 'Avisos de corte' },
+        ]
+      },
+      { id: 'caja', label: 'Caja', icon: '💵' },
+    ] : isOperador ? [
+      { id: 'toma-lecturas', label: 'Tomar Lectura', icon: '📋' },
+    ] : isRecaudador ? [
+      { id: 'caja', label: 'Caja', icon: '💵' },
+    ] : [
+      { id: 'mi-cuenta', label: 'Mi Cuenta', icon: '🏠' },
+      { id: 'mi-consumo', label: 'Mi Consumo', icon: '💧' },
+      { id: 'pagos', label: 'Pagos', icon: '💳' },
+      { id: 'reclamos', label: 'Reclamos', icon: '📝' },
+    ]),
+
+    // Sección Mi Cuenta para socios con rol especial
+    ...(usuario?.es_socio && (isAdmin || isOperador || isRecaudador) ? [
+      { id: '__sep_socio__', label: 'MI CUENTA', icon: '👤', separador: true },
+      { id: 'mi-cuenta', label: 'Mi Cuenta', icon: '🏠' },
+      { id: 'mi-consumo', label: 'Mi Consumo', icon: '💧' },
+      { id: 'pagos', label: 'Pagos', icon: '💳' },
+      { id: 'reclamos', label: 'Reclamos', icon: '📝' },
+    ] : []),
   ];
 
   return (
@@ -119,48 +131,57 @@ function Layout({ children }) {
         <nav className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
           {menuItems.map((item) => (
             <div key={item.id}>
-              <button
-                onClick={() => {
-                  if (item.submenu) {
-                    setSubmenuAbierto(submenuAbierto === item.id ? null : item.id);
-                  } else {
-                    setMenuActivo(item.id);
-                    setSubmenuAbierto(null);
-                    setSidebarOpen(false);
-                  }
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${menuActivo === item.id || (item.submenu && item.submenu.some(s => s.id === menuActivo))
-                  ? 'bg-white text-sky-700 shadow-md'
-                  : 'text-white hover:bg-white/20'
-                  }`}
-              >
-                <span className="text-xl">{item.icon}</span>
-                <span className="flex-1 text-left">{item.label}</span>
-                {item.submenu && (
-                  <span className="text-xs">{submenuAbierto === item.id ? '▲' : '▼'}</span>
-                )}
-              </button>
-
-              {/* Submenu vertical */}
-              {item.submenu && submenuAbierto === item.id && (
-                <div className="ml-8 mt-1 space-y-1">
-                  {item.submenu.map((sub) => (
-                    <button
-                      key={sub.id}
-                      onClick={() => {
-                        setMenuActivo(sub.id);
+              {item.separador ? (
+                <div className="px-2 pt-4 pb-1">
+                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">
+                    {item.icon} {item.label}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      if (item.submenu) {
+                        setSubmenuAbierto(submenuAbierto === item.id ? null : item.id);
+                      } else {
+                        setMenuActivo(item.id);
                         setSubmenuAbierto(null);
                         setSidebarOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${menuActivo === sub.id
-                        ? 'bg-white text-sky-700 shadow'
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${menuActivo === item.id || (item.submenu && item.submenu.some(s => s.id === menuActivo))
+                        ? 'bg-white text-sky-700 shadow-md'
                         : 'text-white hover:bg-white/20'
-                        }`}
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
-                </div>
+                      }`}
+                  >
+                    <span className="text-xl">{item.icon}</span>
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {item.submenu && (
+                      <span className="text-xs">{submenuAbierto === item.id ? '▲' : '▼'}</span>
+                    )}
+                  </button>
+
+                  {item.submenu && submenuAbierto === item.id && (
+                    <div className="ml-8 mt-1 space-y-1">
+                      {item.submenu.map((sub) => (
+                        <button
+                          key={sub.id}
+                          onClick={() => {
+                            setMenuActivo(sub.id);
+                            setSubmenuAbierto(null);
+                            setSidebarOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${menuActivo === sub.id
+                              ? 'bg-white text-sky-700 shadow'
+                              : 'text-white hover:bg-white/20'
+                            }`}
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ))}
