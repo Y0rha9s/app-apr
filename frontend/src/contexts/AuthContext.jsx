@@ -5,23 +5,23 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de AuthProvider');
-  }
+  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [usuario, setUsuario] = useState(null);
+  const [usuario, setUsuario] = useState(() => {
+    // Cargar usuario desde localStorage al iniciar
+    const cached = localStorage.getItem('usuario');
+    return cached ? JSON.parse(cached) : null;
+  });
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  // Detectar entorno automáticamente
   const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:5000/api'
-    : 'https://apr-safip.onrender.com/api';
+    : 'https://apr-safip-xtxh.onrender.com/api';
 
-  // Verificar token al cargar
   useEffect(() => {
     if (token) {
       verificarToken();
@@ -31,14 +31,32 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const verificarToken = async () => {
+    // Si hay usuario cacheado y no hay internet, usar el cache
+    if (!navigator.onLine) {
+      const cached = localStorage.getItem('usuario');
+      if (cached) {
+        setUsuario(JSON.parse(cached));
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const response = await axios.get(`${API_URL}/auth/verify`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 5000 // 5 segundos máximo
       });
       setUsuario(response.data);
+      // Guardar en localStorage para uso offline
+      localStorage.setItem('usuario', JSON.stringify(response.data));
     } catch (error) {
-      console.error('Token inválido:', error);
-      logout();
+      // Si falla por red (offline), usar cache
+      const cached = localStorage.getItem('usuario');
+      if (cached) {
+        setUsuario(JSON.parse(cached));
+      } else {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -50,6 +68,7 @@ export const AuthProvider = ({ children }) => {
       const { token: newToken, usuario: userData } = response.data;
 
       localStorage.setItem('token', newToken);
+      localStorage.setItem('usuario', JSON.stringify(userData));
       setToken(newToken);
       setUsuario(userData);
 
@@ -64,6 +83,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
     setToken(null);
     setUsuario(null);
   };
