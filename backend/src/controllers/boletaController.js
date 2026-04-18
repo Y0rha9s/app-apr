@@ -72,6 +72,7 @@ const generarMasivo = async (req, res) => {
         l.*,
         u.id as usuario_id,
         u.nombre, u.rut, u.numero_cliente,
+        u.tiene_subsidio,
         COALESCE((
           SELECT b2.saldo_pendiente 
           FROM boletas b2 
@@ -94,18 +95,19 @@ const generarMasivo = async (req, res) => {
       return res.json({ message: 'No hay lecturas nuevas para generar boletas', generadas: 0 });
     }
 
-    // Traer tramos de tarifas
     const { rows: tramos } = await client.query(
       `SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC`
     );
 
-    // Traer cargo fijo
     const { rows: configRows } = await client.query(
-      `SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo' LIMIT 1`
+      `SELECT clave, valor FROM configuracion_sistema 
+       WHERE clave IN ('cargo_fijo', 'subsidio_porcentaje')`
     );
-    const cargoFijo = configRows[0]?.valor ? parseFloat(configRows[0].valor) : 3000;
+    const cfg = Object.fromEntries(configRows.map(c => [c.clave, parseFloat(c.valor || 0)]));
+    const cargoFijo = cfg.cargo_fijo || 3000;
+    const subsidio_porcentaje = cfg.subsidio_porcentaje || 50;
 
-    const calcularMonto = (consumo) => {
+    const calcularMonto = (consumo, tieneSubsidio) => {
       let restante = parseFloat(consumo || 0);
       let total = cargoFijo;
       tramos.forEach((t, i) => {
@@ -114,7 +116,11 @@ const generarMasivo = async (req, res) => {
         const efectivo_desde = i === 0 ? 0 : parseFloat(t.tramo_desde) - 1;
         const capacidad = hasta === Infinity ? restante : hasta - efectivo_desde;
         const consumido = Math.min(restante, capacidad);
-        total += consumido * parseFloat(t.precio_por_m3);
+        let precio = parseFloat(t.precio_por_m3);
+        if (i === 0 && tieneSubsidio) {
+          precio = precio * (1 - subsidio_porcentaje / 100);
+        }
+        total += consumido * precio;
         restante -= consumido;
       });
       return total;
@@ -124,21 +130,29 @@ const generarMasivo = async (req, res) => {
     for (const l of lecturas) {
       const consumo = parseFloat(l.consumo_m3 || 0);
       const saldo_anterior = parseFloat(l.saldo_anterior_calc || 0);
-      const total_mes = calcularMonto(consumo);
+      const total_mes = calcularMonto(consumo, l.tiene_subsidio);
       const total_a_pagar = total_mes + saldo_anterior;
       const fecha_vencimiento = new Date();
       fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
+
+      // Calcular descuento subsidio
+      const descuento_subsidio = l.tiene_subsidio
+        ? Math.min(consumo, parseFloat(tramos[0]?.tramo_hasta || 15))
+        * parseFloat(tramos[0]?.precio_por_m3 || 700)
+        * (subsidio_porcentaje / 100)
+        : 0;
 
       await client.query(`
         INSERT INTO boletas (
           usuario_id, lectura_id, periodo, consumo_m3,
           total_mes, saldo_anterior, total_a_pagar, saldo_pendiente,
-          estado, fecha_vencimiento, fecha_emision
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW())
+          estado, fecha_vencimiento, fecha_emision, descuento_subsidio
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10)
       `, [
         l.usuario_id, l.id, periodo, consumo,
         total_mes, saldo_anterior, total_a_pagar, total_a_pagar,
-        fecha_vencimiento.toISOString().split('T')[0]
+        fecha_vencimiento.toISOString().split('T')[0],
+        descuento_subsidio
       ]);
 
       generadas++;
@@ -350,7 +364,6 @@ const generarPDF = async (req, res) => {
     const tableW = W - MARGIN * 2;
     const colMonto = 140;
     const rowH = 22;
-
     const conceptos = [
       { label: `Cargo Fijo mensual`, valor: cargoFijo },
       { label: `Monto Base (≤${tramos[0]?.tramo_hasta ?? 15} m³) — $${tramos[0]?.precio_por_m3 ?? 700}/m³`, valor: tramo1 },
