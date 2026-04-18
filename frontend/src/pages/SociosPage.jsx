@@ -91,6 +91,19 @@ function SociosPage() {
     }
   };
 
+  const handleToggleSubsidio = async (u) => {
+    setActualizandoTipo((prev) => ({ ...prev, [`sub_${u.id}`]: true }));
+    try {
+      const nuevoSubsidio = !u.tiene_subsidio;
+      await api.put(`/usuarios/${u.id}/subsidio`, { tiene_subsidio: nuevoSubsidio });
+      setUsuarios((prev) => prev.map((x) => (x.id === u.id ? { ...x, tiene_subsidio: nuevoSubsidio } : x)));
+    } catch (error) {
+      alert('❌ Error al actualizar subsidio: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setActualizandoTipo((prev) => ({ ...prev, [`sub_${u.id}`]: false }));
+    }
+  };
+
   const usuariosFiltrados = usuarios.filter(usuario =>
     usuario.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     usuario.rut.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -265,6 +278,7 @@ function SociosPage() {
                 <th className="p-4 text-lg font-semibold">Dirección</th>
                 <th className="p-4 text-lg font-semibold">Rol</th>
                 <th className="p-4 text-lg font-semibold text-center">Afecto a IVA</th>
+                <th className="p-4 text-lg font-semibold text-center">Subsidio</th>
                 <th className="p-4 text-lg font-semibold">Estado</th>
                 <th className="p-4 text-lg font-semibold">Acciones</th>
               </tr>
@@ -306,6 +320,19 @@ function SociosPage() {
                         } ${actualizandoTipo[usuario.id] ? 'opacity-60 cursor-wait' : ''}`}
                     >
                       {(usuario.tipo_usuario || 'normal') === 'exento_iva' ? 'Sí' : 'No'}
+                    </button>
+                  </td>
+                  <td className="p-4 text-center">
+                    <button
+                      type="button"
+                      disabled={!!actualizandoTipo[`sub_${usuario.id}`]}
+                      onClick={() => handleToggleSubsidio(usuario)}
+                      className={`inline-flex items-center justify-center min-w-16 px-3 py-1 rounded-full text-sm font-bold border transition-colors ${usuario.tiene_subsidio
+                          ? 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200'
+                          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                        } ${actualizandoTipo[`sub_${usuario.id}`] ? 'opacity-60 cursor-wait' : ''}`}
+                    >
+                      {usuario.tiene_subsidio ? 'Sí' : 'No'}
                     </button>
                   </td>
                   <td className="p-4">
