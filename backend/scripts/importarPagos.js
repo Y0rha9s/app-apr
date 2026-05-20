@@ -3,9 +3,7 @@ const XLSX = require('xlsx');
 const path = require('path');
 
 const archivos = [
-  { file: 'pagos.xlsx', hoja: 'ENERO 2026',    periodo: '2026-01', filaHeader: 1 },
-  { file: 'pagos.xlsx', hoja: ' FEBRERO 2026', periodo: '2026-02', filaHeader: 1 },
-  { file: 'pagos.xlsx', hoja: 'MARZO 2026',    periodo: '2026-03', filaHeader: 2 },
+  { file: 'pagos.xlsx', hoja: 'ABRIL', periodo: '2026-04', filaHeader: 1 },
 ];
 
 const limpiarMonto = (val) => {
