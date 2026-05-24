@@ -19,10 +19,11 @@ function DashboardPage() {
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
   const [errorBusqueda, setErrorBusqueda] = useState(null);
   const [pestanaPrincipal, setPestanaPrincipal] = useState('kpis');
+  const [rango, setRango] = useState('3m');
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [rango]);
 
   const cargarDatos = async () => {
     try {
@@ -41,9 +42,13 @@ function DashboardPage() {
         api.get('/dashboard/top-deudores'),
         api.get('/dashboard/evolucion-consumo'),
         api.get('/dashboard/alertas'),
+        api.get(`/dashboard/kpis?rango=${rango}`),
+        api.get(`/dashboard/top-consumidores?rango=${rango}`),
+        api.get(`/dashboard/evolucion-consumo?rango=${rango}`),
+        api.get(`/dashboard/alertas?rango=${rango}`),
         usuariosService.getAll()
       ]);
-      
+
       setBalance(balanceRes.data);
       setKpis(kpisRes.data.kpis);
       setTopConsumidores(consumidoresRes.data.consumidores || []);
@@ -69,7 +74,7 @@ function DashboardPage() {
     setCargandoUsuario(true);
     try {
       const termino = busquedaUsuario.toLowerCase();
-      const usuario = usuarios.find(u => 
+      const usuario = usuarios.find(u =>
         u.numero_cliente?.toLowerCase().includes(termino) ||
         u.rut?.toLowerCase().includes(termino) ||
         u.nombre?.toLowerCase().includes(termino)
@@ -110,50 +115,71 @@ function DashboardPage() {
     return <div className="text-center text-3xl py-12">⏳ Cargando dashboard...</div>;
   }
 
+  const RANGOS = [
+    { valor: '7d', label: '7 días' },
+    { valor: '15d', label: '15 días' },
+    { valor: '30d', label: '30 días' },
+    { valor: '3m', label: '3 meses' },
+    { valor: '6m', label: '6 meses' },
+    { valor: '1y', label: '1 año' },
+  ];
+
   return (
     <div>
       <h2 className="text-4xl font-bold mb-8 text-gray-800">📊 Dashboard Administrativo</h2>
+
+      {/* Selector de rango */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {RANGOS.map(r => (
+          <button
+            key={r.valor}
+            onClick={() => setRango(r.valor)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${rango === r.valor
+                ? 'bg-blue-600 text-white shadow'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
 
       {/* Pestañas Principales */}
       <div className="mb-6">
         <div className="flex gap-2 border-b-2 border-gray-200 overflow-x-auto">
           <button
             onClick={() => setPestanaPrincipal('kpis')}
-            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
-              pestanaPrincipal === 'kpis'
-                ? 'border-b-4 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-blue-600'
-            }`}
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${pestanaPrincipal === 'kpis'
+              ? 'border-b-4 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-blue-600'
+              }`}
           >
             📊 KPIs y Métricas
           </button>
           <button
             onClick={() => setPestanaPrincipal('analisis')}
-            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
-              pestanaPrincipal === 'analisis'
-                ? 'border-b-4 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-blue-600'
-            }`}
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${pestanaPrincipal === 'analisis'
+              ? 'border-b-4 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-blue-600'
+              }`}
           >
             📈 Análisis y Rankings
           </button>
           <button
             onClick={() => setPestanaPrincipal('alertas')}
-            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
-              pestanaPrincipal === 'alertas'
-                ? 'border-b-4 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-blue-600'
-            }`}
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${pestanaPrincipal === 'alertas'
+              ? 'border-b-4 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-blue-600'
+              }`}
           >
             🔔 Alertas Tempranas
           </button>
           <button
             onClick={() => setPestanaPrincipal('busqueda')}
-            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${
-              pestanaPrincipal === 'busqueda'
-                ? 'border-b-4 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-blue-600'
-            }`}
+            className={`px-8 py-4 text-xl font-semibold transition-colors whitespace-nowrap ${pestanaPrincipal === 'busqueda'
+              ? 'border-b-4 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-blue-600'
+              }`}
           >
             🔍 Búsqueda de Usuario
           </button>
@@ -275,11 +301,10 @@ function DashboardPage() {
                       <td className="p-3 font-bold text-red-600">{formatearMonto(deudor.deuda_total)}</td>
                       <td className="p-3 text-center">{deudor.boletas_pendientes}</td>
                       <td className="p-3">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          deudor.dias_morosidad > 90 ? 'bg-red-100 text-red-800' :
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${deudor.dias_morosidad > 90 ? 'bg-red-100 text-red-800' :
                           deudor.dias_morosidad > 60 ? 'bg-orange-100 text-orange-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
                           {deudor.dias_morosidad} días
                         </span>
                       </td>
@@ -361,12 +386,11 @@ function DashboardPage() {
                         <td className="p-3">{parseFloat(alerta.consumo_actual).toFixed(1)} m³</td>
                         <td className="p-3">{parseFloat(alerta.consumo_promedio).toFixed(1)} m³</td>
                         <td className="p-3">
-                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                            parseFloat(alerta.variacion_porcentaje) > 0 
-                              ? 'bg-red-100 text-red-800' 
-                              : 'bg-green-100 text-green-800'
-                          }`}>
-                            {parseFloat(alerta.variacion_porcentaje) > 0 ? '↑' : '↓'} 
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${parseFloat(alerta.variacion_porcentaje) > 0
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-green-100 text-green-800'
+                            }`}>
+                            {parseFloat(alerta.variacion_porcentaje) > 0 ? '↑' : '↓'}
                             {Math.abs(parseFloat(alerta.variacion_porcentaje)).toFixed(1)}%
                           </span>
                         </td>
