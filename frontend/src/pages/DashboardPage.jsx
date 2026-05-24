@@ -22,10 +22,10 @@ function DashboardPage() {
   const [rango, setRango] = useState('3m');
 
   useEffect(() => {
-    cargarDatos();
+    cargarDatos(rango);
   }, [rango]);
 
-  const cargarDatos = async () => {
+  const cargarDatos = async (rangoActual = '3m') => {
     try {
       const [
         balanceRes,
@@ -37,15 +37,11 @@ function DashboardPage() {
         usuariosRes
       ] = await Promise.all([
         transaccionesService.getBalance(new Date().getMonth() + 1, new Date().getFullYear()),
-        api.get('/dashboard/kpis'),
-        api.get('/dashboard/top-consumidores'),
-        api.get('/dashboard/top-deudores'),
-        api.get('/dashboard/evolucion-consumo'),
-        api.get('/dashboard/alertas'),
-        api.get(`/dashboard/kpis?rango=${rango}`),
-        api.get(`/dashboard/top-consumidores?rango=${rango}`),
-        api.get(`/dashboard/evolucion-consumo?rango=${rango}`),
-        api.get(`/dashboard/alertas?rango=${rango}`),
+        api.get(`/dashboard/kpis?rango=${rangoActual}`),
+        api.get(`/dashboard/top-consumidores?rango=${rangoActual}`),
+        api.get(`/dashboard/top-deudores?rango=${rangoActual}`),
+        api.get(`/dashboard/evolucion-consumo?rango=${rangoActual}`),
+        api.get(`/dashboard/alertas?rango=${rangoActual}`),
         usuariosService.getAll()
       ]);
 
@@ -135,8 +131,8 @@ function DashboardPage() {
             key={r.valor}
             onClick={() => setRango(r.valor)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${rango === r.valor
-                ? 'bg-blue-600 text-white shadow'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-blue-600 text-white shadow'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
             {r.label}
