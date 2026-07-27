@@ -150,7 +150,7 @@ function AppContent() {
             }
             return <CargaSimplePage />;
           case 'toma-lecturas':
-            if (!isOperador) {
+            if (!isOperador && !isAdmin) {
               return <MiCuentaPage />;
             }
             return <OperadorLecturasPage />;

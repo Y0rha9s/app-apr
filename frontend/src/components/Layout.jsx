@@ -57,6 +57,7 @@ function Layout({ children }) {
       { id: 'transacciones', label: 'Ingresos/Egresos', icon: '💰' },
       { id: 'socios', label: 'Usuarios', icon: '👥' },
       { id: 'lecturas', label: 'Lecturas', icon: '💧' },
+      { id: 'toma-lecturas', label: 'Tomar Lectura', icon: '📋' },  // ← AGREGAR ESTA LÍNEA
       {
         id: 'carga-archivos', label: 'Carga Archivos', icon: '📤', submenu: [
           { id: 'carga-masiva', label: 'Carga Masiva' },
@@ -150,8 +151,8 @@ function Layout({ children }) {
                       }
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${menuActivo === item.id || (item.submenu && item.submenu.some(s => s.id === menuActivo))
-                        ? 'bg-white text-sky-700 shadow-md'
-                        : 'text-white hover:bg-white/20'
+                      ? 'bg-white text-sky-700 shadow-md'
+                      : 'text-white hover:bg-white/20'
                       }`}
                   >
                     <span className="text-xl">{item.icon}</span>
@@ -172,8 +173,8 @@ function Layout({ children }) {
                             setSidebarOpen(false);
                           }}
                           className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${menuActivo === sub.id
-                              ? 'bg-white text-sky-700 shadow'
-                              : 'text-white hover:bg-white/20'
+                            ? 'bg-white text-sky-700 shadow'
+                            : 'text-white hover:bg-white/20'
                             }`}
                         >
                           {sub.label}
