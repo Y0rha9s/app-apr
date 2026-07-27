@@ -70,7 +70,8 @@ export default function BoletasPage() {
     };
 
     const abrirPDF = (id) => {
-        window.open(`https://apr-safip-xtxh.onrender.com/api/boletas/pdf/${id}`, '_blank');
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        window.open(`${baseUrl}/boletas/pdf/${id}`, '_blank');
     };
 
     const enviarWhatsapp = async (boleta) => {
@@ -112,7 +113,7 @@ export default function BoletasPage() {
                     {generando ? '⏳ Generando...' : '⚡ Generar boletas del período'}
                 </button>
                 <button
-                    onClick={() => window.open(`https://apr-safip-xtxh.onrender.com/api/boletas/zip/${periodo}`, '_blank')}
+                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/boletas/zip/${periodo}`, '_blank')}
                     disabled={boletas.length === 0}
                     className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition"
                 >

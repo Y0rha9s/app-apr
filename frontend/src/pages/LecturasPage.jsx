@@ -6,7 +6,6 @@ import Button from '../components/Button';
 import FormularioNuevaLectura from '../components/FormularioNuevaLectura';
 
 function LecturasPage() {
-
   const { usuario } = useAuth();
   const [lecturas, setLecturas] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -14,33 +13,22 @@ function LecturasPage() {
   const [loading, setLoading] = useState(true);
   const [mesFiltro, setMesFiltro] = useState(new Date().getMonth() + 1);
   const [anioFiltro, setAnioFiltro] = useState(new Date().getFullYear());
+  const [busqueda, setBusqueda] = useState('');
+  const [fotoModal, setFotoModal] = useState(null); // URL de la foto a mostrar
 
-  // Estados para edición
   const [editando, setEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({});
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
   const [razonModificacion, setRazonModificacion] = useState('');
 
-
-  const handleNuevaLectura = () => {
-    setMostrarFormulario(true);
-  };
-
-  const handleCerrarFormulario = () => {
-    setMostrarFormulario(false);
-  };
-
+  const handleNuevaLectura = () => setMostrarFormulario(true);
+  const handleCerrarFormulario = () => setMostrarFormulario(false);
   const handleLecturaCreada = (data) => {
-    // Recargar lecturas
     cargarDatos();
-
-    // Mostrar mensaje de éxito
     alert(`✅ ${data.mensaje}\n\nConsumo: ${data.lectura.consumo_m3} m³\nTotal a pagar: $${data.boleta.total_a_pagar.toLocaleString()}`);
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  useEffect(() => { cargarDatos(); }, []);
 
   const cargarDatos = async () => {
     try {
@@ -57,26 +45,25 @@ function LecturasPage() {
     }
   };
 
-  const formatearMonto = (monto) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0
-    }).format(monto);
-  };
+  const formatearMonto = (monto) => new Intl.NumberFormat('es-CL', {
+    style: 'currency', currency: 'CLP', minimumFractionDigits: 0
+  }).format(monto);
 
-  const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-CL');
-  };
+  const formatearFecha = (fecha) => new Date(fecha).toLocaleDateString('es-CL');
 
   const getNombreUsuario = (usuarioId) => {
-    const usuario = usuarios.find(u => u.id === usuarioId);
-    return usuario ? usuario.nombre : 'Desconocido';
+    const u = usuarios.find(u => u.id === usuarioId);
+    return u ? u.nombre : 'Desconocido';
   };
 
   const getMedidorUsuario = (usuarioId) => {
-    const usuario = usuarios.find(u => u.id === usuarioId);
-    return usuario?.medidor || usuario?.numero_medidor || '—';
+    const u = usuarios.find(u => u.id === usuarioId);
+    return u?.medidor || u?.numero_medidor || '—';
+  };
+
+  const getRutUsuario = (usuarioId) => {
+    const u = usuarios.find(u => u.id === usuarioId);
+    return u?.rut || '';
   };
 
   const descargarExcel = () => {
@@ -84,7 +71,6 @@ function LecturasPage() {
     window.open(url, '_blank');
   };
 
-  // Funciones de Edición
   const handleEditar = (lectura) => {
     setEditando(lectura.id);
     setFormEdit({
@@ -126,39 +112,41 @@ function LecturasPage() {
       setFormEdit({});
       cargarDatos();
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.message;
-      alert('❌ Error al actualizar lectura: ' + errorMsg);
+      alert('❌ Error al actualizar lectura: ' + (error.response?.data?.error || error.message));
     }
   };
 
   const handleSolicitarGuardar = () => {
-    // Recalcular el consumo antes de abrir el modal
     const consumoNuevo = parseInt(formEdit.lectura_actual) - parseInt(formEdit.lectura_anterior);
-
     if (consumoNuevo < 0) {
       alert('⚠️ La lectura actual no puede ser menor que la anterior');
       return;
     }
-
     setMostrarModalEdicion(true);
   };
-
-  const lecturasFiltradas = lecturas.filter(l => l.mes === parseInt(mesFiltro) && l.anio === parseInt(anioFiltro));
-  const consumoTotal = lecturasFiltradas.reduce((sum, l) => sum + (l.consumo_m3 || 0), 0);
 
   const clienteKey = (numeroCliente) => {
     if (!numeroCliente) return { prefix: 'ZZZ', num: Number.POSITIVE_INFINITY, raw: '' };
     const raw = numeroCliente.toString().trim();
     const match = raw.match(/^([A-Z]+)-0*(\d+)$/i);
-    if (match) {
-      return { prefix: match[1].toUpperCase(), num: parseInt(match[2], 10), raw };
-    }
+    if (match) return { prefix: match[1].toUpperCase(), num: parseInt(match[2], 10), raw };
     const onlyNum = raw.match(/^0*(\d+)$/);
-    if (onlyNum) {
-      return { prefix: '', num: parseInt(onlyNum[1], 10), raw };
-    }
+    if (onlyNum) return { prefix: '', num: parseInt(onlyNum[1], 10), raw };
     return { prefix: 'ZZZ', num: Number.POSITIVE_INFINITY, raw };
   };
+
+  const lecturasFiltradas = lecturas
+    .filter(l => l.mes === parseInt(mesFiltro) && l.anio === parseInt(anioFiltro))
+    .filter(l => {
+      if (!busqueda.trim()) return true;
+      const q = busqueda.toLowerCase();
+      const nombre = (l.usuario_nombre || getNombreUsuario(l.usuario_id)).toLowerCase();
+      const medidor = (l.usuario_medidor || getMedidorUsuario(l.usuario_id)).toLowerCase();
+      const rut = getRutUsuario(l.usuario_id).toLowerCase();
+      return nombre.includes(q) || medidor.includes(q) || rut.includes(q);
+    });
+
+  const consumoTotal = lecturasFiltradas.reduce((sum, l) => sum + (l.consumo_m3 || 0), 0);
 
   const lecturasOrdenadas = lecturasFiltradas.slice().sort((a, b) => {
     const ak = clienteKey(a.usuario_numero_cliente);
@@ -168,16 +156,10 @@ function LecturasPage() {
     return (a.usuario_nombre || '').localeCompare(b.usuario_nombre || '', 'es', { sensitivity: 'base' });
   });
 
-  const meses = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
-
+  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   const anios = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
-  if (loading) {
-    return <div className="text-center text-3xl py-12">⏳ Cargando lecturas...</div>;
-  }
+  if (loading) return <div className="text-center text-3xl py-12">⏳ Cargando lecturas...</div>;
 
   return (
     <div>
@@ -186,51 +168,29 @@ function LecturasPage() {
         <div className="flex flex-wrap gap-3">
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
             <label className="text-sm font-bold text-gray-600">Mes:</label>
-            <select
-              value={mesFiltro}
-              onChange={(e) => setMesFiltro(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600"
-            >
-              {meses.map((mes, idx) => (
-                <option key={idx} value={idx + 1}>{mes}</option>
-              ))}
+            <select value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600">
+              {meses.map((mes, idx) => <option key={idx} value={idx + 1}>{mes}</option>)}
             </select>
           </div>
-
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
             <label className="text-sm font-bold text-gray-600">Año:</label>
-            <select
-              value={anioFiltro}
-              onChange={(e) => setAnioFiltro(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600"
-            >
-              {anios.map(anio => (
-                <option key={anio} value={anio}>{anio}</option>
-              ))}
+            <select value={anioFiltro} onChange={(e) => setAnioFiltro(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 cursor-pointer font-semibold text-blue-600">
+              {anios.map(anio => <option key={anio} value={anio}>{anio}</option>)}
             </select>
           </div>
-
-          <button
-            onClick={descargarExcel}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 flex items-center gap-2"
-          >
+          <button onClick={descargarExcel}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 flex items-center gap-2">
             📥 Excel
           </button>
-
-          <button
-            onClick={handleNuevaLectura}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700"
-          >
+          <button onClick={handleNuevaLectura}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700">
             ➕ Nueva Lectura
           </button>
         </div>
-
-        {/* Modal del formulario */}
         {mostrarFormulario && (
-          <FormularioNuevaLectura
-            onClose={handleCerrarFormulario}
-            onSuccess={handleLecturaCreada}
-          />
+          <FormularioNuevaLectura onClose={handleCerrarFormulario} onSuccess={handleLecturaCreada} />
         )}
       </div>
 
@@ -239,17 +199,13 @@ function LecturasPage() {
         <Card className="bg-blue-50 border-l-4 border-blue-600">
           <h3 className="text-lg font-semibold text-gray-700">Lecturas Filtradas</h3>
           <p className="text-3xl font-bold text-blue-700">{lecturasFiltradas.length}</p>
-          <p className="text-sm text-gray-600 mt-2">
-            {meses[mesFiltro - 1]} {anioFiltro}
-          </p>
+          <p className="text-sm text-gray-600 mt-2">{meses[mesFiltro - 1]} {anioFiltro}</p>
         </Card>
-
         <Card className="bg-cyan-50 border-l-4 border-cyan-600">
           <h3 className="text-lg font-semibold text-gray-700">Consumo Total</h3>
           <p className="text-3xl font-bold text-cyan-700">{consumoTotal} m³</p>
           <p className="text-sm text-gray-600 mt-2">Metros cúbicos del periodo</p>
         </Card>
-
         <Card className="bg-green-50 border-l-4 border-green-600">
           <h3 className="text-lg font-semibold text-gray-700">Promedio por Usuario</h3>
           <p className="text-3xl font-bold text-green-700">
@@ -259,8 +215,24 @@ function LecturasPage() {
         </Card>
       </div>
 
-      {/* Tabla de lecturas */}
+      {/* Tabla */}
       <Card title={`📋 Historial de Lecturas - ${meses[mesFiltro - 1]} ${anioFiltro}`}>
+        {/* Buscador */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="🔍 Buscar por nombre, RUT o N° medidor..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full md:w-96 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-base"
+          />
+          {busqueda && (
+            <span className="ml-3 text-sm text-gray-500">
+              {lecturasFiltradas.length} resultado(s)
+            </span>
+          )}
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-gray-100 border-b-2 border-gray-300">
@@ -268,12 +240,12 @@ function LecturasPage() {
                 <th className="p-4 text-lg font-semibold">Nº Medidor</th>
                 <th className="p-4 text-lg font-semibold">Usuario</th>
                 <th className="p-4 text-lg font-semibold">Fecha</th>
-                <th className="p-4 text-lg font-semibold text-center">Lectura Anterior</th>
-                <th className="p-4 text-lg font-semibold text-center">Lectura Actual</th>
-                <th className="p-4 text-lg font-semibold text-center">Consumo (m³)</th>
+                <th className="p-4 text-lg font-semibold text-center">L. Anterior</th>
+                <th className="p-4 text-lg font-semibold text-center">L. Actual</th>
+                <th className="p-4 text-lg font-semibold text-center">Consumo</th>
                 <th className="p-4 text-lg font-semibold">Monto</th>
                 <th className="p-4 text-lg font-semibold">Operador</th>
-                <th className="p-4 text-lg font-semibold">Foto</th>
+                <th className="p-4 text-lg font-semibold text-center">Foto</th>
                 <th className="p-4 text-lg font-semibold text-center">Acciones</th>
               </tr>
             </thead>
@@ -281,7 +253,7 @@ function LecturasPage() {
               {lecturasFiltradas.length === 0 ? (
                 <tr>
                   <td colSpan="10" className="p-8 text-center text-xl text-gray-500">
-                    No hay lecturas registradas para este periodo
+                    {busqueda ? 'No se encontraron resultados para la búsqueda' : 'No hay lecturas registradas para este periodo'}
                   </td>
                 </tr>
               ) : (
@@ -289,12 +261,9 @@ function LecturasPage() {
                   <tr key={lectura.id} className="border-b hover:bg-gray-50">
                     <td className="p-4 text-base font-mono">
                       {editando === lectura.id ? (
-                        <input
-                          type="text"
-                          value={formEdit.medidor}
+                        <input type="text" value={formEdit.medidor}
                           onChange={(e) => setFormEdit({ ...formEdit, medidor: e.target.value })}
-                          className="w-28 px-2 py-1 border rounded font-mono"
-                        />
+                          className="w-28 px-2 py-1 border rounded font-mono" />
                       ) : (
                         lectura.usuario_medidor || getMedidorUsuario(lectura.usuario_id)
                       )}
@@ -303,27 +272,17 @@ function LecturasPage() {
                     <td className="p-4 text-base">{formatearFecha(lectura.fecha_lectura)}</td>
                     <td className="p-4 text-base text-center font-mono">
                       {editando === lectura.id ? (
-                        <input
-                          type="number"
-                          value={formEdit.lectura_anterior}
+                        <input type="number" value={formEdit.lectura_anterior}
                           onChange={(e) => setFormEdit({ ...formEdit, lectura_anterior: e.target.value })}
-                          className="w-24 px-2 py-1 border rounded"
-                        />
-                      ) : (
-                        lectura.lectura_anterior
-                      )}
+                          className="w-24 px-2 py-1 border rounded" />
+                      ) : lectura.lectura_anterior}
                     </td>
                     <td className="p-4 text-base text-center font-mono font-bold text-blue-600">
                       {editando === lectura.id ? (
-                        <input
-                          type="number"
-                          value={formEdit.lectura_actual}
+                        <input type="number" value={formEdit.lectura_actual}
                           onChange={(e) => setFormEdit({ ...formEdit, lectura_actual: e.target.value })}
-                          className="w-24 px-2 py-1 border rounded"
-                        />
-                      ) : (
-                        lectura.lectura_actual
-                      )}
+                          className="w-24 px-2 py-1 border rounded" />
+                      ) : lectura.lectura_actual}
                     </td>
                     <td className="p-4 text-base text-center">
                       <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full font-bold">
@@ -333,43 +292,34 @@ function LecturasPage() {
                     <td className="p-4 text-base font-bold text-green-600">
                       {formatearMonto(lectura.monto_calculado)}
                     </td>
-                    <td className="p-4 text-base text-gray-500">
-                      {lectura.operador_nombre || '—'}
-                    </td>
-                    <td className="p-4">
+                    <td className="p-4 text-base text-gray-500">{lectura.operador_nombre || '—'}</td>
+                    <td className="p-4 text-center">
                       {lectura.foto_url ? (
-                        <a href={lectura.foto_url} target="_blank" rel="noopener noreferrer">
-                          <img
-                            src={lectura.foto_url}
-                            alt="Medidor"
-                            className="w-14 h-14 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition cursor-pointer"
-                          />
-                        </a>
+                        <button
+                          onClick={() => setFotoModal(lectura.foto_url)}
+                          className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 font-semibold"
+                        >
+                          📷 Ver
+                        </button>
                       ) : (
-                        <span className="text-gray-400 text-sm">Sin foto</span>
+                        <span className="text-gray-400 text-sm">—</span>
                       )}
                     </td>
                     <td className="p-4">
                       {editando === lectura.id ? (
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => handleSolicitarGuardar(lectura.id)}
-                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-                          >
+                          <button onClick={handleSolicitarGuardar}
+                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
                             ✅ Guardar
                           </button>
-                          <button
-                            onClick={handleCancelarEdicion}
-                            className="text-red-600 hover:text-red-800 font-bold"
-                          >
+                          <button onClick={handleCancelarEdicion}
+                            className="text-red-600 hover:text-red-800 font-bold">
                             ❌
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => handleEditar(lectura)}
-                          className="text-blue-600 hover:text-blue-800 font-bold"
-                        >
+                        <button onClick={() => handleEditar(lectura)}
+                          className="text-blue-600 hover:text-blue-800 font-bold">
                           ✏️ Editar
                         </button>
                       )}
@@ -382,7 +332,29 @@ function LecturasPage() {
         </div>
       </Card>
 
-      {/* Modal de confirmación de edición */}
+      {/* Modal foto */}
+      {fotoModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={() => setFotoModal(null)}
+        >
+          <div className="relative max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setFotoModal(null)}
+              className="absolute -top-10 right-0 text-white text-2xl font-bold hover:text-gray-300"
+            >
+              ✕ Cerrar
+            </button>
+            <img
+              src={fotoModal}
+              alt="Foto medidor"
+              className="w-full rounded-xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal edición */}
       {mostrarModalEdicion && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="max-w-md w-full mx-4">
@@ -390,31 +362,18 @@ function LecturasPage() {
             <p className="text-lg mb-4">
               Está a punto de modificar una lectura. Por razones de auditoría, debe indicar el motivo:
             </p>
-
             <textarea
               value={razonModificacion}
               onChange={(e) => setRazonModificacion(e.target.value)}
               placeholder="Ej: Lectura tomada incorrectamente, el medidor marcaba 12345 en lugar de 12356"
               rows="4"
               className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 mb-4"
-              required
             />
             <div className="flex gap-4">
-              <Button
-                variant="success"
-                onClick={() => handleGuardarConRazon(editando)}
-                className="flex-1"
-              >
+              <Button variant="success" onClick={handleGuardarConRazon} className="flex-1">
                 ✅ Confirmar Cambios
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setMostrarModalEdicion(false);
-                  setRazonModificacion('');
-                }}
-                className="flex-1"
-              >
+              <Button variant="secondary" onClick={() => { setMostrarModalEdicion(false); setRazonModificacion(''); }} className="flex-1">
                 ❌ Cancelar
               </Button>
             </div>
