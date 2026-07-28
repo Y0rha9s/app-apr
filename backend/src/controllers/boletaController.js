@@ -294,7 +294,7 @@ const renderPDF = (doc, b, tramos, cargoFijo, historial, qrBuffer) => {
   doc.rect(0, footerY, W, 62).fill(GRAY_LIGHT);
   doc.moveTo(0, footerY).lineTo(W, footerY).strokeColor(GRAY_BORDER).lineWidth(1).stroke();
   doc.fillColor(TEXT_MID).font('Helvetica').fontSize(8)
-    .text('Pago por transferencia: Banco Estado  |  Cta. Corriente: 123456789  |  RUT: 71.810.200-6', MARGIN, footerY + 10, { align: 'center', width: W - MARGIN * 2 })
+    .text('Banco Estado  |  Cuenta Vista N°: 64570672906  |  RUT: 71.810.200-6  |  safipapr@gmail.com', MARGIN, footerY + 10, { align: 'center', width: W - MARGIN * 2 })
     .text('Sistema APR SAFIP  •  Santa Filomena Pedregoso  •  Villarrica', MARGIN, footerY + 26, { align: 'center', width: W - MARGIN * 2 })
     .text(`Documento generado el ${new Date().toLocaleDateString('es-CL')} — Solo válido como liquidación de cobro interno`, MARGIN, footerY + 42, { align: 'center', width: W - MARGIN * 2 });
 };
