@@ -1,0 +1,592 @@
+Fila_Origen,Nombre,RUT,Numero_Cuota,Valor_Celda,Color_RGB,Color_Nombre
+5,Marinette Villar esparza,16.534.512-6,1,05-12/$20.000.-,4697456,VERDE
+5,Marinette Villar esparza,16.534.512-6,2,11-02/$18.670.-,4697456,VERDE
+5,Marinette Villar esparza,16.534.512-6,3,05-02/$18.670.-,16777215,BLANCO
+5,Marinette Villar esparza,16.534.512-6,4,05-03/$18.670.-,16777215,BLANCO
+5,Marinette Villar esparza,16.534.512-6,5,05-04/$18.670.-,16777215,BLANCO
+5,Marinette Villar esparza,16.534.512-6,6,05-05/$17.320.-,16777215,BLANCO
+5,Marinette Villar esparza,16.534.512-6,7,,0,NEGRO
+5,Marinette Villar esparza,16.534.512-6,8,,0,NEGRO
+5,Marinette Villar esparza,16.534.512-6,9,,0,NEGRO
+5,Marinette Villar esparza,16.534.512-6,10,,0,NEGRO
+5,Marinette Villar esparza,16.534.512-6,11,,0,NEGRO
+5,Marinette Villar esparza,16.534.512-6,12,,0,NEGRO
+6,José Ansaldo ,,1,26-01/$60.000,4697456,VERDE
+6,José Ansaldo ,,2,20-04/$100.000.-,4697456,VERDE
+6,José Ansaldo ,,3,,0,NEGRO
+6,José Ansaldo ,,4,,0,NEGRO
+6,José Ansaldo ,,5,,0,NEGRO
+6,José Ansaldo ,,6,,0,NEGRO
+6,José Ansaldo ,,7,,0,NEGRO
+6,José Ansaldo ,,8,,0,NEGRO
+6,José Ansaldo ,,9,,0,NEGRO
+6,José Ansaldo ,,10,,0,NEGRO
+6,José Ansaldo ,,11,,0,NEGRO
+6,José Ansaldo ,,12,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,1,05-12/$22.750.-,4697456,VERDE
+7,Lucinda Araya Ceballos ,8.192.618-2,2,05-01/$22.750.-,4697456,VERDE
+7,Lucinda Araya Ceballos ,8.192.618-2,3,05-02/$22.750.-,4697456,VERDE
+7,Lucinda Araya Ceballos ,8.192.618-2,4,05-03/$22.750.-,4697456,VERDE
+7,Lucinda Araya Ceballos ,8.192.618-2,5,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,6,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,7,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,8,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,9,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,10,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,11,,0,NEGRO
+7,Lucinda Araya Ceballos ,8.192.618-2,12,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,1,05-12/$30.340.-,4697456,VERDE
+8,Lucinda Araya Ceballos ,8.192.618-2,2,05-01/$30.340.-,4697456,VERDE
+8,Lucinda Araya Ceballos ,8.192.618-2,3,05-02/$30.320,4697456,VERDE
+8,Lucinda Araya Ceballos ,8.192.618-2,4,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,5,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,6,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,7,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,8,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,9,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,10,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,11,,0,NEGRO
+8,Lucinda Araya Ceballos ,8.192.618-2,12,,0,NEGRO
+9,Walter Boehmwald,8.603.920-6,1,27-10/$27.000,4697456,VERDE
+9,Walter Boehmwald,8.603.920-6,2,29-11/$27.000,4697456,VERDE
+9,Walter Boehmwald,8.603.920-6,3,04-12/$27.000,4697456,VERDE
+9,Walter Boehmwald,8.603.920-6,4,28-12/$26.700,4697456,VERDE
+9,Walter Boehmwald,8.603.920-6,5,30.12/$27.000,4697456,VERDE
+9,Walter Boehmwald,8.603.920-6,6,05-04/$25.290,4697456,VERDE
+9,Walter Boehmwald,8.603.920-6,7,,0,NEGRO
+9,Walter Boehmwald,8.603.920-6,8,,0,NEGRO
+9,Walter Boehmwald,8.603.920-6,9,,0,NEGRO
+9,Walter Boehmwald,8.603.920-6,10,,0,NEGRO
+9,Walter Boehmwald,8.603.920-6,11,,0,NEGRO
+9,Walter Boehmwald,8.603.920-6,12,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,1,03-11/28.000,4697456,VERDE
+10,Sergio Flores Rivera,9.531.216-0,2,05-12/28.000,4697456,VERDE
+10,Sergio Flores Rivera,9.531.216-0,3,05-01/28.000,4697456,VERDE
+10,Sergio Flores Rivera,9.531.216-0,4,05-02/28.000,4697456,VERDE
+10,Sergio Flores Rivera,9.531.216-0,5,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,6,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,7,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,8,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,9,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,10,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,11,,0,NEGRO
+10,Sergio Flores Rivera,9.531.216-0,12,,0,NEGRO
+13,Elba Seguel Cofré,15.254.417-0,1,05-12/$29.110.-,4697456,VERDE
+13,Elba Seguel Cofré,15.254.417-0,2,05-01/$29.110.-,4697456,VERDE
+13,Elba Seguel Cofré,15.254.417-0,3,05-02/$29.110.-,4697456,VERDE
+13,Elba Seguel Cofré,15.254.417-0,4,05-03/$29.110.-,16777215,BLANCO
+13,Elba Seguel Cofré,15.254.417-0,5,05-04/$29.110.-,16777215,BLANCO
+13,Elba Seguel Cofré,15.254.417-0,6,05-05/$29.110.-,16777215,BLANCO
+13,Elba Seguel Cofré,15.254.417-0,7,05-06/$29.110.-,16777215,BLANCO
+13,Elba Seguel Cofré,15.254.417-0,8,05-07/$29.110.-,16777215,BLANCO
+13,Elba Seguel Cofré,15.254.417-0,9,05-08/$29.110.-,16777215,BLANCO
+13,Elba Seguel Cofré,15.254.417-0,10,05-09/$29.070.-,16777215,BLANCO
+13,Elba Seguel Cofré,15.254.417-0,11,,0,NEGRO
+13,Elba Seguel Cofré,15.254.417-0,12,,0,NEGRO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,1,06-11/$15.170,4697456,VERDE
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,2,04-02/$20.000,4697456,VERDE
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,3,14-02/$15.170,4697456,VERDE
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,4,17-03/$15.170,4697456,VERDE
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,5,05-03/$15.170,16777215,BLANCO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,6,05-04/$10.320,16777215,BLANCO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,7,,0,NEGRO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,8,,0,NEGRO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,9,,0,NEGRO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,10,,0,NEGRO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,11,,0,NEGRO
+14,Santiago Eduardo Carrasco Navarrete,15.579.206-K,12,,0,NEGRO
+15,Pedro González,15.254.386-7,1,20-03/$10.000,4697456,VERDE
+15,Pedro González,15.254.386-7,2,06-04/$8.000,4697456,VERDE
+15,Pedro González,15.254.386-7,3,29-04/$14.000,4697456,VERDE
+15,Pedro González,15.254.386-7,4,30-05/$8.000,4697456,VERDE
+16,José Ramón Alarcón Sandoval,12.742.659-7,1,20-12/$50.000.-,4697456,VERDE
+16,José Ramón Alarcón Sandoval,12.742.659-7,2,20-02/$30.000.-,4697456,VERDE
+16,José Ramón Alarcón Sandoval,12.742.659-7,3,18-03/$2.450.-,4697456,VERDE
+16,José Ramón Alarcón Sandoval,12.742.659-7,4,17-04/$7.900,4697456,VERDE
+16,José Ramón Alarcón Sandoval,12.742.659-7,5,$650.00,4697456,VERDE
+16,José Ramón Alarcón Sandoval,12.742.659-7,6,,0,NEGRO
+16,José Ramón Alarcón Sandoval,12.742.659-7,7,,0,NEGRO
+16,José Ramón Alarcón Sandoval,12.742.659-7,8,,0,NEGRO
+16,José Ramón Alarcón Sandoval,12.742.659-7,9,,0,NEGRO
+16,José Ramón Alarcón Sandoval,12.742.659-7,10,,0,NEGRO
+16,José Ramón Alarcón Sandoval,12.742.659-7,11,,0,NEGRO
+16,José Ramón Alarcón Sandoval,12.742.659-7,12,,0,NEGRO
+17,María Eliana Vásquez,,1,27/09/2025,4697456,VERDE
+17,María Eliana Vásquez,,2,,0,NEGRO
+17,María Eliana Vásquez,,3,,0,NEGRO
+17,María Eliana Vásquez,,4,,0,NEGRO
+17,María Eliana Vásquez,,5,,0,NEGRO
+17,María Eliana Vásquez,,6,,0,NEGRO
+17,María Eliana Vásquez,,7,,0,NEGRO
+17,María Eliana Vásquez,,8,,0,NEGRO
+17,María Eliana Vásquez,,9,,0,NEGRO
+17,María Eliana Vásquez,,10,,0,NEGRO
+17,María Eliana Vásquez,,11,,0,NEGRO
+17,María Eliana Vásquez,,12,,0,NEGRO
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,1,04-10/$16.000,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,2,27-10/$16.000,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,3,08-12/$16.000.-,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,4,05-01/$16.000,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,5,05-02/$16.000,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,6,05-03/$16.000,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,7,05-04/$16.000,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,8,05-05/$16.000,4697456,VERDE
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,9,05-06/$16.000,16777215,BLANCO
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,10,05-07/$16.000,16777215,BLANCO
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,11,,0,NEGRO
+18,Raúl Custodio Vásquez Muñóz,9.504.165-5,12,,0,NEGRO
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,1,05-12/$18.200,4697456,VERDE
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,2,05-01/$18.200,4697456,VERDE
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,3,05-02/$18.200,4697456,VERDE
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,4,05-03/$18.200,4697456,VERDE
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,5,05-04/$18.200,4697456,VERDE
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,6,,0,NEGRO
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,7,,0,NEGRO
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,8,,0,NEGRO
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,9,,0,NEGRO
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,10,,0,NEGRO
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,11,,0,NEGRO
+19,Nancy Maribel San Martín Aguilera,13.156.599-2,12,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,1,14/10/2025,4697456,VERDE
+20,Dominga Navarrete Garrido,7.977.971-7,2,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,3,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,4,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,5,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,6,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,7,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,8,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,9,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,10,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,11,,0,NEGRO
+20,Dominga Navarrete Garrido,7.977.971-7,12,,0,NEGRO
+21,Margarita Araya,9.341.437-3,1,05-01/$11.200.-,4697456,VERDE
+21,Margarita Araya,9.341.437-3,2,05-02/$11.200.-,8696052,SALMON
+21,Margarita Araya,9.341.437-3,3,05-03/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,4,05-04/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,5,05-05/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,6,05-06/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,7,05-07/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,8,05-08/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,9,05-09/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,10,05-10/$11.200.-,16777215,BLANCO
+21,Margarita Araya,9.341.437-3,11,,0,NEGRO
+21,Margarita Araya,9.341.437-3,12,,0,NEGRO
+22,Héctor Aravena Durán,,1,02-01/ $10.000,4697456,VERDE
+22,Héctor Aravena Durán,,2,26-01/$10.000.-,4697456,VERDE
+22,Héctor Aravena Durán,,3,06-03/$10.000.-,4697456,VERDE
+22,Héctor Aravena Durán,,4,"$20,000.00",4697456,VERDE
+23,Jeanette Vásquez,11.128.256-0,1,03-10/$79.990,4697456,VERDE
+23,Jeanette Vásquez,11.128.256-0,2,11-11/$79.990,4697456,VERDE
+23,Jeanette Vásquez,11.128.256-0,3,05-12/479.990.-,4697456,VERDE
+23,Jeanette Vásquez,11.128.256-0,4,05-01/$79.990.-,4697456,VERDE
+23,Jeanette Vásquez,11.128.256-0,5,,0,NEGRO
+23,Jeanette Vásquez,11.128.256-0,6,,0,NEGRO
+23,Jeanette Vásquez,11.128.256-0,7,,0,NEGRO
+23,Jeanette Vásquez,11.128.256-0,8,,0,NEGRO
+23,Jeanette Vásquez,11.128.256-0,9,,0,NEGRO
+23,Jeanette Vásquez,11.128.256-0,10,,0,NEGRO
+23,Jeanette Vásquez,11.128.256-0,11,,0,NEGRO
+23,Jeanette Vásquez,11.128.256-0,12,,0,NEGRO
+24,José Enrique Lizama,,1,11-2025/$40.000,4697456,VERDE
+24,José Enrique Lizama,,2,11-01/$40.000,4697456,VERDE
+24,José Enrique Lizama,,3,05-02/$40.000,4697456,VERDE
+24,José Enrique Lizama,,4,05-03/$40.000,4697456,VERDE
+24,José Enrique Lizama,,5,,0,NEGRO
+24,José Enrique Lizama,,6,,0,NEGRO
+24,José Enrique Lizama,,7,,0,NEGRO
+24,José Enrique Lizama,,8,,0,NEGRO
+24,José Enrique Lizama,,9,,0,NEGRO
+24,José Enrique Lizama,,10,,0,NEGRO
+24,José Enrique Lizama,,11,,0,NEGRO
+24,José Enrique Lizama,,12,,0,NEGRO
+25,José Torres Hernández,8.857.140-1,1,23-12/$18.670,4697456,VERDE
+25,José Torres Hernández,8.857.140-1,2,05-01/$18.670,8696052,SALMON
+25,José Torres Hernández,8.857.140-1,3,05-02/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,4,05-03/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,5,05-04/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,6,05-05/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,7,05-06/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,8,05-07/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,9,05-08/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,10,05-09/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,11,05-10/$18.670,16777215,BLANCO
+25,José Torres Hernández,8.857.140-1,12,05-11/$18.670,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,1,05-12/$7.590.-,4697456,VERDE
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,2,05-01/$7.590.-,8696052,SALMON
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,3,05-02/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,4,05-03/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,5,05-04/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,6,05-05/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,7,05-06/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,8,05-07/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,9,05-08/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,10,05-09/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,11,05-10/$7.590.-,16777215,BLANCO
+26,Miriam Carmen Villagrán Muñoz,10.478.274-2,12,05-11/$7.590.-,16777215,BLANCO
+27,José Lara Maturana,,1,10/10/2025,4697456,VERDE
+27,José Lara Maturana,,2,pagado total,16777215,BLANCO
+29,Robinson Alarcon Obreque,,1,14-02/$60.000,4697456,VERDE
+29,Robinson Alarcon Obreque,,2,05-03/$17.340,4697456,VERDE
+29,Robinson Alarcon Obreque,,3,05-04/$17.340,16777215,BLANCO
+29,Robinson Alarcon Obreque,,4,05-05/$17.340,16777215,BLANCO
+29,Robinson Alarcon Obreque,,5,,0,NEGRO
+29,Robinson Alarcon Obreque,,6,,0,NEGRO
+29,Robinson Alarcon Obreque,,7,,0,NEGRO
+29,Robinson Alarcon Obreque,,8,,0,NEGRO
+29,Robinson Alarcon Obreque,,9,,0,NEGRO
+29,Robinson Alarcon Obreque,,10,,0,NEGRO
+29,Robinson Alarcon Obreque,,11,,0,NEGRO
+29,Robinson Alarcon Obreque,,12,,0,NEGRO
+30,Francisco Reyes Araya,8.043.335-2,1,05-12/$7.590,4697456,VERDE
+30,Francisco Reyes Araya,8.043.335-2,2,05-01/$7.590,4697456,VERDE
+30,Francisco Reyes Araya,8.043.335-2,3,05-02/$7.590,4697456,VERDE
+30,Francisco Reyes Araya,8.043.335-2,4,05-03/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,5,05-04/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,6,05-05/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,7,05-06/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,8,05-07/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,9,05-08/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,10,05-09/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,11,05-10/$7.590,16777215,BLANCO
+30,Francisco Reyes Araya,8.043.335-2,12,05-11/$7.510,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,1,05-12/$9.100.-,4697456,VERDE
+31,Eduardo Quezada Ortiz,16.534.311-5,2,05-01/$9.100.-,4697456,VERDE
+31,Eduardo Quezada Ortiz,16.534.311-5,3,05-02/$9.100.-,8696052,SALMON
+31,Eduardo Quezada Ortiz,16.534.311-5,4,05-03/$9.100.-,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,5,$9.100.-,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,6,$9.100.-,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,7,$9.100.-,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,8,$9.100.-,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,9,$9.100.-,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,10,$9.100.-,16777215,BLANCO
+31,Eduardo Quezada Ortiz,16.534.311-5,11,,0,NEGRO
+31,Eduardo Quezada Ortiz,16.534.311-5,12,,0,NEGRO
+32,Johana Sandoval Sandoval,,1,,0,NEGRO
+32,Johana Sandoval Sandoval,,2,,0,NEGRO
+32,Johana Sandoval Sandoval,,3,,0,NEGRO
+32,Johana Sandoval Sandoval,,4,,0,NEGRO
+32,Johana Sandoval Sandoval,,5,,0,NEGRO
+32,Johana Sandoval Sandoval,,6,,0,NEGRO
+32,Johana Sandoval Sandoval,,7,,0,NEGRO
+32,Johana Sandoval Sandoval,,8,,0,NEGRO
+32,Johana Sandoval Sandoval,,9,,0,NEGRO
+32,Johana Sandoval Sandoval,,10,,0,NEGRO
+32,Johana Sandoval Sandoval,,11,,0,NEGRO
+32,Johana Sandoval Sandoval,,12,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,1,"$48,090.00",4697456,VERDE
+33,Juan Silva Palma,7.990.981-5,2,$42.900.-,4697456,VERDE
+33,Juan Silva Palma,7.990.981-5,3,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,4,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,5,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,6,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,7,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,8,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,9,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,10,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,11,,0,NEGRO
+33,Juan Silva Palma,7.990.981-5,12,,0,NEGRO
+34,Emperatríz Sepúlveda,11.323.643-4,1,05-12/$7.590.-,4697456,VERDE
+34,Emperatríz Sepúlveda,11.323.643-4,2,05-01/$7.590.-,4697456,VERDE
+34,Emperatríz Sepúlveda,11.323.643-4,3,05-02/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,4,05-03/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,5,05-04/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,6,05-05/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,7,05-06/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,8,05-08/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,9,05-09/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,10,05-10/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,11,05-11/$7.590.-,16777215,BLANCO
+34,Emperatríz Sepúlveda,11.323.643-4,12,05-12/$7.510,16777215,BLANCO
+35,Rogelio Schmidt,7.552.268-1,1,30/09/2025,4697456,VERDE
+35,Rogelio Schmidt,7.552.268-1,2,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,3,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,4,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,5,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,6,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,7,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,8,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,9,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,10,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,11,,0,NEGRO
+35,Rogelio Schmidt,7.552.268-1,12,,0,NEGRO
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,1,04-11/$7.590,4697456,VERDE
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,2,05-12/$7.590,4697456,VERDE
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,3,05-01/$7.590,4697456,VERDE
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,4,05-02/$7.590,4697456,VERDE
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,5,05-03/$7.590,4697456,VERDE
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,6,05-04/$7.590,16777215,BLANCO
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,7,05-05/$7.590,16777215,BLANCO
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,8,05-06/$7.590,16777215,BLANCO
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,9,05-07/$7.590,16777215,BLANCO
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,10,05-08/$7.590,16777215,BLANCO
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,11,05-09/$7.590,16777215,BLANCO
+36,Carmen Nancy Carrasco Reyes,12.335.227-0,12,05-10/$7.510,16777215,BLANCO
+37,Antonio Riquelme Baos,,1,19/10/2025,4697456,VERDE
+37,Antonio Riquelme Baos,,2,,0,NEGRO
+37,Antonio Riquelme Baos,,3,,0,NEGRO
+37,Antonio Riquelme Baos,,4,,0,NEGRO
+37,Antonio Riquelme Baos,,5,,0,NEGRO
+37,Antonio Riquelme Baos,,6,,0,NEGRO
+37,Antonio Riquelme Baos,,7,,0,NEGRO
+37,Antonio Riquelme Baos,,8,,0,NEGRO
+37,Antonio Riquelme Baos,,9,,0,NEGRO
+37,Antonio Riquelme Baos,,10,,0,NEGRO
+37,Antonio Riquelme Baos,,11,,0,NEGRO
+37,Antonio Riquelme Baos,,12,,0,NEGRO
+38,Ivan Riffo,,1,05-12-/$13.340,4697456,VERDE
+38,Ivan Riffo,,2,05-01/$13.340,4697456,VERDE
+38,Ivan Riffo,,3,05-02/$13.340,4697456,VERDE
+38,Ivan Riffo,,4,05-03/$13.340,4697456,VERDE
+38,Ivan Riffo,,5,05-04/$13.340,4697456,VERDE
+38,Ivan Riffo,,6,05-05/$13.340,16777215,BLANCO
+38,Ivan Riffo,,7,05-06/$13.340,16777215,BLANCO
+38,Ivan Riffo,,8,05-07/$13.340,16777215,BLANCO
+38,Ivan Riffo,,9,05-08/$13.340,16777215,BLANCO
+38,Ivan Riffo,,10,05-09/$13.340,16777215,BLANCO
+38,Ivan Riffo,,11,05-10/$13.340,16777215,BLANCO
+38,Ivan Riffo,,12,05-11/$13.250,16777215,BLANCO
+41,Nombre,Rut,1,1° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,2,2° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,3,3° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,4,4° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,5,5° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,6,6° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,7,7° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,8,8° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,9,9° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,10,10° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,11,11° cuota,15123099,"COLOR_RGB(155,194,230)"
+41,Nombre,Rut,12,12° cuota,15123099,"COLOR_RGB(155,194,230)"
+42,Raúl Stuardo,5.438.934-5,1,05-12/$26.670.-,4697456,VERDE
+42,Raúl Stuardo,5.438.934-5,2,05-01/$26.670.-,4697456,VERDE
+42,Raúl Stuardo,5.438.934-5,3,05-02/$26.670.-,4697456,VERDE
+42,Raúl Stuardo,5.438.934-5,4,05-03/$26.670.-,4697456,VERDE
+42,Raúl Stuardo,5.438.934-5,5,05-04/$26.670.-,4697456,VERDE
+42,Raúl Stuardo,5.438.934-5,6,05-05/$26.640.-,4697456,VERDE
+42,Raúl Stuardo,5.438.934-5,7,,0,NEGRO
+42,Raúl Stuardo,5.438.934-5,8,,0,NEGRO
+42,Raúl Stuardo,5.438.934-5,9,,0,NEGRO
+42,Raúl Stuardo,5.438.934-5,10,,0,NEGRO
+42,Raúl Stuardo,5.438.934-5,11,,0,NEGRO
+42,Raúl Stuardo,5.438.934-5,12,,0,NEGRO
+43,Hernando Alarcón Obreque,9.551.342-5,1,05-02/$159.986.-,4697456,VERDE
+44,Gastón Luis Alarcón Obreque,10.829.856-1,1,05-02/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,2,05-03/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,3,05-04/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,4,05-05/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,5,05-06/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,6,05-07/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,7,05-08/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,8,05-09/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,9,05-10/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,10,05-11/$9.100.-,16777215,BLANCO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,11,,0,NEGRO
+44,Gastón Luis Alarcón Obreque,10.829.856-1,12,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,1,05-01/$22.750,4697456,VERDE
+45,Magdalena Carrasco,6.986.076-1,2,05-02/$22.750,4697456,VERDE
+45,Magdalena Carrasco,6.986.076-1,3,05-03/$22.750,4697456,VERDE
+45,Magdalena Carrasco,6.986.076-1,4,05-04/$22.750,4697456,VERDE
+45,Magdalena Carrasco,6.986.076-1,5,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,6,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,7,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,8,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,9,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,10,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,11,,0,NEGRO
+45,Magdalena Carrasco,6.986.076-1,12,,0,NEGRO
+46,Santiago Carrasco (PADRE),,1,16-01/$50.000,4697456,VERDE
+46,Santiago Carrasco (PADRE),,2,04-02/$20.000,4697456,VERDE
+46,Santiago Carrasco (PADRE),,3,05-04/$21.000,4697456,VERDE
+46,Santiago Carrasco (PADRE),,4,,0,NEGRO
+46,Santiago Carrasco (PADRE),,5,,0,NEGRO
+46,Santiago Carrasco (PADRE),,6,,0,NEGRO
+46,Santiago Carrasco (PADRE),,7,,0,NEGRO
+46,Santiago Carrasco (PADRE),,8,,0,NEGRO
+46,Santiago Carrasco (PADRE),,9,,0,NEGRO
+46,Santiago Carrasco (PADRE),,10,,0,NEGRO
+46,Santiago Carrasco (PADRE),,11,,0,NEGRO
+46,Santiago Carrasco (PADRE),,12,,0,NEGRO
+47,Juanita Quezada,,1,05-02/$7.590,4697456,VERDE
+47,Juanita Quezada,,2,05-03/$7.590,4697456,VERDE
+47,Juanita Quezada,,3,05-04/$7.590,4697456,VERDE
+47,Juanita Quezada,,4,05-05/$7.590,4697456,VERDE
+47,Juanita Quezada,,5,05-06/$7.590,16777215,BLANCO
+47,Juanita Quezada,,6,05-07/$7.590,16777215,BLANCO
+47,Juanita Quezada,,7,05-08/$7.590,16777215,BLANCO
+47,Juanita Quezada,,8,05-09/$7.590,16777215,BLANCO
+47,Juanita Quezada,,9,05-10/$7.590,16777215,BLANCO
+47,Juanita Quezada,,10,05-11/$7.590,16777215,BLANCO
+47,Juanita Quezada,,11,05-12/$7.590,16777215,BLANCO
+47,Juanita Quezada,,12,05-01/$7.510,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,1,05-01/$13.340,8696052,SALMON
+48,Paloma Vásquez Vásquez,,2,05-02/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,3,05-03/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,4,05-04/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,5,05-05/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,6,05-06/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,7,05-07/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,8,05-08/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,9,05-09/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,10,05-10/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,11,05-11/$13.340,16777215,BLANCO
+48,Paloma Vásquez Vásquez,,12,05-12/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,1,05-02/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,2,05-03/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,3,05-04/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,4,05-05/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,5,05-06/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,6,05-07/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,7,05-08/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,8,05-09/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,9,05-10/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,10,05-11/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,11,05-12/$13.340,16777215,BLANCO
+49,José Luis Vásquez Sepúlveda,,12,05-01/$13.340,16777215,BLANCO
+50,Marcelo Lizama ,,1,05-01/$16.000.-,8696052,SALMON
+50,Marcelo Lizama ,,2,05-02/$16.000,16777215,BLANCO
+50,Marcelo Lizama ,,3,05-03/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,4,05-04/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,5,05-05/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,6,05-06/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,7,05-07/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,8,05-08/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,9,05-09/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,10,05-10/$16.000.-,16777215,BLANCO
+50,Marcelo Lizama ,,11,,0,NEGRO
+50,Marcelo Lizama ,,12,,0,NEGRO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,1,05-01/$26.670,4697456,VERDE
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,2,05-02/$26.670,16777215,BLANCO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,3,05-03/$26.670,16777215,BLANCO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,4,05-04/$26.670,16777215,BLANCO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,5,05-05/$26.670,16777215,BLANCO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,6,05-06/$26.670,16777215,BLANCO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,7,,0,NEGRO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,8,,0,NEGRO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,9,,0,NEGRO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,10,,0,NEGRO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,11,,0,NEGRO
+51,Rolando Eulogio Ramírez Jara,14.295.909-7,12,,0,NEGRO
+52,Tránsito Quezada,,1,29-11/$159.990,4697456,VERDE
+52,Tránsito Quezada,,2,,0,NEGRO
+52,Tránsito Quezada,,3,,0,NEGRO
+52,Tránsito Quezada,,4,,0,NEGRO
+52,Tránsito Quezada,,5,,0,NEGRO
+52,Tránsito Quezada,,6,,0,NEGRO
+52,Tránsito Quezada,,7,,0,NEGRO
+52,Tránsito Quezada,,8,,0,NEGRO
+52,Tránsito Quezada,,9,,0,NEGRO
+52,Tránsito Quezada,,10,,0,NEGRO
+52,Tránsito Quezada,,11,,0,NEGRO
+52,Tránsito Quezada,,12,,0,NEGRO
+53,José Cofré Garcés,,1,05-01/$7.580,8696052,SALMON
+53,José Cofré Garcés,,2,05-02/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,3,05-03/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,4,05-04/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,5,05-05/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,6,05-06/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,7,05-07/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,8,05-08/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,9,05-09/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,10,05-10/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,11,05-11/$7.580,16777215,BLANCO
+53,José Cofré Garcés,,12,05-12/$7.620,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,1,05-12/$13.340.-,4697456,VERDE
+54,Leonor Esmérita Araya,13.814.081-4,2,05-01/$13.340.-,4697456,VERDE
+54,Leonor Esmérita Araya,13.814.081-4,3,05-02/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,4,05-03/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,5,05-04/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,6,05-05/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,7,05-06/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,8,05-07/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,9,05-08/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,10,05-09/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,11,05-10/$13.340.-,16777215,BLANCO
+54,Leonor Esmérita Araya,13.814.081-4,12,05-11/13250,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,1,05-01/$11.7800,4697456,VERDE
+55,Daniel Cofré,13.398.139-K,2,05-02/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,3,05-03/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,4,05-04/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,5,05-05/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,6,05-06/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,7,05-07/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,8,05-08/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,9,05-09/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,10,05-10/$11.800,16777215,BLANCO
+55,Daniel Cofré,13.398.139-K,11,,0,NEGRO
+55,Daniel Cofré,13.398.139-K,12,,0,NEGRO
+56,Laura Isabel Montes,,1,05-12/$26.670.-,4697456,VERDE
+56,Laura Isabel Montes,,2,05-01/$26.670.-,4697456,VERDE
+56,Laura Isabel Montes,,3,05-02/$26.670.-,4697456,VERDE
+56,Laura Isabel Montes,,4,05-03/$26.670.-,4697456,VERDE
+56,Laura Isabel Montes,,5,05-04/$26.670.-,4697456,VERDE
+56,Laura Isabel Montes,,6,05-05/$26.640.-,4697456,VERDE
+56,Laura Isabel Montes,,7,,0,NEGRO
+56,Laura Isabel Montes,,8,,0,NEGRO
+56,Laura Isabel Montes,,9,,0,NEGRO
+56,Laura Isabel Montes,,10,,0,NEGRO
+56,Laura Isabel Montes,,11,,0,NEGRO
+56,Laura Isabel Montes,,12,,0,NEGRO
+57,Pedro Ronald González Esparza,15.254.386-7,1,30-05/$10.000.-,4697456,VERDE
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,1,05-12/$19.998,4697456,VERDE
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,2,05-01/$19.998,4697456,VERDE
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,3,05-02/$19.998,16777215,BLANCO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,4,05-03/$19.998,16777215,BLANCO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,5,05-04/$19.998,16777215,BLANCO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,6,05-05/$19.998,16777215,BLANCO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,7,05-06/$19.998,16777215,BLANCO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,8,05-07/$19.998,16777215,BLANCO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,9,,0,NEGRO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,10,,0,NEGRO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,11,,0,NEGRO
+58,Ariel Alfredo Ramírez Jara,14.386.532-0,12,,0,NEGRO
+59,Colegio Santa Filomena,,1,05-12/$13.340,8696052,SALMON
+59,Colegio Santa Filomena,,2,05-01/$13.340,8696052,SALMON
+59,Colegio Santa Filomena,,3,05-02/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,4,05-03/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,5,05-04/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,6,05-05/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,7,05-06/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,8,05-07/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,9,05-08/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,10,05-09/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,11,05-10/$13.340,16777215,BLANCO
+59,Colegio Santa Filomena,,12,05-11/$13.340,16777215,BLANCO
+60,Rudecindo Alarcón,6.516.459-0,1,05-06/$32.000.-,16777215,BLANCO
+60,Rudecindo Alarcón,6.516.459-0,2,05-07/$32.000.-,16777215,BLANCO
+60,Rudecindo Alarcón,6.516.459-0,3,05-08/$32.000.-,16777215,BLANCO
+60,Rudecindo Alarcón,6.516.459-0,4,05-09/$32.000.-,16777215,BLANCO
+60,Rudecindo Alarcón,6.516.459-0,5,05-10/$31.986.-,16777215,BLANCO
+60,Rudecindo Alarcón,6.516.459-0,6,,0,NEGRO
+60,Rudecindo Alarcón,6.516.459-0,7,,0,NEGRO
+60,Rudecindo Alarcón,6.516.459-0,8,,0,NEGRO
+60,Rudecindo Alarcón,6.516.459-0,9,,0,NEGRO
+60,Rudecindo Alarcón,6.516.459-0,10,,0,NEGRO
+60,Rudecindo Alarcón,6.516.459-0,11,,0,NEGRO
+60,Rudecindo Alarcón,6.516.459-0,12,,0,NEGRO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,1,05-12/ $9.820.-,8696052,SALMON
+63,Nelson Luis Aguilera Cofré,14.078.608-K,2,05-01/ $9.820.-,8696052,SALMON
+63,Nelson Luis Aguilera Cofré,14.078.608-K,3,05-02/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,4,05-03/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,5,05-04/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,6,05-05/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,7,05-06/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,8,05-07/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,9,05-08/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,10,05-09/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,11,05-10/ $9.820.-,16777215,BLANCO
+63,Nelson Luis Aguilera Cofré,14.078.608-K,12,05-11/ $9.820.-,16777215,BLANCO
+65,Emperatríz Sepúlveda,11.323.643-4,1,05-12/$80.000.-,4697456,VERDE
+65,Emperatríz Sepúlveda,11.323.643-4,2,08-01/$16.000.-,4697456,VERDE
+65,Emperatríz Sepúlveda,11.323.643-4,3,23-03/$16.000,4697456,VERDE
+65,Emperatríz Sepúlveda,11.323.643-4,4,23-03/$16.000,4697456,VERDE
+65,Emperatríz Sepúlveda,11.323.643-4,5,05-04/$16.000,16777215,BLANCO
+65,Emperatríz Sepúlveda,11.323.643-4,6,05-05/$16.000,16777215,BLANCO
+65,Emperatríz Sepúlveda,11.323.643-4,7,,0,NEGRO
+65,Emperatríz Sepúlveda,11.323.643-4,8,,0,NEGRO
+65,Emperatríz Sepúlveda,11.323.643-4,9,,0,NEGRO
+65,Emperatríz Sepúlveda,11.323.643-4,10,,0,NEGRO
+65,Emperatríz Sepúlveda,11.323.643-4,11,,0,NEGRO
+65,Emperatríz Sepúlveda,11.323.643-4,12,,0,NEGRO
+67,Ángel Torres Hernández,7.531.505-8,1,29-04/$100.000.-,4697456,VERDE
+69,Isabel Cifuentes vidal,10.681.677-8,1,19-01/$13.335,4697456,VERDE
+69,Isabel Cifuentes vidal,10.681.677-8,2,05-02/$13.335,16777215,BLANCO

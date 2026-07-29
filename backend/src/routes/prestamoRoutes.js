@@ -18,17 +18,17 @@ router.get('/insumos', async (req, res) => {
 // Crear nuevo préstamo de insumo
 router.post('/crear', async (req, res) => {
   const client = await pool.connect();
-  
+
   try {
     const { usuario_id, insumo_id, cantidad, num_cuotas, notas } = req.body;
-    
+
     if (!usuario_id || !insumo_id || !cantidad || !num_cuotas) {
       return res.status(400).json({
         success: false,
         error: 'Faltan campos requeridos: usuario_id, insumo_id, cantidad, num_cuotas'
       });
     }
-    
+
     // Validar número de cuotas (1-24)
     if (num_cuotas < 1 || num_cuotas > 24) {
       return res.status(400).json({
@@ -36,42 +36,42 @@ router.post('/crear', async (req, res) => {
         error: 'El número de cuotas debe ser entre 1 y 24'
       });
     }
-    
+
     await client.query('BEGIN');
-    
+
     // Obtener información del insumo
     const insumoResult = await client.query(
       'SELECT * FROM insumos WHERE id = $1 AND activo = true',
       [insumo_id]
     );
-    
+
     if (insumoResult.rows.length === 0) {
       throw new Error('Insumo no encontrado o no disponible');
     }
-    
+
     const insumo = insumoResult.rows[0];
-    
+
     // Verificar stock disponible
     if (insumo.stock_disponible < cantidad) {
       throw new Error(`Stock insuficiente. Disponible: ${insumo.stock_disponible} ${insumo.unidad_medida}`);
     }
-    
+
     // Calcular monto total
     const montoTotal = parseFloat(insumo.precio_unitario) * parseInt(cantidad);
     const cuotaMensual = Math.ceil(montoTotal / num_cuotas);
-    
+
     // Obtener nombre del usuario
     const usuarioResult = await client.query(
       'SELECT nombre FROM usuarios WHERE id = $1',
       [usuario_id]
     );
-    
+
     if (usuarioResult.rows.length === 0) {
       throw new Error('Usuario no encontrado');
     }
-    
+
     const nombreUsuario = usuarioResult.rows[0].nombre;
-    
+
     // Crear préstamo
     const prestamoResult = await client.query(
       `INSERT INTO prestamos 
@@ -80,17 +80,28 @@ router.post('/crear', async (req, res) => {
        RETURNING id`,
       [usuario_id, insumo_id, cantidad, montoTotal, num_cuotas, cuotaMensual, notas]
     );
-    
+
     const prestamoId = prestamoResult.rows[0].id;
-    
+
+    for (let i = 1; i <= num_cuotas; i++) {
+      const fechaEsperada = new Date();
+      fechaEsperada.setMonth(fechaEsperada.getMonth() + i);
+
+      await client.query(
+        `INSERT INTO prestamo_cuotas (prestamo_id, numero_cuota, fecha_esperada, monto_esperado, monto_pagado, estado)
+     VALUES ($1, $2, $3, $4, 0, 'pendiente')`,
+        [prestamoId, i, fechaEsperada, cuotaMensual]
+      );
+    }
+
     // Actualizar stock del insumo
     await client.query(
       'UPDATE insumos SET stock_disponible = stock_disponible - $1, updated_at = NOW() WHERE id = $2',
       [cantidad, insumo_id]
     );
-    
+
     await client.query('COMMIT');
-    
+
     res.json({
       success: true,
       mensaje: `Préstamo creado para ${nombreUsuario}`,
@@ -103,7 +114,7 @@ router.post('/crear', async (req, res) => {
         cuota_mensual: cuotaMensual
       }
     });
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error creando préstamo:', error);
@@ -114,24 +125,42 @@ router.post('/crear', async (req, res) => {
 });
 
 // Obtener préstamos activos
+// Obtener préstamos activos (con detalle de cuotas)
 router.get('/activos', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT 
         p.*,
-        u.nombre as usuario_nombre,
+        COALESCE(u.nombre, split_part(p.notas, 'VINCULADO: ', 2)) as usuario_nombre,
         u.rut as usuario_rut,
+        (u.id IS NULL) as sin_usuario_vinculado,
         i.nombre as insumo_nombre,
         i.unidad_medida,
         (p.num_cuotas - p.cuotas_pagadas) as cuotas_pendientes,
-        (p.cuota_mensual * (p.num_cuotas - p.cuotas_pagadas)) as saldo_pendiente
+        (p.cuota_mensual * (p.num_cuotas - p.cuotas_pagadas)) as saldo_pendiente,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'numero_cuota', pc.numero_cuota,
+              'fecha_esperada', pc.fecha_esperada,
+              'fecha_pago', pc.fecha_pago,
+              'monto_esperado', pc.monto_esperado,
+              'monto_pagado', pc.monto_pagado,
+              'estado', pc.estado,
+              'notas', pc.notas
+            ) ORDER BY pc.numero_cuota
+          ) FILTER (WHERE pc.id IS NOT NULL),
+          '[]'
+        ) as cuotas
        FROM prestamos p
-       JOIN usuarios u ON p.usuario_id = u.id
+       LEFT JOIN usuarios u ON p.usuario_id = u.id
        JOIN insumos i ON p.insumo_id = i.id
+       LEFT JOIN prestamo_cuotas pc ON pc.prestamo_id = p.id
        WHERE p.estado = 'activo'
+       GROUP BY p.id, u.id, u.nombre, u.rut, i.nombre, i.unidad_medida
        ORDER BY p.created_at DESC`
     );
-    
+
     res.json({ success: true, prestamos: result.rows });
   } catch (error) {
     console.error('Error obteniendo préstamos activos:', error);
@@ -143,7 +172,7 @@ router.get('/activos', async (req, res) => {
 router.get('/usuario/:usuario_id', async (req, res) => {
   try {
     const { usuario_id } = req.params;
-    
+
     const result = await pool.query(
       `SELECT 
         p.*,
@@ -157,7 +186,7 @@ router.get('/usuario/:usuario_id', async (req, res) => {
        ORDER BY p.created_at DESC`,
       [usuario_id]
     );
-    
+
     res.json({ success: true, prestamos: result.rows });
   } catch (error) {
     console.error('Error obteniendo préstamos del usuario:', error);
@@ -168,36 +197,36 @@ router.get('/usuario/:usuario_id', async (req, res) => {
 // Pagar cuota de préstamo
 router.post('/pagar-cuota', async (req, res) => {
   const client = await pool.connect();
-  
+
   try {
     const { prestamo_id } = req.body;
-    
+
     if (!prestamo_id) {
       return res.status(400).json({ success: false, error: 'Se requiere prestamo_id' });
     }
-    
+
     await client.query('BEGIN');
-    
+
     // Obtener préstamo
     const prestamoResult = await client.query(
       'SELECT * FROM prestamos WHERE id = $1',
       [prestamo_id]
     );
-    
+
     if (prestamoResult.rows.length === 0) {
       throw new Error('Préstamo no encontrado');
     }
-    
+
     const prestamo = prestamoResult.rows[0];
-    
+
     if (prestamo.estado !== 'activo') {
       throw new Error('El préstamo no está activo');
     }
-    
+
     const nuevasCuotasPagadas = prestamo.cuotas_pagadas + 1;
     const nuevoEstado = nuevasCuotasPagadas >= prestamo.num_cuotas ? 'completado' : 'activo';
     const fechaFin = nuevoEstado === 'completado' ? new Date() : null;
-    
+
     // Actualizar préstamo
     await client.query(
       `UPDATE prestamos 
@@ -208,19 +237,19 @@ router.post('/pagar-cuota', async (req, res) => {
        WHERE id = $4`,
       [nuevasCuotasPagadas, nuevoEstado, fechaFin, prestamo_id]
     );
-    
+
     await client.query('COMMIT');
-    
+
     res.json({
       success: true,
-      mensaje: nuevoEstado === 'completado' 
-        ? 'Préstamo completado' 
+      mensaje: nuevoEstado === 'completado'
+        ? 'Préstamo completado'
         : `Cuota ${nuevasCuotasPagadas}/${prestamo.num_cuotas} pagada`,
       cuotas_pagadas: nuevasCuotasPagadas,
       cuotas_pendientes: prestamo.num_cuotas - nuevasCuotasPagadas,
       estado: nuevoEstado
     });
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error pagando cuota:', error);
@@ -234,21 +263,21 @@ router.post('/pagar-cuota', async (req, res) => {
 router.post('/insumos', async (req, res) => {
   try {
     const { nombre, descripcion, precio_unitario, stock_disponible, categoria, unidad_medida } = req.body;
-    
+
     if (!nombre || !precio_unitario || !categoria || !unidad_medida) {
       return res.status(400).json({
         success: false,
         error: 'Faltan campos requeridos: nombre, precio_unitario, categoria, unidad_medida'
       });
     }
-    
+
     const result = await pool.query(
       `INSERT INTO insumos (nombre, descripcion, precio_unitario, stock_disponible, categoria, unidad_medida)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [nombre, descripcion, precio_unitario, stock_disponible || 0, categoria, unidad_medida]
     );
-    
+
     res.json({ success: true, insumo: result.rows[0] });
   } catch (error) {
     console.error('Error creando insumo:', error);
@@ -261,7 +290,7 @@ router.put('/insumos/:id/stock', async (req, res) => {
   try {
     const { id } = req.params;
     const { cantidad } = req.body; // cantidad a agregar (positivo) o quitar (negativo)
-    
+
     const result = await pool.query(
       `UPDATE insumos 
        SET stock_disponible = stock_disponible + $1,
@@ -270,11 +299,11 @@ router.put('/insumos/:id/stock', async (req, res) => {
        RETURNING *`,
       [cantidad, id]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Insumo no encontrado' });
     }
-    
+
     res.json({ success: true, insumo: result.rows[0] });
   } catch (error) {
     console.error('Error actualizando stock:', error);

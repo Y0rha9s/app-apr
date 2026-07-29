@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import api from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -12,6 +12,10 @@ function PrestamosPage() {
   const [mostrarFormInsumo, setMostrarFormInsumo] = useState(false);
   const [historialUsuario, setHistorialUsuario] = useState([]);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todos');
+  const [prestamoExpandido, setPrestamoExpandido] = useState(null);
+  const [mostrarCatalogo, setMostrarCatalogo] = useState(false);
 
   // Form de nuevo préstamo
   const [formPrestamo, setFormPrestamo] = useState({
@@ -43,7 +47,7 @@ function PrestamosPage() {
         api.get('/prestamos/insumos'),
         api.get('/usuarios')
       ]);
-      
+
       setPrestamosActivos(prestamosRes.data.prestamos || []);
       setInsumos(insumosRes.data.insumos || []);
       setUsuarios(usuariosRes.data.filter(u => u.rol === 'usuario'));
@@ -54,9 +58,23 @@ function PrestamosPage() {
     }
   };
 
+  const prestamosFiltrados = useMemo(() => {
+    return prestamosActivos.filter((p) => {
+      const coincideBusqueda = busqueda.trim() === '' ||
+        p.usuario_nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        p.usuario_rut?.toLowerCase().includes(busqueda.toLowerCase());
+      const completado = p.cuotas_pagadas >= p.num_cuotas;
+      const coincideEstado =
+        filtroEstado === 'todos' ||
+        (filtroEstado === 'pagados' && completado) ||
+        (filtroEstado === 'pendientes' && !completado);
+      return coincideBusqueda && coincideEstado;
+    });
+  }, [prestamosActivos, busqueda, filtroEstado]);
+
   const handleCrearPrestamo = async (e) => {
     e.preventDefault();
-    
+
     if (!formPrestamo.usuario_id || !formPrestamo.insumo_id) {
       alert('⚠️ Debe seleccionar usuario e insumo');
       return;
@@ -132,6 +150,21 @@ function PrestamosPage() {
     return new Date(fecha).toLocaleDateString('es-CL');
   };
 
+  const colorEstadoCuota = (estado) => {
+    switch (estado) {
+      case 'pagada': return 'bg-green-100 text-green-800';
+      case 'vencida': return 'bg-red-100 text-red-800';
+      case 'pendiente': return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const extraerFechaOriginal = (notas) => {
+    if (!notas) return null;
+    const match = notas.match(/Fecha original Excel: (.+)/);
+    return match ? match[1] : null;
+  };
+
   const formatearMonto = (monto) => {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -149,7 +182,7 @@ function PrestamosPage() {
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-4xl font-bold text-gray-800">🔧 Gestión de Préstamos de Insumos</h2>
         <div className="flex gap-4">
-          <Button variant="secondary" onClick={() => setMostrarFormInsumo(!mostrarFormInsumo)}>
+          <Button variant="success" onClick={() => setMostrarFormInsumo(!mostrarFormInsumo)}>
             {mostrarFormInsumo ? '✖️ Cancelar' : '📦 Nuevo Insumo'}
           </Button>
           <Button variant="primary" onClick={() => setMostrarFormPrestamo(!mostrarFormPrestamo)}>
@@ -169,7 +202,7 @@ function PrestamosPage() {
                 <input
                   type="text"
                   value={formInsumo.nombre}
-                  onChange={(e) => setFormInsumo({...formInsumo, nombre: e.target.value})}
+                  onChange={(e) => setFormInsumo({ ...formInsumo, nombre: e.target.value })}
                   placeholder="Ej: Estanque 1000L"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
                   required
@@ -180,7 +213,7 @@ function PrestamosPage() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Categoría *</label>
                 <select
                   value={formInsumo.categoria}
-                  onChange={(e) => setFormInsumo({...formInsumo, categoria: e.target.value})}
+                  onChange={(e) => setFormInsumo({ ...formInsumo, categoria: e.target.value })}
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
                   required
                 >
@@ -198,7 +231,7 @@ function PrestamosPage() {
                   type="number"
                   step="0.01"
                   value={formInsumo.precio_unitario}
-                  onChange={(e) => setFormInsumo({...formInsumo, precio_unitario: e.target.value})}
+                  onChange={(e) => setFormInsumo({ ...formInsumo, precio_unitario: e.target.value })}
                   placeholder="0"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
                   required
@@ -210,7 +243,7 @@ function PrestamosPage() {
                 <input
                   type="number"
                   value={formInsumo.stock_disponible}
-                  onChange={(e) => setFormInsumo({...formInsumo, stock_disponible: e.target.value})}
+                  onChange={(e) => setFormInsumo({ ...formInsumo, stock_disponible: e.target.value })}
                   placeholder="0"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
                 />
@@ -220,7 +253,7 @@ function PrestamosPage() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Unidad de Medida *</label>
                 <select
                   value={formInsumo.unidad_medida}
-                  onChange={(e) => setFormInsumo({...formInsumo, unidad_medida: e.target.value})}
+                  onChange={(e) => setFormInsumo({ ...formInsumo, unidad_medida: e.target.value })}
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
                   required
                 >
@@ -235,7 +268,7 @@ function PrestamosPage() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Descripción</label>
                 <textarea
                   value={formInsumo.descripcion}
-                  onChange={(e) => setFormInsumo({...formInsumo, descripcion: e.target.value})}
+                  onChange={(e) => setFormInsumo({ ...formInsumo, descripcion: e.target.value })}
                   placeholder="Descripción del insumo..."
                   rows="3"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-purple-500"
@@ -260,7 +293,7 @@ function PrestamosPage() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Usuario *</label>
                 <select
                   value={formPrestamo.usuario_id}
-                  onChange={(e) => setFormPrestamo({...formPrestamo, usuario_id: e.target.value})}
+                  onChange={(e) => setFormPrestamo({ ...formPrestamo, usuario_id: e.target.value })}
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                   required
                 >
@@ -277,7 +310,7 @@ function PrestamosPage() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Insumo *</label>
                 <select
                   value={formPrestamo.insumo_id}
-                  onChange={(e) => setFormPrestamo({...formPrestamo, insumo_id: e.target.value})}
+                  onChange={(e) => setFormPrestamo({ ...formPrestamo, insumo_id: e.target.value })}
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                   required
                 >
@@ -296,7 +329,7 @@ function PrestamosPage() {
                   type="number"
                   min="1"
                   value={formPrestamo.cantidad}
-                  onChange={(e) => setFormPrestamo({...formPrestamo, cantidad: e.target.value})}
+                  onChange={(e) => setFormPrestamo({ ...formPrestamo, cantidad: e.target.value })}
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                   required
                 />
@@ -309,7 +342,7 @@ function PrestamosPage() {
                   min="1"
                   max="24"
                   value={formPrestamo.num_cuotas}
-                  onChange={(e) => setFormPrestamo({...formPrestamo, num_cuotas: e.target.value})}
+                  onChange={(e) => setFormPrestamo({ ...formPrestamo, num_cuotas: e.target.value })}
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
                   required
                 />
@@ -319,7 +352,7 @@ function PrestamosPage() {
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Notas</label>
                 <textarea
                   value={formPrestamo.notas}
-                  onChange={(e) => setFormPrestamo({...formPrestamo, notas: e.target.value})}
+                  onChange={(e) => setFormPrestamo({ ...formPrestamo, notas: e.target.value })}
                   placeholder="Observaciones sobre este préstamo..."
                   rows="2"
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
@@ -379,47 +412,74 @@ function PrestamosPage() {
       </div>
 
       {/* Catálogo de Insumos */}
-      <Card title="📦 Catálogo de Insumos" className="mb-8">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-100 border-b-2 border-gray-300">
-              <tr>
-                <th className="p-4 text-lg font-semibold">Insumo</th>
-                <th className="p-4 text-lg font-semibold">Categoría</th>
-                <th className="p-4 text-lg font-semibold">Precio Unitario</th>
-                <th className="p-4 text-lg font-semibold">Stock</th>
-                <th className="p-4 text-lg font-semibold">Unidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {insumos.map((insumo) => (
-                <tr key={insumo.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 text-base font-semibold">{insumo.nombre}</td>
-                  <td className="p-4">
-                    <span className="px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
-                      {insumo.categoria}
-                    </span>
-                  </td>
-                  <td className="p-4 text-base font-bold text-green-600">
-                    {formatearMonto(insumo.precio_unitario)}
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      insumo.stock_disponible > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {insumo.stock_disponible}
-                    </span>
-                  </td>
-                  <td className="p-4 text-base">{insumo.unidad_medida}</td>
+      <Card className="mb-8">
+        <button
+          onClick={() => setMostrarCatalogo(!mostrarCatalogo)}
+          className="w-full flex justify-between items-center text-left"
+        >
+          <h3 className="text-2xl font-bold text-gray-800">📦 Catálogo de Insumos</h3>
+          <span className="text-2xl">{mostrarCatalogo ? '▲' : '▼'}</span>
+        </button>
+
+        {mostrarCatalogo && (
+          <div className="overflow-x-auto mt-6">
+            <table className="w-full text-left">
+              <thead className="bg-gray-100 border-b-2 border-gray-300">
+                <tr>
+                  <th className="p-4 text-lg font-semibold">Insumo</th>
+                  <th className="p-4 text-lg font-semibold">Categoría</th>
+                  <th className="p-4 text-lg font-semibold">Precio Unitario</th>
+                  <th className="p-4 text-lg font-semibold">Stock</th>
+                  <th className="p-4 text-lg font-semibold">Unidad</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {insumos.map((insumo) => (
+                  <tr key={insumo.id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 text-base font-semibold">{insumo.nombre}</td>
+                    <td className="p-4">
+                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
+                        {insumo.categoria}
+                      </span>
+                    </td>
+                    <td className="p-4 text-base font-bold text-green-600">
+                      {formatearMonto(insumo.precio_unitario)}
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${insumo.stock_disponible > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                        {insumo.stock_disponible}
+                      </span>
+                    </td>
+                    <td className="p-4 text-base">{insumo.unidad_medida}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {/* Tabla de Préstamos Activos */}
       <Card title="🔧 Préstamos Activos">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <input
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="🔍 Buscar por nombre o RUT..."
+            className="flex-1 px-4 py-3 text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+          />
+          <select
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+            className="px-4 py-3 text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+          >
+            <option value="todos">Todos</option>
+            <option value="pagados">Pagados</option>
+            <option value="pendientes">Pendientes</option>
+          </select>
+        </div>
         {prestamosActivos.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📋</div>
@@ -430,6 +490,7 @@ function PrestamosPage() {
             <table className="w-full text-left">
               <thead className="bg-gray-100 border-b-2 border-gray-300">
                 <tr>
+                  <th className="p-4 text-lg font-semibold w-10"></th>
                   <th className="p-4 text-lg font-semibold">Usuario</th>
                   <th className="p-4 text-lg font-semibold">Insumo</th>
                   <th className="p-4 text-lg font-semibold">Cantidad</th>
@@ -441,52 +502,111 @@ function PrestamosPage() {
                 </tr>
               </thead>
               <tbody>
-                {prestamosActivos.map((prestamo) => (
-                  <tr key={prestamo.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4 text-base font-semibold">{prestamo.usuario_nombre}</td>
-                    <td className="p-4 text-base">{prestamo.insumo_nombre}</td>
-                    <td className="p-4 text-base text-center">
-                      {prestamo.cantidad} {prestamo.unidad_medida}
-                    </td>
-                    <td className="p-4 text-base font-bold text-gray-700">
-                      {formatearMonto(prestamo.monto_total)}
-                    </td>
-                    <td className="p-4 text-base font-bold text-blue-600">
-                      {formatearMonto(prestamo.cuota_mensual)}
-                    </td>
-                    <td className="p-4">
-                      <div className="space-y-1">
-                        <div className="text-sm font-semibold">
-                          {prestamo.cuotas_pagadas}/{prestamo.num_cuotas} cuotas
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-green-600 h-2 rounded-full"
-                            style={{ width: `${(prestamo.cuotas_pagadas / prestamo.num_cuotas) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-base font-bold text-red-600">
-                      {formatearMonto(prestamo.saldo_pendiente)}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2 flex-wrap">
+                {prestamosFiltrados.map((prestamo) => (
+                  <>
+                    <tr key={prestamo.id} className="border-b hover:bg-gray-50">
+                      <td className="p-4 text-center">
                         <button
-                          onClick={() => handlePagarCuota(prestamo.id)}
-                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                          onClick={() => setPrestamoExpandido(
+                            prestamoExpandido === prestamo.id ? null : prestamo.id
+                          )}
+                          className="text-xl hover:text-blue-600"
                         >
-                          ✅ Pagar Cuota
+                          {prestamoExpandido === prestamo.id ? '▼' : '▶'}
                         </button>
-                        <button
-                          onClick={() => handleVerHistorial(prestamo.usuario_id)}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-                        >
-                          📜 Historial
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="p-4 text-base font-semibold">
+                        {prestamo.usuario_nombre}
+                        {prestamo.sin_usuario_vinculado && (
+                          <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                            sin RUT
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-base">{prestamo.insumo_nombre}</td>
+                      <td className="p-4 text-base text-center">
+                        {prestamo.cantidad} {prestamo.unidad_medida}
+                      </td>
+                      <td className="p-4 text-base font-bold text-gray-700">
+                        {formatearMonto(prestamo.monto_total)}
+                      </td>
+                      <td className="p-4 text-base font-bold text-blue-600">
+                        {formatearMonto(prestamo.cuota_mensual)}
+                      </td>
+                      <td className="p-4">
+                        <div className="space-y-1">
+                          <div className="text-sm font-semibold">
+                            {prestamo.cuotas_pagadas}/{prestamo.num_cuotas} cuotas
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-green-600 h-2 rounded-full"
+                              style={{ width: `${(prestamo.cuotas_pagadas / prestamo.num_cuotas) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 text-base font-bold text-red-600">
+                        {formatearMonto(prestamo.saldo_pendiente)}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => handlePagarCuota(prestamo.id)}
+                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                          >
+                            ✅ Pagar Cuota
+                          </button>
+                          {prestamo.usuario_id && (
+                            <button
+                              onClick={() => handleVerHistorial(prestamo.usuario_id)}
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                            >
+                              📜 Historial
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+
+                    {prestamoExpandido === prestamo.id && (
+                      <tr className="bg-gray-50 border-b">
+                        <td colSpan="9" className="p-4">
+                          <div className="text-sm font-semibold text-gray-600 mb-2">
+                            Detalle de cuotas — {prestamo.usuario_nombre}
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                            {(prestamo.cuotas || []).map((c) => (
+                              <div
+                                key={c.numero_cuota}
+                                className="border rounded-lg p-3 bg-white shadow-sm"
+                              >
+                                <div className="text-xs font-semibold text-gray-500">
+                                  Cuota {c.numero_cuota}
+                                </div>
+                                <div className="text-sm font-bold text-gray-800 mt-1">
+                                  {formatearMonto(c.monto_esperado)}
+                                </div>
+                                {c.estado === 'pagada' && c.monto_pagado !== c.monto_esperado && (
+                                  <div className="text-xs text-gray-500">
+                                    Pagado: {formatearMonto(c.monto_pagado)}
+                                  </div>
+                                )}
+                                {extraerFechaOriginal(c.notas) && (
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {extraerFechaOriginal(c.notas)}
+                                  </div>
+                                )}
+                                <span className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-semibold ${colorEstadoCuota(c.estado)}`}>
+                                  {c.estado}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 ))}
               </tbody>
             </table>
@@ -532,11 +652,10 @@ function PrestamosPage() {
                     <td className="p-3 text-sm">{h.num_cuotas}</td>
                     <td className="p-3 text-sm">{h.cuotas_pagadas}</td>
                     <td className="p-3 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        h.estado === 'activo' ? 'bg-blue-100 text-blue-800' :
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${h.estado === 'activo' ? 'bg-blue-100 text-blue-800' :
                         h.estado === 'completado' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                          'bg-red-100 text-red-800'
+                        }`}>
                         {h.estado}
                       </span>
                     </td>

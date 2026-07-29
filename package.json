@@ -2,6 +2,7 @@
   "dependencies": {
     "exceljs": "^4.4.0",
     "express-rate-limit": "^8.3.0",
+    "iconv-lite": "^0.7.3",
     "pdfkit": "^0.17.2",
     "qrcode": "^1.5.4"
   }
