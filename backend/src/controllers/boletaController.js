@@ -1,6 +1,8 @@
 const pool = require('../config/database');
 const PDFDocument = require('pdfkit');
 const path = require('path');
+const twilio = require('twilio');
+const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 // ─── GET /api/boletas ───────────────────────────────────────────────────────
 const getAll = async (req, res) => {
@@ -120,7 +122,7 @@ const actualizarEstado = async (req, res) => {
   try {
     const { id } = req.params;
     const { estado } = req.body;
-    const validEstados = ['pendiente', 'pagada', 'anulada'];
+    const validEstados = ['pendiente', 'pagada', 'anulada', 'abonada'];
     if (!validEstados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
     const fechaPago = estado === 'pagada' ? new Date().toISOString() : null;
     const { rows } = await pool.query(`UPDATE boletas SET estado=$1, fecha_pago=$2 WHERE id=$3 RETURNING *`, [estado, fechaPago, id]);
@@ -391,4 +393,35 @@ const generarZIP = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getByUsuario, generarMasivo, actualizarEstado, marcarEnviada, generarPDF, generarZIP };
+// ─── POST /api/boletas/:id/enviar-whatsapp ──────────────────────────────────
+const enviarWhatsapp = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { telefono } = req.body; // formato: +56937405890
+
+    if (!telefono) return res.status(400).json({ error: 'Falta el teléfono destino' });
+
+    const { rows } = await pool.query(
+      `SELECT b.*, u.nombre FROM boletas b JOIN usuarios u ON u.id = b.usuario_id WHERE b.id = $1`,
+      [id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Boleta no encontrada' });
+    const b = rows[0];
+
+    const pdfUrl = `https://apr-safip-xtxh.onrender.com/api/boletas/pdf/${id}`;
+
+    const mensaje = await twilioClient.messages.create({
+      from: process.env.TWILIO_WHATSAPP_FROM,
+      to: `whatsapp:${telefono}`,
+      body: `Hola ${b.nombre}, aquí está tu boleta del período ${b.periodo}. Total a pagar: $${Number(b.total_a_pagar).toLocaleString('es-CL')}`,
+      mediaUrl: [pdfUrl],
+    });
+
+    res.json({ success: true, sid: mensaje.sid });
+  } catch (err) {
+    console.error('enviarWhatsapp:', err);
+    res.status(500).json({ error: 'Error al enviar WhatsApp: ' + err.message });
+  }
+};
+
+module.exports = { getAll, getByUsuario, generarMasivo, actualizarEstado, marcarEnviada, generarPDF, generarZIP, enviarWhatsapp };

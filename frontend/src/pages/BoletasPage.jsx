@@ -12,6 +12,7 @@ const estadoBadge = (estado) => {
         pendiente: 'bg-yellow-100 text-yellow-800',
         pagada: 'bg-green-100 text-green-800',
         anulada: 'bg-red-100 text-red-800',
+        abonada: 'bg-orange-100 text-orange-800',
     };
     return map[estado] || 'bg-gray-100 text-gray-700';
 };
@@ -90,12 +91,15 @@ export default function BoletasPage() {
     );
 
     const totalPendiente = boletas
-        .filter(b => b.estado === 'pendiente')
-        .reduce((sum, b) => sum + parseFloat(b.total_a_pagar || 0), 0);
+        .filter(b => b.estado === 'pendiente' || b.estado === 'abonada')
+        .reduce((sum, b) => sum + parseFloat(b.saldo_pendiente || 0), 0);
 
     const totalPagado = boletas
-        .filter(b => b.estado === 'pagada')
-        .reduce((sum, b) => sum + parseFloat(b.total_a_pagar || 0), 0);
+        .reduce((sum, b) => {
+            const totalBoleta = parseFloat(b.total_a_pagar || 0);
+            const saldo = parseFloat(b.saldo_pendiente || 0);
+            return sum + (b.estado === 'anulada' ? 0 : totalBoleta - saldo);
+        }, 0);
 
     return (
         <div className="space-y-6">
@@ -163,6 +167,7 @@ export default function BoletasPage() {
                         >
                             <option value="">Todos</option>
                             <option value="pendiente">Pendiente</option>
+                            <option value="abonada">Abonada</option>
                             <option value="pagada">Pagada</option>
                             <option value="anulada">Anulada</option>
                         </select>
@@ -181,10 +186,11 @@ export default function BoletasPage() {
             </Card>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {[
                     { label: 'Total boletas', valor: boletas.length, icon: '🧾', color: 'blue' },
                     { label: 'Pendientes', valor: boletas.filter(b => b.estado === 'pendiente').length, icon: '⏳', color: 'yellow' },
+                    { label: 'Abonadas', valor: boletas.filter(b => b.estado === 'abonada').length, icon: '🟠', color: 'orange' },
                     { label: 'Pagadas', valor: boletas.filter(b => b.estado === 'pagada').length, icon: '✅', color: 'green' },
                     { label: 'Monto pendiente', valor: `$${totalPendiente.toLocaleString('es-CL')}`, icon: '💰', color: 'red' },
                 ].map((s, i) => (
@@ -247,6 +253,7 @@ export default function BoletasPage() {
                                                 className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer ${estadoBadge(b.estado)}`}
                                             >
                                                 <option value="pendiente">Pendiente</option>
+                                                <option value="abonada">Abonada</option>
                                                 <option value="pagada">Pagada</option>
                                                 <option value="anulada">Anulada</option>
                                             </select>

@@ -9,5 +9,6 @@ router.get('/zip/:periodo', ctrl.generarZIP);
 router.post('/generar-masivo', ctrl.generarMasivo);
 router.patch('/:id/estado', ctrl.actualizarEstado);
 router.patch('/:id/enviada', ctrl.marcarEnviada);
+router.post('/:id/enviar-whatsapp', ctrl.enviarWhatsapp);
 
 module.exports = router;
