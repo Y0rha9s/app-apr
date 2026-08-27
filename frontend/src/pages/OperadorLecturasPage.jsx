@@ -139,7 +139,7 @@ function OperadorLecturasPage() {
     try {
       const res = await fetch(`${API_URL}/api/usuarios`);
       const data = await res.json();
-      const soloUsuarios = data.filter(u => u.rol === 'usuario');
+      const soloUsuarios = data.filter(u => u.rol === 'usuario' || u.es_socio);
       setUsuarios(soloUsuarios);
       setUsuariosFiltrados(soloUsuarios);
       // Guardar en cache para uso offline
