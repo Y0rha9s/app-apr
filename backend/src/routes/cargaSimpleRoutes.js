@@ -148,7 +148,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
               rutFinal,
               emailTemp,
               hashedPassword,
-              'socio',
+              'usuario',
               nroClienteFinal,
               medidorFila || null,
               'Dirección pendiente'
