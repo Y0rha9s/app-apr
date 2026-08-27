@@ -10,7 +10,11 @@ const pagoModel = {
   // Obtener pagos por caja
   getByCaja: async (cajaId) => {
     const result = await pool.query(
-      'SELECT * FROM pagos WHERE caja_id = $1 ORDER BY fecha_pago DESC',
+      `SELECT p.*, u.nombre AS usuario_nombre, u.rut AS usuario_rut, u.numero_cliente
+       FROM pagos p
+       LEFT JOIN usuarios u ON u.id = p.usuario_id
+       WHERE p.caja_id = $1
+       ORDER BY p.fecha_pago DESC`,
       [cajaId]
     );
     return result.rows;

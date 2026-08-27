@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import api from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -8,6 +8,9 @@ function MisCajasPage() {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [loading, setLoading] = useState(true);
+  const [detalleAbierto, setDetalleAbierto] = useState(null);
+  const [pagosPorCaja, setPagosPorCaja] = useState({});
+  const [cargandoDetalle, setCargandoDetalle] = useState(null);
 
   useEffect(() => {
     cargarCajas();
@@ -57,6 +60,31 @@ function MisCajasPage() {
 
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleString('es-CL');
+  };
+
+  const metodoPagoLabel = (metodo) => {
+    const map = { efectivo: '💵 Efectivo', tarjeta: '💳 Tarjeta', transferencia: '🏦 Transferencia' };
+    return map[metodo] || metodo || '-';
+  };
+
+  const toggleDetalle = async (cajaId) => {
+    if (detalleAbierto === cajaId) {
+      setDetalleAbierto(null);
+      return;
+    }
+    setDetalleAbierto(cajaId);
+    if (!pagosPorCaja[cajaId]) {
+      setCargandoDetalle(cajaId);
+      try {
+        const response = await api.get(`/pagos/caja/${cajaId}`);
+        setPagosPorCaja(prev => ({ ...prev, [cajaId]: response.data }));
+      } catch (error) {
+        console.error('Error cargando pagos de la caja:', error);
+        setPagosPorCaja(prev => ({ ...prev, [cajaId]: [] }));
+      } finally {
+        setCargandoDetalle(null);
+      }
+    }
   };
 
   if (loading) {
@@ -158,45 +186,88 @@ function MisCajasPage() {
                                      parseFloat(caja.monto_tarjeta || 0) +
                                      parseFloat(caja.saldo_inicial || 0);
                   
+                  const pagos = pagosPorCaja[caja.id];
+
                   return (
-                    <tr key={caja.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          caja.estado === 'abierta' 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {caja.estado === 'abierta' ? '🟡 Abierta' : '✅ Cerrada'}
-                        </span>
-                      </td>
-                      <td className="p-4 text-base">{formatearFecha(caja.fecha_apertura)}</td>
-                      <td className="p-4 text-base">
-                        {caja.fecha_cierre ? formatearFecha(caja.fecha_cierre) : '-'}
-                      </td>
-                      <td className="p-4 text-base font-semibold">
-                        {formatearMonto(caja.saldo_inicial)}
-                      </td>
-                      <td className="p-4 text-base font-bold text-green-600">
-                        {caja.estado === 'cerrada' ? formatearMonto(totalGeneral) : '-'}
-                      </td>
-                      <td className="p-4 text-base">
-                        {caja.diferencia !== null && caja.diferencia !== undefined ? (
-                          <span className={`font-bold ${
-                            caja.diferencia === 0 ? 'text-green-600' : 
-                            caja.diferencia > 0 ? 'text-blue-600' : 'text-red-600'
+                    <Fragment key={caja.id}>
+                      <tr className="border-b hover:bg-gray-50">
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            caja.estado === 'abierta'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-green-100 text-green-800'
                           }`}>
-                            {formatearMonto(Math.abs(caja.diferencia))}
-                            {caja.diferencia > 0 && ' ↑'}
-                            {caja.diferencia < 0 && ' ↓'}
+                            {caja.estado === 'abierta' ? '🟡 Abierta' : '✅ Cerrada'}
                           </span>
-                        ) : '-'}
-                      </td>
-                      <td className="p-4">
-                        <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
-                          👁️ Ver Detalle
-                        </button>
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="p-4 text-base">{formatearFecha(caja.fecha_apertura)}</td>
+                        <td className="p-4 text-base">
+                          {caja.fecha_cierre ? formatearFecha(caja.fecha_cierre) : '-'}
+                        </td>
+                        <td className="p-4 text-base font-semibold">
+                          {formatearMonto(caja.saldo_inicial)}
+                        </td>
+                        <td className="p-4 text-base font-bold text-green-600">
+                          {caja.estado === 'cerrada' ? formatearMonto(totalGeneral) : '-'}
+                        </td>
+                        <td className="p-4 text-base">
+                          {caja.diferencia !== null && caja.diferencia !== undefined ? (
+                            <span className={`font-bold ${
+                              caja.diferencia === 0 ? 'text-green-600' :
+                              caja.diferencia > 0 ? 'text-blue-600' : 'text-red-600'
+                            }`}>
+                              {formatearMonto(Math.abs(caja.diferencia))}
+                              {caja.diferencia > 0 && ' ↑'}
+                              {caja.diferencia < 0 && ' ↓'}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => toggleDetalle(caja.id)}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                          >
+                            {detalleAbierto === caja.id ? '🔼 Ocultar' : '👁️ Ver Detalle'}
+                          </button>
+                        </td>
+                      </tr>
+                      {detalleAbierto === caja.id && (
+                        <tr className="bg-gray-50 border-b">
+                          <td colSpan={7} className="p-4">
+                            {cargandoDetalle === caja.id ? (
+                              <p className="text-center text-gray-500 py-4">⏳ Cargando pagos...</p>
+                            ) : !pagos || pagos.length === 0 ? (
+                              <p className="text-center text-gray-500 py-4">No hay pagos registrados en esta caja</p>
+                            ) : (
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-left bg-white rounded-lg overflow-hidden">
+                                  <thead className="bg-gray-100">
+                                    <tr>
+                                      <th className="p-3 text-sm font-semibold">Usuario</th>
+                                      <th className="p-3 text-sm font-semibold">RUT</th>
+                                      <th className="p-3 text-sm font-semibold">Monto</th>
+                                      <th className="p-3 text-sm font-semibold">Método de Pago</th>
+                                      <th className="p-3 text-sm font-semibold">Fecha</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y">
+                                    {pagos.map(p => (
+                                      <tr key={p.id}>
+                                        <td className="p-3 text-sm font-medium">{p.usuario_nombre || '-'}</td>
+                                        <td className="p-3 text-sm font-mono text-gray-500">{p.usuario_rut || '-'}</td>
+                                        <td className="p-3 text-sm font-semibold">{formatearMonto(p.monto)}</td>
+                                        <td className="p-3 text-sm">{metodoPagoLabel(p.metodo_pago)}</td>
+                                        <td className="p-3 text-sm text-gray-500">{formatearFecha(p.fecha_pago)}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
