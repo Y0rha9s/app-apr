@@ -77,7 +77,6 @@ function LecturasPage() {
       medidor: lectura.usuario_medidor || getMedidorUsuario(lectura.usuario_id),
       lectura_anterior: lectura.lectura_anterior,
       lectura_actual: lectura.lectura_actual,
-      monto_calculado: lectura.monto_calculado,
       observaciones: lectura.observaciones || '',
       fecha_lectura: lectura.fecha_lectura.split('T')[0]
     });
@@ -100,7 +99,6 @@ function LecturasPage() {
         medidor: (formEdit.medidor || '').toString().trim(),
         lectura_anterior: parseInt(formEdit.lectura_anterior),
         lectura_actual: parseInt(formEdit.lectura_actual),
-        monto_calculado: parseFloat(formEdit.monto_calculado),
         observaciones: formEdit.observaciones,
         razon_modificacion: razonModificacion,
         usuario_modificador_id: usuario.id

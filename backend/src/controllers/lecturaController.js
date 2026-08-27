@@ -1,5 +1,6 @@
 const lecturaModel = require('../models/lecturaModel');
 const pool = require('../config/database');
+const { calcularTotalPorTramos } = require('../utils/tarifas');
 
 const lecturaController = {
   // Obtener todas las lecturas
@@ -37,14 +38,17 @@ const lecturaController = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { lectura_anterior, lectura_actual, monto_calculado, observaciones, razon_modificacion, usuario_modificador_id, medidor } = req.body;
+      const { lectura_anterior, lectura_actual, observaciones, razon_modificacion, usuario_modificador_id, medidor } = req.body;
 
       if (!razon_modificacion) {
         return res.status(400).json({ error: 'Debe proporcionar una razón para la modificación' });
       }
 
-      // Obtener valores actuales antes de modificar
-      const lecturaActualResult = await pool.query('SELECT * FROM lecturas WHERE id = $1', [id]);
+      // Obtener valores actuales antes de modificar (incluye tipo_usuario para recalcular el monto)
+      const lecturaActualResult = await pool.query(
+        `SELECT l.*, u.tipo_usuario FROM lecturas l JOIN usuarios u ON u.id = l.usuario_id WHERE l.id = $1`,
+        [id]
+      );
 
       if (lecturaActualResult.rows.length === 0) {
         return res.status(404).json({ error: 'Lectura no encontrada' });
@@ -58,14 +62,20 @@ const lecturaController = {
         medidorAnterior = usuarioRes.rows[0]?.medidor ?? null;
       }
 
+      // Recalcular el monto en base a las lecturas nuevas: nunca confiar en el monto que manda el frontend,
+      // ya que no se recalculaba al cambiar lectura_anterior/lectura_actual
+      const consumoNuevo = Math.max(0, parseInt(lectura_actual) - parseInt(lectura_anterior));
+      const calculo = await calcularTotalPorTramos(pool, consumoNuevo, lecturaAnterior.tipo_usuario || 'normal');
+      const monto_calculado = calculo.total;
+
       // Actualizar lectura
       const result = await pool.query(
-       `UPDATE lecturas 
-       SET lectura_anterior = $1, 
-       lectura_actual = $2, 
+       `UPDATE lecturas
+       SET lectura_anterior = $1,
+       lectura_actual = $2,
        monto_calculado = $3,
        observaciones = $4
-       WHERE id = $5 
+       WHERE id = $5
        RETURNING *`,
         [lectura_anterior, lectura_actual, monto_calculado, observaciones, id]
       );
@@ -104,6 +114,27 @@ const lecturaController = {
           razonFinal
         ]
       );
+
+      // Sincronizar la boleta asociada: ajustar por la diferencia de monto,
+      // sin tocar lo que ya se pagó (saldo_pendiente refleja los abonos ya aplicados)
+      const boletaResult = await pool.query(
+        `SELECT * FROM boletas WHERE lectura_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [id]
+      );
+
+      if (boletaResult.rows.length > 0) {
+        const boleta = boletaResult.rows[0];
+        const consumoM3Nuevo = result.rows[0].consumo_m3;
+        const delta = monto_calculado - parseFloat(lecturaAnterior.monto_calculado || 0);
+        const nuevoTotalMes = parseFloat(boleta.total_mes || 0) + delta;
+        const nuevoTotalAPagar = Math.max(0, parseFloat(boleta.total_a_pagar || 0) + delta);
+        const nuevoSaldoPendiente = Math.max(0, parseFloat(boleta.saldo_pendiente || 0) + delta);
+
+        await pool.query(
+          `UPDATE boletas SET consumo_m3 = $1, total_mes = $2, total_a_pagar = $3, saldo_pendiente = $4 WHERE id = $5`,
+          [consumoM3Nuevo, nuevoTotalMes, nuevoTotalAPagar, nuevoSaldoPendiente, boleta.id]
+        );
+      }
 
       res.json(result.rows[0]);
     } catch (error) {

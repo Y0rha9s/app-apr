@@ -235,7 +235,10 @@ function MisCajasPage() {
                         <tr className="bg-gray-50 border-b">
                           <td colSpan={7} className="p-4">
                             {cargandoDetalle === caja.id ? (
-                              <p className="text-center text-gray-500 py-4">⏳ Cargando pagos...</p>
+                              <div className="flex items-center justify-center gap-3 py-6 text-gray-500">
+                                <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                                <span className="text-sm font-medium">Cargando pagos...</span>
+                              </div>
                             ) : !pagos || pagos.length === 0 ? (
                               <p className="text-center text-gray-500 py-4">No hay pagos registrados en esta caja</p>
                             ) : (
