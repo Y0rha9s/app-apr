@@ -5,63 +5,14 @@ const multer = require('multer');
 const xlsx = require('xlsx');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
 
-// Función para calcular total por tramos (reutilizar del upload.js)
-async function calcularTotalPorTramos(consumoM3, tipoUsuario = 'normal') {
-  const result = await pool.query(
-    'SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC'
-  );
+const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
+  calcularTotalPorTramosBase(pool, consumoM3, tipoUsuario);
 
-  const tarifas = result.rows;
-  let total = 0;
-  let m3Restantes = consumoM3;
-  let m3ProcesadosTotal = 0;
-
-  const LIMITE_SUBSIDIO = 15;
-  const DESCUENTO_SUBSIDIO = 0.5;
-
-  for (const tarifa of tarifas) {
-    if (m3Restantes <= 0) break;
-
-    const desde = tarifa.tramo_desde;
-    const hasta = tarifa.tramo_hasta || Infinity;
-    const rangoTramo = hasta - desde + 1;
-    const m3EnTramo = Math.min(m3Restantes, rangoTramo);
-    let precioFinal = parseFloat(tarifa.precio_por_m3);
-
-    if (tipoUsuario === 'subsidiado') {
-      const m3SubsidiablesEnTramo = Math.max(0, Math.min(
-        LIMITE_SUBSIDIO - m3ProcesadosTotal,
-        m3EnTramo
-      ));
-
-      if (m3SubsidiablesEnTramo > 0) {
-        const montoConDescuento = m3SubsidiablesEnTramo * precioFinal * DESCUENTO_SUBSIDIO;
-        const m3SinDescuento = m3EnTramo - m3SubsidiablesEnTramo;
-        const montoSinDescuento = m3SinDescuento * precioFinal;
-        total += montoConDescuento + montoSinDescuento;
-      } else {
-        total += m3EnTramo * precioFinal;
-      }
-    } else {
-      total += m3EnTramo * precioFinal;
-    }
-
-    m3ProcesadosTotal += m3EnTramo;
-    m3Restantes -= m3EnTramo;
-  }
-
-  let totalIVA = 0;
-  if (tipoUsuario === 'exento_iva') {
-    totalIVA = total * 0.19;
-    total = total + totalIVA;
-  }
-
-  return {
-    subtotal: total - totalIVA,
-    iva: totalIVA,
-    total: total
-  };
+async function obtenerCargoFijo(client) {
+  const result = await client.query(`SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`);
+  return parseFloat(result.rows[0]?.valor || 3000);
 }
 
 // Configurar multer para subir archivos
@@ -289,7 +240,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
         // Calcular monto de la boleta (si el consumo es negativo, el monto se basa en consumo 0 o el mínimo)
         const consumoParaMonto = Math.max(0, consumo);
         const calculoTotal = await calcularTotalPorTramos(consumoParaMonto, usuario.tipo_usuario || 'normal');
-        const montoCalculado = calculoTotal.total;
+        const montoCalculado = calculoTotal.total + await obtenerCargoFijo(client);
 
         // Crear lectura
         const lecturaResult = await client.query(
@@ -424,13 +375,12 @@ router.put('/resolver-conflicto', async (req, res) => {
 
     const consumoParaMonto = Math.max(0, lecturaActualNum - lecturaAnterior);
     const calculoTotal = await calcularTotalPorTramos(consumoParaMonto, tipoUsuario);
-    const montoCalculado = calculoTotal.total;
+    const montoCalculado = calculoTotal.total + await obtenerCargoFijo(client);
 
     const updateLectura = await client.query(
       `UPDATE lecturas
        SET lectura_actual = $1,
-           monto_calculado = $2,
-           updated_at = NOW()
+           monto_calculado = $2
        WHERE id = $3
        RETURNING id, consumo_m3, mes, anio`,
       [lecturaActualNum, montoCalculado, parseInt(lectura_id)]
@@ -456,7 +406,7 @@ router.put('/resolver-conflicto', async (req, res) => {
       );
       const pagado = parseFloat(pagosResult.rows[0]?.pagado) || 0;
       const saldoPendiente = Math.max(0, totalAPagar - pagado);
-      const nuevoEstado = saldoPendiente <= 0 ? 'pagado' : pagado > 0 ? 'parcial' : 'pendiente';
+      const nuevoEstado = saldoPendiente <= 0 ? 'pagada' : pagado > 0 ? 'abonada' : 'pendiente';
 
       await client.query(
         `UPDATE boletas
@@ -465,8 +415,7 @@ router.put('/resolver-conflicto', async (req, res) => {
              total_a_pagar = $3,
              saldo_pendiente = $4,
              estado = $5,
-             monto_iva = $6,
-             updated_at = NOW()
+             monto_iva = $6
          WHERE id = $7`,
         [consumoM3, montoCalculado, totalAPagar, saldoPendiente, nuevoEstado, calculoTotal.iva, boleta.id]
       );

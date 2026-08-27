@@ -51,10 +51,14 @@ router.post('/crear-con-boleta', async (req, res) => {
       ? parseInt(ultimaLectura.rows[0].lectura_actual)
       : 0;
 
-    // 3. Calcular monto
+    // 3. Calcular monto (tramos de consumo + cargo fijo mensual)
     const consumoTemporal = Math.max(0, parseInt(lectura_actual) - lecturaAnterior);
     const calculoTotal = await calcularTotalPorTramos(consumoTemporal, tipoUsuario);
-    const montoCalculado = calculoTotal.total;
+    const cargoFijoResult = await client.query(
+      `SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`
+    );
+    const cargoFijo = parseFloat(cargoFijoResult.rows[0]?.valor || 3000);
+    const montoCalculado = calculoTotal.total + cargoFijo;
 
     // 4. Insertar lectura
     const resultLectura = await client.query(

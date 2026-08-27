@@ -66,7 +66,9 @@ const lecturaController = {
       // ya que no se recalculaba al cambiar lectura_anterior/lectura_actual
       const consumoNuevo = Math.max(0, parseInt(lectura_actual) - parseInt(lectura_anterior));
       const calculo = await calcularTotalPorTramos(pool, consumoNuevo, lecturaAnterior.tipo_usuario || 'normal');
-      const monto_calculado = calculo.total;
+      const cargoFijoResult = await pool.query(`SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`);
+      const cargoFijo = parseFloat(cargoFijoResult.rows[0]?.valor || 3000);
+      const monto_calculado = calculo.total + cargoFijo;
 
       // Actualizar lectura
       const result = await pool.query(
