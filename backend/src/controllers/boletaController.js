@@ -4,6 +4,30 @@ const path = require('path');
 const twilio = require('twilio');
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
+// ─── HELPER: cálculo de monto por tramos (compartido por generación masiva e individual) ───
+const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
+  let restante = parseFloat(consumo || 0);
+  let totalConsumo = 0;
+  let tramo1Monto = 0;
+  tramos.forEach((t, i) => {
+    if (restante <= 0) return;
+    const hasta = t.tramo_hasta ? parseFloat(t.tramo_hasta) : Infinity;
+    const efectivo_desde = i === 0 ? 0 : parseFloat(t.tramo_desde) - 1;
+    const capacidad = hasta === Infinity ? restante : hasta - efectivo_desde;
+    const consumido = Math.min(restante, capacidad);
+    const monto = consumido * parseFloat(t.precio_por_m3);
+    if (i === 0) tramo1Monto = monto;
+    else totalConsumo += monto;
+    restante -= consumido;
+  });
+  return tieneSubsidio ? (cargoFijo + tramo1Monto) / 2 + totalConsumo : cargoFijo + tramo1Monto + totalConsumo;
+};
+
+const calcularDescuentoSubsidio = (tramos, cargoFijo, consumo, tieneSubsidio) => {
+  if (!tieneSubsidio) return 0;
+  return (cargoFijo + Math.min(consumo, parseFloat(tramos[0]?.tramo_hasta || 15)) * parseFloat(tramos[0]?.precio_por_m3 || 700)) / 2;
+};
+
 // ─── GET /api/boletas ───────────────────────────────────────────────────────
 const getAll = async (req, res) => {
   try {
@@ -70,36 +94,16 @@ const generarMasivo = async (req, res) => {
     const cfg = Object.fromEntries(configRows.map(c => [c.clave, parseFloat(c.valor || 0)]));
     const cargoFijo = cfg.cargo_fijo || 3000;
 
-    const calcularMonto = (consumo, tieneSubsidio) => {
-      let restante = parseFloat(consumo || 0);
-      let totalConsumo = 0;
-      let tramo1Monto = 0;
-      tramos.forEach((t, i) => {
-        if (restante <= 0) return;
-        const hasta = t.tramo_hasta ? parseFloat(t.tramo_hasta) : Infinity;
-        const efectivo_desde = i === 0 ? 0 : parseFloat(t.tramo_desde) - 1;
-        const capacidad = hasta === Infinity ? restante : hasta - efectivo_desde;
-        const consumido = Math.min(restante, capacidad);
-        const monto = consumido * parseFloat(t.precio_por_m3);
-        if (i === 0) tramo1Monto = monto;
-        else totalConsumo += monto;
-        restante -= consumido;
-      });
-      return tieneSubsidio ? (cargoFijo + tramo1Monto) / 2 + totalConsumo : cargoFijo + tramo1Monto + totalConsumo;
-    };
-
     let generadas = 0;
     for (const l of lecturas) {
       const consumo = parseFloat(l.consumo_m3 || 0);
       const saldo_anterior = parseFloat(l.saldo_anterior_calc || 0);
       const saldo_favor = parseFloat(l.saldo_favor || 0);
-      const total_mes = calcularMonto(consumo, l.tiene_subsidio);
+      const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
       const total_a_pagar = Math.max(0, total_mes + saldo_anterior - saldo_favor);
       const fecha_vencimiento = new Date();
       fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
-      const descuento_subsidio = l.tiene_subsidio
-        ? (cargoFijo + Math.min(consumo, parseFloat(tramos[0]?.tramo_hasta || 15)) * parseFloat(tramos[0]?.precio_por_m3 || 700)) / 2
-        : 0;
+      const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
       await client.query(`
         INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10)
@@ -114,6 +118,115 @@ const generarMasivo = async (req, res) => {
     res.status(500).json({ error: 'Error en generación masiva: ' + err.message });
   } finally {
     client.release();
+  }
+};
+
+// ─── POST /api/boletas/generar-individual ───────────────────────────────────
+const generarIndividual = async (req, res) => {
+  const { usuario_id, periodo } = req.body;
+  if (!usuario_id || !periodo) return res.status(400).json({ error: 'Falta usuario_id o periodo' });
+  const [anio, mes] = periodo.split('-').map(Number);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows: existe } = await client.query(
+      `SELECT id FROM boletas WHERE usuario_id = $1 AND periodo = $2`,
+      [usuario_id, periodo]
+    );
+    if (existe.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Ya existe una boleta para este usuario en este período' });
+    }
+
+    const { rows: lecturas } = await client.query(
+      `SELECT l.*, u.tiene_subsidio, u.saldo_favor
+       FROM lecturas l JOIN usuarios u ON u.id = l.usuario_id
+       WHERE l.usuario_id = $1 AND l.mes = $2 AND l.anio = $3
+       ORDER BY l.id DESC LIMIT 1`,
+      [usuario_id, mes, anio]
+    );
+    if (lecturas.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Este usuario no tiene una lectura registrada para ese período' });
+    }
+    const l = lecturas[0];
+
+    const { rows: saldoRows } = await client.query(
+      `SELECT saldo_pendiente FROM boletas WHERE usuario_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      [usuario_id]
+    );
+    const saldo_anterior = saldoRows.length > 0 ? parseFloat(saldoRows[0].saldo_pendiente) : 0;
+    const saldo_favor = parseFloat(l.saldo_favor || 0);
+
+    const { rows: tramos } = await client.query(`SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC`);
+    const { rows: configRows } = await client.query(`SELECT clave, valor FROM configuracion_sistema WHERE clave IN ('cargo_fijo', 'subsidio_porcentaje')`);
+    const cfg = Object.fromEntries(configRows.map(c => [c.clave, parseFloat(c.valor || 0)]));
+    const cargoFijo = cfg.cargo_fijo || 3000;
+
+    const consumo = parseFloat(l.consumo_m3 || 0);
+    const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
+    const total_a_pagar = Math.max(0, total_mes + saldo_anterior - saldo_favor);
+    const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
+    const fecha_vencimiento = new Date();
+    fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
+
+    const { rows: creada } = await client.query(`
+      INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10)
+      RETURNING *
+    `, [usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio]);
+
+    await client.query('COMMIT');
+    res.json({ success: true, boleta: creada[0] });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('generarIndividual:', err);
+    res.status(500).json({ error: 'Error al generar boleta individual: ' + err.message });
+  } finally {
+    client.release();
+  }
+};
+
+// ─── DELETE /api/boletas/:id ─────────────────────────────────────────────────
+const eliminarBoleta = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query('SELECT estado FROM boletas WHERE id = $1', [id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Boleta no encontrada' });
+    if (rows[0].estado === 'pagada') {
+      return res.status(400).json({ error: 'No se puede eliminar una boleta pagada. Anúlala si necesitas revertirla.' });
+    }
+    await pool.query('DELETE FROM boletas WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('eliminarBoleta:', err);
+    res.status(500).json({ error: 'Error al eliminar boleta: ' + err.message });
+  }
+};
+
+// ─── DELETE /api/boletas/periodo/:periodo ───────────────────────────────────
+const eliminarPorPeriodo = async (req, res) => {
+  try {
+    const { periodo } = req.params;
+    const { rows: pagadas } = await pool.query(
+      `SELECT COUNT(*)::int AS total FROM boletas WHERE periodo = $1 AND estado = 'pagada'`,
+      [periodo]
+    );
+    const { rows: eliminadas } = await pool.query(
+      `DELETE FROM boletas WHERE periodo = $1 AND estado != 'pagada' RETURNING id`,
+      [periodo]
+    );
+    const omitidas = pagadas[0].total;
+    res.json({
+      success: true,
+      eliminadas: eliminadas.length,
+      omitidas_pagadas: omitidas,
+      message: `${eliminadas.length} boleta(s) eliminada(s)` + (omitidas > 0 ? `. ${omitidas} boleta(s) pagada(s) se conservaron.` : '')
+    });
+  } catch (err) {
+    console.error('eliminarPorPeriodo:', err);
+    res.status(500).json({ error: 'Error al eliminar boletas del período: ' + err.message });
   }
 };
 
@@ -414,7 +527,7 @@ const enviarWhatsapp = async (req, res) => {
       from: process.env.TWILIO_WHATSAPP_FROM,
       to: `whatsapp:${telefono}`,
       body: `Hola ${b.nombre}, aquí está tu boleta del período ${b.periodo}. Total a pagar: $${Number(b.total_a_pagar).toLocaleString('es-CL')}`,
-      mediaUrl: [pdfUrl],
+      // mediaUrl: [pdfUrl],  // ← comentá esta línea por ahora
     });
 
     res.json({ success: true, sid: mensaje.sid });
@@ -424,4 +537,28 @@ const enviarWhatsapp = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getByUsuario, generarMasivo, actualizarEstado, marcarEnviada, generarPDF, generarZIP, enviarWhatsapp };
+// ─── GET /api/boletas/pdf-usuario/:usuarioId ────────────────────────────────
+const generarPDFPorUsuario = async (req, res) => {
+  try {
+    const { usuarioId } = req.params;
+
+    const { rows } = await pool.query(
+      `SELECT id FROM boletas WHERE usuario_id = $1 ORDER BY periodo DESC, created_at DESC LIMIT 1`,
+      [usuarioId]
+    );
+
+    if (!rows[0]) {
+      return res.status(404).json({ error: 'Este usuario no tiene boletas generadas' });
+    }
+
+    // Reusa la misma lógica de generarPDF, redirigiendo con el id real de boleta
+    req.params.id = rows[0].id;
+    return generarPDF(req, res);
+
+  } catch (err) {
+    console.error('generarPDFPorUsuario:', err);
+    res.status(500).json({ error: 'Error al generar PDF: ' + err.message });
+  }
+};
+
+module.exports = { getAll, getByUsuario, generarMasivo, generarIndividual, eliminarBoleta, eliminarPorPeriodo, actualizarEstado, marcarEnviada, generarPDF, generarZIP, enviarWhatsapp, generarPDFPorUsuario };

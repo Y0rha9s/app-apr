@@ -27,6 +27,11 @@ export default function BoletasPage() {
     const [generando, setGenerando] = useState(false);
     const [mensaje, setMensaje] = useState(null);
     const [busqueda, setBusqueda] = useState('');
+    const [eliminando, setEliminando] = useState(false);
+    const [mostrarIndividual, setMostrarIndividual] = useState(false);
+    const [usuariosDisponibles, setUsuariosDisponibles] = useState([]);
+    const [busquedaIndividual, setBusquedaIndividual] = useState('');
+    const [generandoIndividualId, setGenerandoIndividualId] = useState(null);
 
     const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
 
@@ -60,6 +65,71 @@ export default function BoletasPage() {
             setGenerando(false);
         }
     };
+
+    const eliminarBoletasPeriodo = async () => {
+        if (!confirm(`¿Eliminar todas las boletas NO pagadas del período ${periodo}? Las boletas pagadas se conservan. Esta acción no se puede deshacer.`)) return;
+        setEliminando(true);
+        setMensaje(null);
+        try {
+            const { data } = await api.delete(`/boletas/periodo/${periodo}`);
+            setMensaje({ tipo: 'ok', texto: data.message });
+            fetchBoletas();
+        } catch (err) {
+            setMensaje({ tipo: 'error', texto: err.response?.data?.error || 'Error al eliminar boletas del período' });
+        } finally {
+            setEliminando(false);
+        }
+    };
+
+    const eliminarBoleta = async (boleta) => {
+        if (!confirm(`¿Eliminar la boleta de ${boleta.nombre} (período ${boleta.periodo})? Esta acción no se puede deshacer.`)) return;
+        try {
+            await api.delete(`/boletas/${boleta.id}`);
+            setMensaje({ tipo: 'ok', texto: 'Boleta eliminada correctamente' });
+            fetchBoletas();
+        } catch (err) {
+            setMensaje({ tipo: 'error', texto: err.response?.data?.error || 'Error al eliminar boleta' });
+        }
+    };
+
+    const abrirGenerarIndividual = async () => {
+        setMostrarIndividual(prev => !prev);
+        if (usuariosDisponibles.length === 0) {
+            try {
+                const { data } = await api.get('/usuarios');
+                const soloSocios = data.filter(u => !['admin', 'operador', 'recaudador'].includes(u.rol));
+                setUsuariosDisponibles(soloSocios);
+            } catch {
+                setMensaje({ tipo: 'error', texto: 'Error al cargar usuarios' });
+            }
+        }
+    };
+
+    const generarBoletaIndividual = async (usuario) => {
+        setGenerandoIndividualId(usuario.id);
+        setMensaje(null);
+        try {
+            await api.post('/boletas/generar-individual', { usuario_id: usuario.id, periodo });
+            setMensaje({ tipo: 'ok', texto: `Boleta generada para ${usuario.nombre}` });
+            setBusquedaIndividual('');
+            setMostrarIndividual(false);
+            fetchBoletas();
+        } catch (err) {
+            setMensaje({ tipo: 'error', texto: err.response?.data?.error || 'Error al generar boleta individual' });
+        } finally {
+            setGenerandoIndividualId(null);
+        }
+    };
+
+    const usuariosIndividualFiltrados = usuariosDisponibles.filter(u => {
+        if (!busquedaIndividual.trim()) return true;
+        const q = busquedaIndividual.toLowerCase();
+        return (
+            u.nombre?.toLowerCase().includes(q) ||
+            u.rut?.includes(busquedaIndividual) ||
+            String(u.numero_cliente || '').includes(busquedaIndividual)
+        );
+    });
 
     const cambiarEstado = async (id, nuevoEstado) => {
         try {
@@ -109,21 +179,74 @@ export default function BoletasPage() {
                     <h1 className="text-2xl font-bold text-gray-800">🧾 Boletas</h1>
                     <p className="text-gray-500 text-sm mt-1">Generación y gestión de liquidaciones de cobro</p>
                 </div>
-                <button
-                    onClick={generarMasivo}
-                    disabled={generando}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition"
-                >
-                    {generando ? '⏳ Generando...' : '⚡ Generar boletas del período'}
-                </button>
-                <button
-                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/boletas/zip/${periodo}`, '_blank')}
-                    disabled={boletas.length === 0}
-                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition"
-                >
-                    📦 Descargar ZIP
-                </button>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={generarMasivo}
+                        disabled={generando}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition"
+                    >
+                        {generando ? '⏳ Generando...' : '⚡ Generar boletas del período'}
+                    </button>
+                    <button
+                        onClick={eliminarBoletasPeriodo}
+                        disabled={eliminando || boletas.length === 0}
+                        className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition"
+                    >
+                        {eliminando ? '⏳ Eliminando...' : '🗑️ Eliminar boletas del período'}
+                    </button>
+                    <button
+                        onClick={abrirGenerarIndividual}
+                        className="bg-sky-600 hover:bg-sky-700 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition"
+                    >
+                        ➕ Boleta individual
+                    </button>
+                    <button
+                        onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/boletas/zip/${periodo}`, '_blank')}
+                        disabled={boletas.length === 0}
+                        className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition"
+                    >
+                        📦 Descargar ZIP
+                    </button>
+                </div>
             </div>
+
+            {/* Panel: generar boleta individual */}
+            {mostrarIndividual && (
+                <Card className="bg-sky-50">
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                        Buscar usuario para generar su boleta del período {periodo}
+                    </label>
+                    <input
+                        type="text"
+                        autoFocus
+                        placeholder="Nombre, RUT o N° cliente..."
+                        value={busquedaIndividual}
+                        onChange={e => setBusquedaIndividual(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 mb-3"
+                    />
+                    <div className="max-h-64 overflow-y-auto divide-y divide-gray-100 bg-white rounded-lg border border-gray-200">
+                        {usuariosIndividualFiltrados.length === 0 ? (
+                            <p className="text-sm text-gray-400 text-center py-4">Sin resultados</p>
+                        ) : (
+                            usuariosIndividualFiltrados.slice(0, 50).map(u => (
+                                <div key={u.id} className="flex items-center justify-between px-4 py-2.5">
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-800">{u.nombre}</p>
+                                        <p className="text-xs text-gray-400">{u.rut} {u.numero_cliente && `· N°${u.numero_cliente}`}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => generarBoletaIndividual(u)}
+                                        disabled={generandoIndividualId === u.id}
+                                        className="bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+                                    >
+                                        {generandoIndividualId === u.id ? '⏳...' : 'Generar boleta'}
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </Card>
+            )}
 
             {/* Mensaje feedback */}
             {mensaje && (
@@ -280,6 +403,14 @@ export default function BoletasPage() {
                                                     className="bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded text-xs transition"
                                                 >
                                                     📱
+                                                </button>
+                                                <button
+                                                    onClick={() => eliminarBoleta(b)}
+                                                    disabled={b.estado === 'pagada'}
+                                                    title={b.estado === 'pagada' ? 'No se puede eliminar una boleta pagada' : 'Eliminar boleta'}
+                                                    className="bg-red-100 hover:bg-red-200 disabled:opacity-40 disabled:cursor-not-allowed text-red-700 px-2 py-1 rounded text-xs transition"
+                                                >
+                                                    🗑️
                                                 </button>
                                             </div>
                                         </td>
