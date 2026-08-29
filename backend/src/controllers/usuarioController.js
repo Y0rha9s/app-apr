@@ -139,10 +139,14 @@ const usuarioController = {
       const pagosResult = await pool.query(
         'SELECT * FROM pagos WHERE usuario_id = $1 ORDER BY fecha_pago DESC', [id]
       );
+      const deudaResult = await pool.query(
+        `SELECT COALESCE(SUM(saldo_pendiente), 0) as deuda
+       FROM boletas WHERE usuario_id = $1 AND estado IN ('pendiente', 'abonada')`,
+        [id]
+      );
 
-      const totalLecturas = lecturasResult.rows.reduce((sum, l) => sum + parseFloat(l.monto_calculado || 0), 0);
+      const deuda = parseFloat(deudaResult.rows[0].deuda);
       const totalPagos = pagosResult.rows.reduce((sum, p) => sum + parseFloat(p.monto || 0), 0);
-      const deuda = totalLecturas - totalPagos;
 
       res.json({
         usuario: {
@@ -152,8 +156,8 @@ const usuarioController = {
           rol: usuario.rol, estado: usuario.estado
         },
         morosidad: {
-          deuda_total: deuda >= 0 ? deuda : 0,
-          monto_morosidad: deuda >= 0 ? deuda : 0
+          deuda_total: deuda,
+          monto_morosidad: deuda
         },
         pagos: {
           total_pagado: totalPagos,
@@ -162,7 +166,7 @@ const usuarioController = {
           historial: pagosResult.rows
         },
         lecturas: {
-          total: totalLecturas,
+          total: lecturasResult.rows.reduce((sum, l) => sum + parseFloat(l.monto_calculado || 0), 0),
           cantidad: lecturasResult.rows.length,
           historial: lecturasResult.rows
         }
