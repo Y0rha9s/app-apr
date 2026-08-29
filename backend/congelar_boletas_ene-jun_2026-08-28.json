@@ -1,0 +1,3819 @@
+{
+  "fecha": "2026-08-29T02:17:09.940Z",
+  "dry_run": false,
+  "periodos": [
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06"
+  ],
+  "total_congeladas": 542,
+  "por_periodo": {
+    "2026-01": 52,
+    "2026-02": 96,
+    "2026-03": 82,
+    "2026-04": 105,
+    "2026-05": 92,
+    "2026-06": 115
+  },
+  "suma_saldo_liberado": 24005865,
+  "boletas_jul_ago_no_tocadas": 291,
+  "detalle": [
+    {
+      "id": 406,
+      "usuario_id": 40,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 923,
+      "usuario_id": 170,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1020,
+      "usuario_id": 28,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 567,
+      "usuario_id": 8,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 571,
+      "usuario_id": 12,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 763,
+      "usuario_id": 14,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 577,
+      "usuario_id": 17,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 21,
+      "usuario_id": 22,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 389,
+      "usuario_id": 23,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 24,
+      "usuario_id": 25,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 231,
+      "usuario_id": 49,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 432,
+      "usuario_id": 66,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 433,
+      "usuario_id": 67,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 436,
+      "usuario_id": 70,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 822,
+      "usuario_id": 72,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1066,
+      "usuario_id": 73,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 449,
+      "usuario_id": 82,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 662,
+      "usuario_id": 99,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1098,
+      "usuario_id": 103,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 863,
+      "usuario_id": 111,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 300,
+      "usuario_id": 117,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 485,
+      "usuario_id": 118,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 308,
+      "usuario_id": 125,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 504,
+      "usuario_id": 137,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 322,
+      "usuario_id": 139,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 723,
+      "usuario_id": 159,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 539,
+      "usuario_id": 171,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 737,
+      "usuario_id": 173,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 642,
+      "usuario_id": 195,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1144,
+      "usuario_id": 148,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1143,
+      "usuario_id": 147,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 8,
+      "usuario_id": 10,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 15,
+      "usuario_id": 16,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 20,
+      "usuario_id": 21,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 25,
+      "usuario_id": 26,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 29,
+      "usuario_id": 30,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 32,
+      "usuario_id": 33,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 33,
+      "usuario_id": 34,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 41,
+      "usuario_id": 42,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 47,
+      "usuario_id": 48,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 55,
+      "usuario_id": 56,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 9,
+      "usuario_id": 11,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 73,
+      "usuario_id": 74,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 76,
+      "usuario_id": 77,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 77,
+      "usuario_id": 78,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 78,
+      "usuario_id": 79,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 85,
+      "usuario_id": 86,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 95,
+      "usuario_id": 96,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 97,
+      "usuario_id": 98,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 100,
+      "usuario_id": 101,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 105,
+      "usuario_id": 106,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 120,
+      "usuario_id": 121,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 125,
+      "usuario_id": 126,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 127,
+      "usuario_id": 128,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 130,
+      "usuario_id": 131,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 133,
+      "usuario_id": 134,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 135,
+      "usuario_id": 136,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 141,
+      "usuario_id": 142,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 144,
+      "usuario_id": 144,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 145,
+      "usuario_id": 145,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 150,
+      "usuario_id": 150,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 156,
+      "usuario_id": 156,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 157,
+      "usuario_id": 157,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 59,
+      "usuario_id": 60,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 160,
+      "usuario_id": 160,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 113,
+      "usuario_id": 114,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 169,
+      "usuario_id": 169,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 174,
+      "usuario_id": 174,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 176,
+      "usuario_id": 176,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 177,
+      "usuario_id": 177,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 178,
+      "usuario_id": 178,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 180,
+      "usuario_id": 180,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 181,
+      "usuario_id": 181,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 184,
+      "usuario_id": 3,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 191,
+      "usuario_id": 10,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 192,
+      "usuario_id": 11,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 194,
+      "usuario_id": 13,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 198,
+      "usuario_id": 16,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 203,
+      "usuario_id": 21,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 206,
+      "usuario_id": 24,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 208,
+      "usuario_id": 26,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 211,
+      "usuario_id": 29,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 213,
+      "usuario_id": 31,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 218,
+      "usuario_id": 36,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 200,
+      "usuario_id": 18,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 212,
+      "usuario_id": 30,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1137,
+      "usuario_id": 142,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 225,
+      "usuario_id": 43,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 228,
+      "usuario_id": 46,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 230,
+      "usuario_id": 48,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 239,
+      "usuario_id": 57,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 242,
+      "usuario_id": 60,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 243,
+      "usuario_id": 61,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 244,
+      "usuario_id": 62,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 251,
+      "usuario_id": 69,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 256,
+      "usuario_id": 74,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 259,
+      "usuario_id": 77,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 260,
+      "usuario_id": 184,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 261,
+      "usuario_id": 78,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 263,
+      "usuario_id": 80,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 267,
+      "usuario_id": 84,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 270,
+      "usuario_id": 87,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 271,
+      "usuario_id": 88,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 258,
+      "usuario_id": 76,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 268,
+      "usuario_id": 85,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 279,
+      "usuario_id": 96,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 286,
+      "usuario_id": 103,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 287,
+      "usuario_id": 104,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 293,
+      "usuario_id": 110,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 295,
+      "usuario_id": 112,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 299,
+      "usuario_id": 116,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 302,
+      "usuario_id": 119,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 303,
+      "usuario_id": 120,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 304,
+      "usuario_id": 121,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 305,
+      "usuario_id": 122,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 290,
+      "usuario_id": 107,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 313,
+      "usuario_id": 130,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 315,
+      "usuario_id": 132,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 321,
+      "usuario_id": 138,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 325,
+      "usuario_id": 142,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 327,
+      "usuario_id": 143,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 328,
+      "usuario_id": 144,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 329,
+      "usuario_id": 145,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 330,
+      "usuario_id": 146,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 296,
+      "usuario_id": 113,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 310,
+      "usuario_id": 127,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 317,
+      "usuario_id": 134,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 331,
+      "usuario_id": 147,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 332,
+      "usuario_id": 148,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 333,
+      "usuario_id": 149,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 334,
+      "usuario_id": 150,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 335,
+      "usuario_id": 151,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 336,
+      "usuario_id": 152,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 337,
+      "usuario_id": 153,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 338,
+      "usuario_id": 154,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 339,
+      "usuario_id": 155,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 340,
+      "usuario_id": 156,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 341,
+      "usuario_id": 157,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 342,
+      "usuario_id": 158,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 343,
+      "usuario_id": 159,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 344,
+      "usuario_id": 160,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 345,
+      "usuario_id": 161,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 346,
+      "usuario_id": 162,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 350,
+      "usuario_id": 166,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 351,
+      "usuario_id": 167,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 353,
+      "usuario_id": 169,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 355,
+      "usuario_id": 171,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 357,
+      "usuario_id": 173,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 358,
+      "usuario_id": 174,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 359,
+      "usuario_id": 175,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 360,
+      "usuario_id": 176,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 361,
+      "usuario_id": 177,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 362,
+      "usuario_id": 178,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 366,
+      "usuario_id": 182,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 375,
+      "usuario_id": 10,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 376,
+      "usuario_id": 11,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 378,
+      "usuario_id": 13,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 384,
+      "usuario_id": 18,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 367,
+      "usuario_id": 183,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 387,
+      "usuario_id": 21,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 388,
+      "usuario_id": 22,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 390,
+      "usuario_id": 24,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 392,
+      "usuario_id": 26,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 395,
+      "usuario_id": 29,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 396,
+      "usuario_id": 30,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 397,
+      "usuario_id": 31,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 402,
+      "usuario_id": 36,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 410,
+      "usuario_id": 44,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 414,
+      "usuario_id": 48,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 425,
+      "usuario_id": 59,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 426,
+      "usuario_id": 60,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 427,
+      "usuario_id": 61,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 430,
+      "usuario_id": 64,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 431,
+      "usuario_id": 65,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 434,
+      "usuario_id": 68,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 435,
+      "usuario_id": 69,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 404,
+      "usuario_id": 38,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 440,
+      "usuario_id": 74,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 441,
+      "usuario_id": 75,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 442,
+      "usuario_id": 76,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 444,
+      "usuario_id": 184,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 447,
+      "usuario_id": 80,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 452,
+      "usuario_id": 85,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 453,
+      "usuario_id": 86,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 468,
+      "usuario_id": 101,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 469,
+      "usuario_id": 102,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 473,
+      "usuario_id": 106,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 477,
+      "usuario_id": 110,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 488,
+      "usuario_id": 121,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 489,
+      "usuario_id": 122,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 490,
+      "usuario_id": 123,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 494,
+      "usuario_id": 127,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 495,
+      "usuario_id": 128,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 496,
+      "usuario_id": 129,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 499,
+      "usuario_id": 132,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 503,
+      "usuario_id": 136,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 505,
+      "usuario_id": 138,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 508,
+      "usuario_id": 141,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 511,
+      "usuario_id": 143,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 512,
+      "usuario_id": 144,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 513,
+      "usuario_id": 145,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 514,
+      "usuario_id": 146,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 518,
+      "usuario_id": 150,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 520,
+      "usuario_id": 152,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 521,
+      "usuario_id": 153,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 522,
+      "usuario_id": 154,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 523,
+      "usuario_id": 155,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 524,
+      "usuario_id": 156,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 528,
+      "usuario_id": 160,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 530,
+      "usuario_id": 162,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 532,
+      "usuario_id": 164,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 535,
+      "usuario_id": 167,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 537,
+      "usuario_id": 169,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 542,
+      "usuario_id": 174,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 543,
+      "usuario_id": 175,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 545,
+      "usuario_id": 177,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 546,
+      "usuario_id": 178,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 549,
+      "usuario_id": 181,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 550,
+      "usuario_id": 182,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 552,
+      "usuario_id": 185,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 554,
+      "usuario_id": 187,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 555,
+      "usuario_id": 188,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 556,
+      "usuario_id": 189,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 558,
+      "usuario_id": 191,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 740,
+      "usuario_id": 176,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 560,
+      "usuario_id": 193,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 561,
+      "usuario_id": 194,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 745,
+      "usuario_id": 181,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 746,
+      "usuario_id": 182,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 559,
+      "usuario_id": 192,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 167,
+      "usuario_id": 167,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 744,
+      "usuario_id": 180,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 747,
+      "usuario_id": 183,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 738,
+      "usuario_id": 174,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 739,
+      "usuario_id": 175,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 742,
+      "usuario_id": 178,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 791,
+      "usuario_id": 42,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 792,
+      "usuario_id": 43,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 797,
+      "usuario_id": 48,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 224,
+      "usuario_id": 42,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 805,
+      "usuario_id": 56,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 806,
+      "usuario_id": 57,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 798,
+      "usuario_id": 49,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 802,
+      "usuario_id": 53,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 386,
+      "usuario_id": 20,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 492,
+      "usuario_id": 125,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 736,
+      "usuario_id": 172,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 751,
+      "usuario_id": 3,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 756,
+      "usuario_id": 8,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 670,
+      "usuario_id": 107,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 758,
+      "usuario_id": 10,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 759,
+      "usuario_id": 11,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 760,
+      "usuario_id": 12,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 765,
+      "usuario_id": 16,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 767,
+      "usuario_id": 18,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 769,
+      "usuario_id": 20,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 770,
+      "usuario_id": 21,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 771,
+      "usuario_id": 22,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 773,
+      "usuario_id": 24,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 774,
+      "usuario_id": 25,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 775,
+      "usuario_id": 26,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 617,
+      "usuario_id": 57,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 783,
+      "usuario_id": 34,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 784,
+      "usuario_id": 35,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 785,
+      "usuario_id": 36,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 788,
+      "usuario_id": 39,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 789,
+      "usuario_id": 40,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 762,
+      "usuario_id": 196,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 779,
+      "usuario_id": 30,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 564,
+      "usuario_id": 5,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 565,
+      "usuario_id": 6,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 586,
+      "usuario_id": 26,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 569,
+      "usuario_id": 10,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 575,
+      "usuario_id": 15,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 578,
+      "usuario_id": 18,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 581,
+      "usuario_id": 21,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 582,
+      "usuario_id": 22,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 583,
+      "usuario_id": 23,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 584,
+      "usuario_id": 24,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 580,
+      "usuario_id": 20,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 590,
+      "usuario_id": 30,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 594,
+      "usuario_id": 34,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 596,
+      "usuario_id": 36,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 589,
+      "usuario_id": 29,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 591,
+      "usuario_id": 31,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 598,
+      "usuario_id": 38,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 599,
+      "usuario_id": 39,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 608,
+      "usuario_id": 48,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 609,
+      "usuario_id": 49,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 573,
+      "usuario_id": 196,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 611,
+      "usuario_id": 51,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 614,
+      "usuario_id": 54,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 570,
+      "usuario_id": 11,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 600,
+      "usuario_id": 40,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 576,
+      "usuario_id": 16,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 619,
+      "usuario_id": 59,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 620,
+      "usuario_id": 60,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 625,
+      "usuario_id": 65,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 621,
+      "usuario_id": 61,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 626,
+      "usuario_id": 66,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 629,
+      "usuario_id": 69,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 631,
+      "usuario_id": 189,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 637,
+      "usuario_id": 76,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 639,
+      "usuario_id": 184,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 640,
+      "usuario_id": 78,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 636,
+      "usuario_id": 75,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 643,
+      "usuario_id": 80,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 648,
+      "usuario_id": 85,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 649,
+      "usuario_id": 86,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 650,
+      "usuario_id": 87,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 638,
+      "usuario_id": 77,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 647,
+      "usuario_id": 84,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 665,
+      "usuario_id": 102,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 652,
+      "usuario_id": 89,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 655,
+      "usuario_id": 92,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 630,
+      "usuario_id": 70,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 679,
+      "usuario_id": 116,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 682,
+      "usuario_id": 119,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 683,
+      "usuario_id": 120,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 685,
+      "usuario_id": 122,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 684,
+      "usuario_id": 121,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 686,
+      "usuario_id": 123,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 692,
+      "usuario_id": 129,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 693,
+      "usuario_id": 130,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 695,
+      "usuario_id": 132,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 700,
+      "usuario_id": 137,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 701,
+      "usuario_id": 138,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 702,
+      "usuario_id": 139,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 704,
+      "usuario_id": 141,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 708,
+      "usuario_id": 144,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 709,
+      "usuario_id": 145,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 710,
+      "usuario_id": 146,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 707,
+      "usuario_id": 143,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 714,
+      "usuario_id": 150,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 689,
+      "usuario_id": 126,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 719,
+      "usuario_id": 155,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 720,
+      "usuario_id": 156,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 713,
+      "usuario_id": 149,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 716,
+      "usuario_id": 152,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 718,
+      "usuario_id": 154,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 276,
+      "usuario_id": 93,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 690,
+      "usuario_id": 127,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 721,
+      "usuario_id": 157,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 675,
+      "usuario_id": 112,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 705,
+      "usuario_id": 142,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1,
+      "usuario_id": 3,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 56,
+      "usuario_id": 57,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 84,
+      "usuario_id": 85,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 111,
+      "usuario_id": 112,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 126,
+      "usuario_id": 127,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 155,
+      "usuario_id": 155,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 164,
+      "usuario_id": 164,
+      "periodo": "2026-01",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 385,
+      "usuario_id": 19,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 726,
+      "usuario_id": 162,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 727,
+      "usuario_id": 163,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 728,
+      "usuario_id": 164,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 731,
+      "usuario_id": 167,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 733,
+      "usuario_id": 169,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 809,
+      "usuario_id": 60,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 813,
+      "usuario_id": 64,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 817,
+      "usuario_id": 68,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 818,
+      "usuario_id": 69,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 820,
+      "usuario_id": 189,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 824,
+      "usuario_id": 74,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 825,
+      "usuario_id": 75,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 826,
+      "usuario_id": 76,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 827,
+      "usuario_id": 77,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 829,
+      "usuario_id": 78,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 830,
+      "usuario_id": 79,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 831,
+      "usuario_id": 195,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 832,
+      "usuario_id": 80,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 853,
+      "usuario_id": 101,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 859,
+      "usuario_id": 107,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 860,
+      "usuario_id": 108,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 839,
+      "usuario_id": 87,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 851,
+      "usuario_id": 99,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 828,
+      "usuario_id": 184,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 869,
+      "usuario_id": 117,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 870,
+      "usuario_id": 118,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 871,
+      "usuario_id": 119,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 873,
+      "usuario_id": 121,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 874,
+      "usuario_id": 122,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 877,
+      "usuario_id": 125,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 895,
+      "usuario_id": 142,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 896,
+      "usuario_id": 143,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 897,
+      "usuario_id": 144,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 898,
+      "usuario_id": 145,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 902,
+      "usuario_id": 149,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 903,
+      "usuario_id": 150,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 904,
+      "usuario_id": 151,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 908,
+      "usuario_id": 155,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 909,
+      "usuario_id": 156,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 910,
+      "usuario_id": 157,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 911,
+      "usuario_id": 158,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 913,
+      "usuario_id": 160,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 889,
+      "usuario_id": 137,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 890,
+      "usuario_id": 138,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 899,
+      "usuario_id": 146,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 912,
+      "usuario_id": 159,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 915,
+      "usuario_id": 162,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 916,
+      "usuario_id": 163,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 917,
+      "usuario_id": 164,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 920,
+      "usuario_id": 167,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 924,
+      "usuario_id": 171,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 929,
+      "usuario_id": 176,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 931,
+      "usuario_id": 178,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 808,
+      "usuario_id": 59,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 838,
+      "usuario_id": 86,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 862,
+      "usuario_id": 110,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 935,
+      "usuario_id": 182,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 936,
+      "usuario_id": 183,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 881,
+      "usuario_id": 129,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 893,
+      "usuario_id": 141,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 894,
+      "usuario_id": 142,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 562,
+      "usuario_id": 3,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 854,
+      "usuario_id": 102,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 612,
+      "usuario_id": 52,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 741,
+      "usuario_id": 177,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 653,
+      "usuario_id": 90,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 671,
+      "usuario_id": 108,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 400,
+      "usuario_id": 34,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 415,
+      "usuario_id": 49,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 445,
+      "usuario_id": 78,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 454,
+      "usuario_id": 87,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 480,
+      "usuario_id": 113,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 551,
+      "usuario_id": 183,
+      "periodo": "2026-03",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 628,
+      "usuario_id": 68,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 285,
+      "usuario_id": 102,
+      "periodo": "2026-02",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 697,
+      "usuario_id": 134,
+      "periodo": "2026-04",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 996,
+      "usuario_id": 5,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1069,
+      "usuario_id": 76,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1001,
+      "usuario_id": 10,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1002,
+      "usuario_id": 11,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1004,
+      "usuario_id": 13,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1046,
+      "usuario_id": 54,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1123,
+      "usuario_id": 128,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1172,
+      "usuario_id": 176,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1009,
+      "usuario_id": 17,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1010,
+      "usuario_id": 18,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1105,
+      "usuario_id": 110,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1013,
+      "usuario_id": 21,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1015,
+      "usuario_id": 23,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1016,
+      "usuario_id": 24,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1017,
+      "usuario_id": 25,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1018,
+      "usuario_id": 26,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1021,
+      "usuario_id": 29,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1023,
+      "usuario_id": 31,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1026,
+      "usuario_id": 34,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1028,
+      "usuario_id": 36,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1031,
+      "usuario_id": 39,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1034,
+      "usuario_id": 42,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1035,
+      "usuario_id": 43,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1038,
+      "usuario_id": 46,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1043,
+      "usuario_id": 51,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1014,
+      "usuario_id": 22,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1032,
+      "usuario_id": 40,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1048,
+      "usuario_id": 56,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1051,
+      "usuario_id": 59,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1053,
+      "usuario_id": 61,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1056,
+      "usuario_id": 64,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1057,
+      "usuario_id": 65,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1060,
+      "usuario_id": 68,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1061,
+      "usuario_id": 69,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1062,
+      "usuario_id": 70,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1067,
+      "usuario_id": 74,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1071,
+      "usuario_id": 184,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1072,
+      "usuario_id": 78,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1075,
+      "usuario_id": 80,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1076,
+      "usuario_id": 81,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1152,
+      "usuario_id": 156,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1153,
+      "usuario_id": 157,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1079,
+      "usuario_id": 84,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1080,
+      "usuario_id": 85,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1081,
+      "usuario_id": 86,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1082,
+      "usuario_id": 87,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1084,
+      "usuario_id": 89,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1088,
+      "usuario_id": 93,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 766,
+      "usuario_id": 17,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 816,
+      "usuario_id": 67,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 905,
+      "usuario_id": 152,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1093,
+      "usuario_id": 98,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1095,
+      "usuario_id": 100,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1096,
+      "usuario_id": 101,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 930,
+      "usuario_id": 177,
+      "periodo": "2026-05",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1063,
+      "usuario_id": 189,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1074,
+      "usuario_id": 195,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1044,
+      "usuario_id": 52,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1059,
+      "usuario_id": 67,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1101,
+      "usuario_id": 106,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1133,
+      "usuario_id": 138,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1097,
+      "usuario_id": 102,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1106,
+      "usuario_id": 111,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1111,
+      "usuario_id": 116,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1113,
+      "usuario_id": 118,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1114,
+      "usuario_id": 119,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1115,
+      "usuario_id": 120,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1116,
+      "usuario_id": 121,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1117,
+      "usuario_id": 122,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1120,
+      "usuario_id": 125,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1121,
+      "usuario_id": 126,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1122,
+      "usuario_id": 127,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1125,
+      "usuario_id": 130,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1127,
+      "usuario_id": 132,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1132,
+      "usuario_id": 137,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1136,
+      "usuario_id": 141,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1138,
+      "usuario_id": 142,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1140,
+      "usuario_id": 144,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1141,
+      "usuario_id": 145,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1142,
+      "usuario_id": 146,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1145,
+      "usuario_id": 149,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1146,
+      "usuario_id": 150,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1148,
+      "usuario_id": 152,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1150,
+      "usuario_id": 154,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1151,
+      "usuario_id": 155,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1102,
+      "usuario_id": 107,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1112,
+      "usuario_id": 117,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1147,
+      "usuario_id": 151,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1155,
+      "usuario_id": 159,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1156,
+      "usuario_id": 160,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1158,
+      "usuario_id": 162,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1163,
+      "usuario_id": 167,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1165,
+      "usuario_id": 169,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1168,
+      "usuario_id": 172,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1169,
+      "usuario_id": 173,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1170,
+      "usuario_id": 174,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1171,
+      "usuario_id": 175,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1173,
+      "usuario_id": 177,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1174,
+      "usuario_id": 178,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1175,
+      "usuario_id": 179,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1176,
+      "usuario_id": 180,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1177,
+      "usuario_id": 181,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1178,
+      "usuario_id": 182,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1179,
+      "usuario_id": 183,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1041,
+      "usuario_id": 49,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1065,
+      "usuario_id": 72,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1006,
+      "usuario_id": 14,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1007,
+      "usuario_id": 15,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1005,
+      "usuario_id": 196,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1008,
+      "usuario_id": 16,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1078,
+      "usuario_id": 83,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 1166,
+      "usuario_id": 170,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    },
+    {
+      "id": 994,
+      "usuario_id": 3,
+      "periodo": "2026-06",
+      "estado": "congelada",
+      "saldo_pendiente": "0.00"
+    }
+  ]
+}

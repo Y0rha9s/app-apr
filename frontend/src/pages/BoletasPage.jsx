@@ -13,6 +13,7 @@ const estadoBadge = (estado) => {
         pagada: 'bg-green-100 text-green-800',
         anulada: 'bg-red-100 text-red-800',
         abonada: 'bg-orange-100 text-orange-800',
+        congelada: 'bg-blue-100 text-blue-800',
     };
     return map[estado] || 'bg-gray-100 text-gray-700';
 };
@@ -293,6 +294,7 @@ export default function BoletasPage() {
                             <option value="abonada">Abonada</option>
                             <option value="pagada">Pagada</option>
                             <option value="anulada">Anulada</option>
+                            <option value="congelada">Congelada</option>
                         </select>
                     </div>
                     <div className="flex-1 min-w-[200px]">
@@ -370,16 +372,25 @@ export default function BoletasPage() {
                                                 : '-'}
                                         </td>
                                         <td className="px-3 py-3 text-center">
-                                            <select
-                                                value={b.estado}
-                                                onChange={e => cambiarEstado(b.id, e.target.value)}
-                                                className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer ${estadoBadge(b.estado)}`}
-                                            >
-                                                <option value="pendiente">Pendiente</option>
-                                                <option value="abonada">Abonada</option>
-                                                <option value="pagada">Pagada</option>
-                                                <option value="anulada">Anulada</option>
-                                            </select>
+                                            {b.estado === 'congelada' ? (
+                                                <span
+                                                    title="Boleta histórica congelada, no se puede reactivar como deuda"
+                                                    className={`text-xs font-semibold px-2 py-1 rounded-full ${estadoBadge(b.estado)}`}
+                                                >
+                                                    ❄️ Congelada
+                                                </span>
+                                            ) : (
+                                                <select
+                                                    value={b.estado}
+                                                    onChange={e => cambiarEstado(b.id, e.target.value)}
+                                                    className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer ${estadoBadge(b.estado)}`}
+                                                >
+                                                    <option value="pendiente">Pendiente</option>
+                                                    <option value="abonada">Abonada</option>
+                                                    <option value="pagada">Pagada</option>
+                                                    <option value="anulada">Anulada</option>
+                                                </select>
+                                            )}
                                         </td>
                                         <td className="px-3 py-3 text-center text-lg">
                                             {b.enviada_whatsapp ? '📱' : ''}

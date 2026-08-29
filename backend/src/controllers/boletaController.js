@@ -243,7 +243,7 @@ const actualizarEstado = async (req, res) => {
   try {
     const { id } = req.params;
     const { estado } = req.body;
-    const validEstados = ['pendiente', 'pagada', 'anulada', 'abonada'];
+    const validEstados = ['pendiente', 'pagada', 'anulada', 'abonada', 'congelada'];
     if (!validEstados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
     const fechaPago = estado === 'pagada' ? new Date().toISOString() : null;
     const { rows } = await pool.query(`UPDATE boletas SET estado=$1, fecha_pago=$2 WHERE id=$3 RETURNING *`, [estado, fechaPago, id]);
