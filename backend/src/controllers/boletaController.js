@@ -382,9 +382,11 @@ const renderPDF = (doc, b, tramos, cargoFijo, historial, qrBuffer) => {
     { label: 'Multa', valor: b.monto_multas || 0 },
     { label: 'Monto Corte', valor: b.monto_corte || 0 },
     { label: 'Cuota Préstamo', valor: b.cuota_prestamo || 0 },
-    { label: 'Saldo Anterior', valor: b.saldo_anterior || 0 },
     { label: 'IVA', valor: b.monto_iva || 0 },
   ].filter(c => c !== null && (parseFloat(c.valor) !== 0 || c.label.includes('Cargo Fijo') || c.label.includes('Base')));
+
+  const subtotalMes = conceptos.reduce((acc, c) => acc + parseFloat(c.valor), 0);
+  const saldoAnterior = parseFloat(b.saldo_anterior || 0);
 
   doc.rect(tableX, y, tableW, rowH).fill(BLUE);
   doc.fillColor('white').font('Helvetica-Bold').fontSize(9)
@@ -402,6 +404,22 @@ const renderPDF = (doc, b, tramos, cargoFijo, historial, qrBuffer) => {
       .text(`${esDescuento ? '-' : ''}$${Math.abs(Number(c.valor)).toLocaleString('es-CL')}`, tableX + tableW - colMonto + 10, y + 6);
     y += rowH;
   });
+
+  doc.rect(tableX, y, tableW, rowH).fill(GRAY_LIGHT);
+  doc.rect(tableX, y, tableW, rowH).stroke(GRAY_BORDER);
+  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(9)
+    .text('Subtotal del mes', tableX + 10, y + 6)
+    .text(`$${Math.round(subtotalMes).toLocaleString('es-CL')}`, tableX + tableW - colMonto + 10, y + 6);
+  y += rowH;
+
+  if (saldoAnterior !== 0) {
+    doc.rect(tableX, y, tableW, rowH).fill('white');
+    doc.rect(tableX, y, tableW, rowH).stroke(GRAY_BORDER);
+    doc.fillColor(TEXT_DARK).font('Helvetica').fontSize(9)
+      .text('Saldo Anterior', tableX + 10, y + 6)
+      .text(`$${Math.round(saldoAnterior).toLocaleString('es-CL')}`, tableX + tableW - colMonto + 10, y + 6);
+    y += rowH;
+  }
 
   doc.rect(tableX, y, tableW, rowH + 2).fill(GRAY_LIGHT);
   doc.rect(tableX, y, tableW, rowH + 2).stroke(GRAY_BORDER);
