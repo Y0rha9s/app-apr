@@ -7,6 +7,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
+const { obtenerProximaCuotaConvenio } = require('../utils/convenios');
 
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
   calcularTotalPorTramosBase(pool, consumoM3, tipoUsuario);
@@ -277,8 +278,10 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           : 0;
 
         const totalMes = montoCalculado;
+        const cuotaConvenio = await obtenerProximaCuotaConvenio(client, usuario.id);
+        const cuotaPrestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
         const { totalAPagar, creditoAplicado, saldoFavorRestante } =
-          aplicarSaldoFavor(totalMes + saldoAnterior, usuario.saldo_favor);
+          aplicarSaldoFavor(totalMes + saldoAnterior + cuotaPrestamo, usuario.saldo_favor);
         const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
         const fechaVencimiento = new Date(anio, mes - 1, 20); // Vence el 20 del mes
 
@@ -286,8 +289,9 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
         await client.query(
           `INSERT INTO boletas
            (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior,
-            total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+            total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento,
+            cuota_prestamo, prestamo_cuota_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
           [
             usuario.id,
             lecturaId,
@@ -300,7 +304,9 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
             'pendiente',
             0,
             calculoTotal.iva,
-            fechaVencimiento
+            fechaVencimiento,
+            cuotaPrestamo,
+            cuotaConvenio ? cuotaConvenio.cuotaId : null
           ]
         );
 

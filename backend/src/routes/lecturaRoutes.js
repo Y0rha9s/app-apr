@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/database');
 const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
+const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 
 // Wrapper para mantener la firma usada en este archivo (pool tomado del closure)
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
@@ -132,8 +133,10 @@ router.post('/crear-con-boleta', async (req, res) => {
     }
 
     // 6. Calcular totales de boleta (aplicando saldo a favor, si tiene, sin perder el excedente)
+    const cuotaConvenio = await obtenerProximaCuotaConvenio(client, usuario_id);
+    const cuotaPrestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
     const totalMes = montoCalculado;
-    const montoAntesDeCredito = totalMes + saldoAnterior + montoCorte + montoReposicion + cuotaRepactacion;
+    const montoAntesDeCredito = totalMes + saldoAnterior + montoCorte + montoReposicion + cuotaRepactacion + cuotaPrestamo;
     const { totalAPagar, creditoAplicado, saldoFavorRestante } = aplicarSaldoFavor(montoAntesDeCredito, saldoFavorUsuario);
     const saldoPendiente = totalAPagar;
 
@@ -147,11 +150,12 @@ router.post('/crear-con-boleta', async (req, res) => {
 
     // 9. Insertar boleta
     const resultBoleta = await client.query(
-      `INSERT INTO boletas 
-   (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, 
+      `INSERT INTO boletas
+   (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior,
     monto_corte, monto_reposicion, cuota_repactacion,
-    total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento)
-   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
+    total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento,
+    cuota_prestamo, prestamo_cuota_id)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
    RETURNING id`,
       [
         usuario_id,
@@ -168,7 +172,9 @@ router.post('/crear-con-boleta', async (req, res) => {
         'pendiente',
         tipoUsuario === 'subsidiado' ? calculoTotal.subtotal * 0.5 : 0,
         calculoTotal.iva,
-        fechaVencimiento
+        fechaVencimiento,
+        cuotaPrestamo,
+        cuotaConvenio ? cuotaConvenio.cuotaId : null
       ]
     );
 

@@ -1,0 +1,180 @@
+{
+  "fecha": "2026-08-29T02:28:06.533Z",
+  "dry_run": false,
+  "distribucion_tipo_convenio_tras_default": [
+    {
+      "tipo_convenio": "estanque",
+      "c": 62
+    }
+  ],
+  "prestamo_creado": {
+    "id": 65,
+    "usuario_id": 73,
+    "insumo_id": null,
+    "cantidad": null,
+    "monto_total": "125000.00",
+    "num_cuotas": 25,
+    "cuota_mensual": "5000.00",
+    "cuotas_pagadas": 0,
+    "estado": "activo",
+    "fecha_inicio": "2026-08-29T04:00:00.000Z",
+    "fecha_fin": null,
+    "notas": "Convenio de arranque — saldo restante a partir de agosto 2026. No incluye historial de cuotas previas (no disponible).",
+    "created_at": "2026-08-29T06:28:07.756Z",
+    "updated_at": "2026-08-29T06:28:07.756Z",
+    "lote": null,
+    "tipo_convenio": "arranque"
+  },
+  "cuotas_creadas": [
+    {
+      "id": 374,
+      "numero_cuota": 1,
+      "fecha_esperada": "2026-08-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 375,
+      "numero_cuota": 2,
+      "fecha_esperada": "2026-09-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 376,
+      "numero_cuota": 3,
+      "fecha_esperada": "2026-10-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 377,
+      "numero_cuota": 4,
+      "fecha_esperada": "2026-11-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 378,
+      "numero_cuota": 5,
+      "fecha_esperada": "2026-12-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 379,
+      "numero_cuota": 6,
+      "fecha_esperada": "2027-01-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 380,
+      "numero_cuota": 7,
+      "fecha_esperada": "2027-02-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 381,
+      "numero_cuota": 8,
+      "fecha_esperada": "2027-03-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 382,
+      "numero_cuota": 9,
+      "fecha_esperada": "2027-04-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 383,
+      "numero_cuota": 10,
+      "fecha_esperada": "2027-05-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 384,
+      "numero_cuota": 11,
+      "fecha_esperada": "2027-06-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 385,
+      "numero_cuota": 12,
+      "fecha_esperada": "2027-07-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 386,
+      "numero_cuota": 13,
+      "fecha_esperada": "2027-08-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 387,
+      "numero_cuota": 14,
+      "fecha_esperada": "2027-09-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 388,
+      "numero_cuota": 15,
+      "fecha_esperada": "2027-10-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 389,
+      "numero_cuota": 16,
+      "fecha_esperada": "2027-11-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 390,
+      "numero_cuota": 17,
+      "fecha_esperada": "2027-12-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 391,
+      "numero_cuota": 18,
+      "fecha_esperada": "2028-01-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 392,
+      "numero_cuota": 19,
+      "fecha_esperada": "2028-02-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 393,
+      "numero_cuota": 20,
+      "fecha_esperada": "2028-03-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 394,
+      "numero_cuota": 21,
+      "fecha_esperada": "2028-04-01T03:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 395,
+      "numero_cuota": 22,
+      "fecha_esperada": "2028-05-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 396,
+      "numero_cuota": 23,
+      "fecha_esperada": "2028-06-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 397,
+      "numero_cuota": 24,
+      "fecha_esperada": "2028-07-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    },
+    {
+      "id": 398,
+      "numero_cuota": 25,
+      "fecha_esperada": "2028-08-01T04:00:00.000Z",
+      "monto_esperado": "5000.00"
+    }
+  ]
+}

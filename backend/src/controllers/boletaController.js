@@ -4,6 +4,7 @@ const path = require('path');
 const twilio = require('twilio');
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
+const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 
 // ─── HELPER: cálculo de monto por tramos (compartido por generación masiva e individual) ───
 const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
@@ -100,15 +101,17 @@ const generarMasivo = async (req, res) => {
       const consumo = parseFloat(l.consumo_m3 || 0);
       const saldo_anterior = parseFloat(l.saldo_anterior_calc || 0);
       const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
+      const cuotaConvenio = await obtenerProximaCuotaConvenio(client, l.usuario_id);
+      const cuota_prestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
       const { totalAPagar: total_a_pagar, creditoAplicado, saldoFavorRestante } =
-        aplicarSaldoFavor(total_mes + saldo_anterior, l.saldo_favor);
+        aplicarSaldoFavor(total_mes + saldo_anterior + cuota_prestamo, l.saldo_favor);
       const fecha_vencimiento = new Date();
       fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
       const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
       await client.query(`
-        INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10)
-      `, [l.usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio]);
+        INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio, cuota_prestamo, prestamo_cuota_id)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10,$11,$12)
+      `, [l.usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio, cuota_prestamo, cuotaConvenio ? cuotaConvenio.cuotaId : null]);
       if (creditoAplicado > 0) {
         await client.query(`UPDATE usuarios SET saldo_favor = $1 WHERE id = $2`, [saldoFavorRestante, l.usuario_id]);
       }
@@ -169,17 +172,19 @@ const generarIndividual = async (req, res) => {
 
     const consumo = parseFloat(l.consumo_m3 || 0);
     const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
+    const cuotaConvenio = await obtenerProximaCuotaConvenio(client, usuario_id);
+    const cuota_prestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
     const { totalAPagar: total_a_pagar, creditoAplicado, saldoFavorRestante } =
-      aplicarSaldoFavor(total_mes + saldo_anterior, l.saldo_favor);
+      aplicarSaldoFavor(total_mes + saldo_anterior + cuota_prestamo, l.saldo_favor);
     const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
     const fecha_vencimiento = new Date();
     fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
 
     const { rows: creada } = await client.query(`
-      INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10)
+      INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio, cuota_prestamo, prestamo_cuota_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10,$11,$12)
       RETURNING *
-    `, [usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio]);
+    `, [usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio, cuota_prestamo, cuotaConvenio ? cuotaConvenio.cuotaId : null]);
 
     if (creditoAplicado > 0) {
       await client.query(`UPDATE usuarios SET saldo_favor = $1 WHERE id = $2`, [saldoFavorRestante, usuario_id]);
@@ -240,16 +245,27 @@ const eliminarPorPeriodo = async (req, res) => {
 
 // ─── PATCH /api/boletas/:id/estado ──────────────────────────────────────────
 const actualizarEstado = async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
     const { estado } = req.body;
     const validEstados = ['pendiente', 'pagada', 'anulada', 'abonada', 'congelada'];
     if (!validEstados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
     const fechaPago = estado === 'pagada' ? new Date().toISOString() : null;
-    const { rows } = await pool.query(`UPDATE boletas SET estado=$1, fecha_pago=$2 WHERE id=$3 RETURNING *`, [estado, fechaPago, id]);
+
+    await client.query('BEGIN');
+    const { rows } = await client.query(`UPDATE boletas SET estado=$1, fecha_pago=$2 WHERE id=$3 RETURNING *`, [estado, fechaPago, id]);
+    if (estado === 'pagada' && rows[0]?.prestamo_cuota_id) {
+      await marcarCuotaConvenioPagada(client, rows[0].prestamo_cuota_id, rows[0].id);
+    }
+    await client.query('COMMIT');
     res.json(rows[0]);
   } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('actualizarEstado:', err);
     res.status(500).json({ error: 'Error al actualizar estado' });
+  } finally {
+    client.release();
   }
 };
 

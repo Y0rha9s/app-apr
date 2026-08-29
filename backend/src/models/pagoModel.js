@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { marcarCuotaConvenioPagada } = require('../utils/convenios');
 
 const pagoModel = {
   // Obtener todos los pagos
@@ -67,7 +68,7 @@ const pagoModel = {
       let restante = parseFloat(monto);
 
       const { rows: boletasPendientes } = await client.query(
-        `SELECT id, saldo_pendiente FROM boletas
+        `SELECT id, saldo_pendiente, prestamo_cuota_id FROM boletas
          WHERE usuario_id = $1 AND estado IN ('pendiente', 'abonada')
          ORDER BY created_at ASC`,
         [usuario_id]
@@ -87,6 +88,10 @@ const pagoModel = {
           `UPDATE boletas SET estado = $1, saldo_pendiente = $2, fecha_pago = NOW() WHERE id = $3`,
           [nuevoEstado, nuevoSaldo, b.id]
         );
+
+        if (nuevoEstado === 'pagada' && b.prestamo_cuota_id) {
+          await marcarCuotaConvenioPagada(client, b.prestamo_cuota_id, b.id);
+        }
       }
 
       // 3. Si sobra plata después de cubrir todo lo pendiente, va a saldo a favor

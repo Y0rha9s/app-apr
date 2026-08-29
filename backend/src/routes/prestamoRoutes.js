@@ -154,7 +154,7 @@ router.get('/activos', async (req, res) => {
         ) as cuotas
        FROM prestamos p
        LEFT JOIN usuarios u ON p.usuario_id = u.id
-       JOIN insumos i ON p.insumo_id = i.id
+       LEFT JOIN insumos i ON p.insumo_id = i.id
        LEFT JOIN prestamo_cuotas pc ON pc.prestamo_id = p.id
        WHERE p.estado = 'activo'
        GROUP BY p.id, u.id, u.nombre, u.rut, i.nombre, i.unidad_medida
@@ -181,7 +181,7 @@ router.get('/usuario/:usuario_id', async (req, res) => {
         (p.num_cuotas - p.cuotas_pagadas) as cuotas_pendientes,
         (p.cuota_mensual * (p.num_cuotas - p.cuotas_pagadas)) as saldo_pendiente
        FROM prestamos p
-       JOIN insumos i ON p.insumo_id = i.id
+       LEFT JOIN insumos i ON p.insumo_id = i.id
        WHERE p.usuario_id = $1
        ORDER BY p.created_at DESC`,
       [usuario_id]
