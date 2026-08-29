@@ -1,0 +1,1418 @@
+[
+  {
+    "pago_id": 463,
+    "usuario_id": 4,
+    "monto": 15150,
+    "fecha_pago": "2026-08-18T01:37:23.311Z",
+    "observaciones": "pago consumo mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2629,
+        "periodo": "2026-08",
+        "saldo_antes": 27950,
+        "aplicado": 15150,
+        "saldo_despues": 12800,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2629,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 419,
+    "usuario_id": 7,
+    "monto": 26100,
+    "fecha_pago": "2026-08-06T04:57:03.003Z",
+    "observaciones": "pago mes de junio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 998,
+        "periodo": "2026-06",
+        "saldo_antes": 26100,
+        "aplicado": 26100,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 998,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 410,
+    "usuario_id": 8,
+    "monto": 40250,
+    "fecha_pago": "2026-07-27T16:51:44.937Z",
+    "observaciones": "",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 189,
+        "periodo": "2026-02",
+        "saldo_antes": 10700,
+        "aplicado": 10700,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 373,
+        "periodo": "2026-03",
+        "saldo_antes": 24200,
+        "aplicado": 24200,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 567,
+        "periodo": "2026-04",
+        "saldo_antes": 35600,
+        "aplicado": 5350,
+        "saldo_despues": 30250,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 189,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 430,
+    "usuario_id": 8,
+    "monto": 17700,
+    "fecha_pago": "2026-08-06T05:06:26.764Z",
+    "observaciones": "abono mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 567,
+        "periodo": "2026-04",
+        "saldo_antes": 30250,
+        "aplicado": 17700,
+        "saldo_despues": 12550,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 567,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 448,
+    "usuario_id": 8,
+    "monto": 1900,
+    "fecha_pago": "2026-08-17T23:18:24.389Z",
+    "observaciones": "pago consumo agua potables mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 567,
+        "periodo": "2026-04",
+        "saldo_antes": 12550,
+        "aplicado": 1900,
+        "saldo_despues": 10650,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 567,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 434,
+    "usuario_id": 9,
+    "monto": 8600,
+    "fecha_pago": "2026-08-17T20:41:19.828Z",
+    "observaciones": "pago mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 568,
+        "periodo": "2026-04",
+        "saldo_antes": 1400,
+        "aplicado": 1400,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 2416,
+        "periodo": "2026-07",
+        "saldo_antes": 8600,
+        "aplicado": 7200,
+        "saldo_despues": 1400,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 568,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 449,
+    "usuario_id": 12,
+    "monto": 13500,
+    "fecha_pago": "2026-08-17T23:23:12.024Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 193,
+        "periodo": "2026-02",
+        "saldo_antes": 9300,
+        "aplicado": 9300,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 571,
+        "periodo": "2026-04",
+        "saldo_antes": 11400,
+        "aplicado": 4200,
+        "saldo_despues": 7200,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 193,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 418,
+    "usuario_id": 14,
+    "monto": 29700,
+    "fecha_pago": "2026-08-06T04:56:12.395Z",
+    "observaciones": "pago mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 13,
+        "periodo": "2026-01",
+        "saldo_antes": 9000,
+        "aplicado": 9000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 380,
+        "periodo": "2026-03",
+        "saldo_antes": 17700,
+        "aplicado": 17700,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 574,
+        "periodo": "2026-04",
+        "saldo_antes": 20700,
+        "aplicado": 3000,
+        "saldo_despues": 17700,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 13,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 439,
+    "usuario_id": 14,
+    "monto": 29700,
+    "fecha_pago": "2026-08-17T20:48:55.138Z",
+    "observaciones": "pago consumo mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 574,
+        "periodo": "2026-04",
+        "saldo_antes": 17700,
+        "aplicado": 17700,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 763,
+        "periodo": "2026-05",
+        "saldo_antes": 23700,
+        "aplicado": 12000,
+        "saldo_despues": 11700,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 574,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 456,
+    "usuario_id": 17,
+    "monto": 31200,
+    "fecha_pago": "2026-08-18T00:31:46.346Z",
+    "observaciones": "pago consumo agua potable mes de junio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 199,
+        "periodo": "2026-02",
+        "saldo_antes": 15600,
+        "aplicado": 15600,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 383,
+        "periodo": "2026-03",
+        "saldo_antes": 14550,
+        "aplicado": 14550,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 577,
+        "periodo": "2026-04",
+        "saldo_antes": 31200,
+        "aplicado": 1050,
+        "saldo_despues": 30150,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 199,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 436,
+    "usuario_id": 22,
+    "monto": 12000,
+    "fecha_pago": "2026-08-17T20:45:42.327Z",
+    "observaciones": "pago mes de julio ($120 a favor para agosto)",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 21,
+        "periodo": "2026-01",
+        "saldo_antes": 20860,
+        "aplicado": 12000,
+        "saldo_despues": 8860,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 21,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 414,
+    "usuario_id": 23,
+    "monto": 8600,
+    "fecha_pago": "2026-08-06T04:52:21.404Z",
+    "observaciones": "pago mes de junio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 22,
+        "periodo": "2026-01",
+        "saldo_antes": 5100,
+        "aplicado": 5100,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 389,
+        "periodo": "2026-03",
+        "saldo_antes": 10700,
+        "aplicado": 3500,
+        "saldo_despues": 7200,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 22,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 435,
+    "usuario_id": 25,
+    "monto": 9700,
+    "fecha_pago": "2026-08-17T20:41:59.277Z",
+    "observaciones": "pago mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 24,
+        "periodo": "2026-01",
+        "saldo_antes": 22000,
+        "aplicado": 9700,
+        "saldo_despues": 12300,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 24,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 470,
+    "usuario_id": 27,
+    "monto": 16650,
+    "fecha_pago": "2026-08-20T21:24:43.849Z",
+    "observaciones": "pago consumo de agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2423,
+        "periodo": "2026-07",
+        "saldo_antes": 16650,
+        "aplicado": 16650,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2423,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 431,
+    "usuario_id": 32,
+    "monto": 25000,
+    "fecha_pago": "2026-08-11T00:37:40.884Z",
+    "observaciones": "pago boleta julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2781,
+        "periodo": "2026-08",
+        "saldo_antes": 41700,
+        "aplicado": 25000,
+        "saldo_despues": 16700,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2781,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 459,
+    "usuario_id": 41,
+    "monto": 15000,
+    "fecha_pago": "2026-08-18T00:41:45.532Z",
+    "observaciones": "abono consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 790,
+        "periodo": "2026-05",
+        "saldo_antes": 7900,
+        "aplicado": 7900,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 2676,
+        "periodo": "2026-08",
+        "saldo_antes": 72650,
+        "aplicado": 7100,
+        "saldo_despues": 65550,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 790,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 444,
+    "usuario_id": 45,
+    "monto": 25050,
+    "fecha_pago": "2026-08-17T22:48:21.179Z",
+    "observaciones": "pago consumo mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2446,
+        "periodo": "2026-07",
+        "saldo_antes": 25050,
+        "aplicado": 25050,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2446,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 468,
+    "usuario_id": 47,
+    "monto": 4400,
+    "fecha_pago": "2026-08-18T02:11:19.291Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2447,
+        "periodo": "2026-07",
+        "saldo_antes": 4400,
+        "aplicado": 4400,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2447,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 417,
+    "usuario_id": 49,
+    "monto": 30000,
+    "fecha_pago": "2026-08-06T04:55:35.763Z",
+    "observaciones": "abono",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 231,
+        "periodo": "2026-02",
+        "saldo_antes": 88970,
+        "aplicado": 30000,
+        "saldo_despues": 58970,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 231,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 464,
+    "usuario_id": 50,
+    "monto": 5100,
+    "fecha_pago": "2026-08-18T01:38:02.086Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2431,
+        "periodo": "2026-07",
+        "saldo_antes": 5100,
+        "aplicado": 5100,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2431,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 415,
+    "usuario_id": 58,
+    "monto": 295000,
+    "fecha_pago": "2026-08-06T04:52:56.625Z",
+    "observaciones": "pago mes julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2346,
+        "periodo": "2026-07",
+        "saldo_antes": 842650,
+        "aplicado": 295000,
+        "saldo_despues": 547650,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2346,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 442,
+    "usuario_id": 63,
+    "monto": 20700,
+    "fecha_pago": "2026-08-17T21:59:03.884Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 1055,
+        "periodo": "2026-06",
+        "saldo_antes": 10700,
+        "aplicado": 10700,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 2425,
+        "periodo": "2026-07",
+        "saldo_antes": 20700,
+        "aplicado": 10000,
+        "saldo_despues": 10700,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 1055,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 461,
+    "usuario_id": 64,
+    "monto": 9000,
+    "fecha_pago": "2026-08-18T00:48:17.563Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 63,
+        "periodo": "2026-01",
+        "saldo_antes": 9000,
+        "aplicado": 9000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 63,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 466,
+    "usuario_id": 66,
+    "monto": 4400,
+    "fecha_pago": "2026-08-18T01:55:49.194Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 248,
+        "periodo": "2026-02",
+        "saldo_antes": 3000,
+        "aplicado": 3000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 432,
+        "periodo": "2026-03",
+        "saldo_antes": 6000,
+        "aplicado": 1400,
+        "saldo_despues": 4600,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 248,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 423,
+    "usuario_id": 67,
+    "monto": 56000,
+    "fecha_pago": "2026-08-06T04:59:51.358Z",
+    "observaciones": "pago mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 249,
+        "periodo": "2026-02",
+        "saldo_antes": 25000,
+        "aplicado": 25000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 433,
+        "periodo": "2026-03",
+        "saldo_antes": 53000,
+        "aplicado": 31000,
+        "saldo_despues": 22000,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 249,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 438,
+    "usuario_id": 70,
+    "monto": 18400,
+    "fecha_pago": "2026-08-17T20:47:58.045Z",
+    "observaciones": "pago mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 436,
+        "periodo": "2026-03",
+        "saldo_antes": 35800,
+        "aplicado": 18400,
+        "saldo_despues": 17400,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 436,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 453,
+    "usuario_id": 71,
+    "monto": 3000,
+    "fecha_pago": "2026-08-17T23:46:11.159Z",
+    "observaciones": "pago cargo fijo mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2684,
+        "periodo": "2026-08",
+        "saldo_antes": 24000,
+        "aplicado": 3000,
+        "saldo_despues": 21000,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2684,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 457,
+    "usuario_id": 72,
+    "monto": 58360,
+    "fecha_pago": "2026-08-18T00:34:30.439Z",
+    "observaciones": "pago consumo de agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 438,
+        "periodo": "2026-03",
+        "saldo_antes": 29110,
+        "aplicado": 29110,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 633,
+        "periodo": "2026-04",
+        "saldo_antes": 29110,
+        "aplicado": 29110,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 822,
+        "periodo": "2026-05",
+        "saldo_antes": 29110,
+        "aplicado": 140,
+        "saldo_despues": 28970,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 438,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 411,
+    "usuario_id": 73,
+    "monto": 19550,
+    "fecha_pago": "2026-07-29T16:45:04.797Z",
+    "observaciones": "BOLETA MES DE JUNIO",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 255,
+        "periodo": "2026-02",
+        "saldo_antes": 8000,
+        "aplicado": 8000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 634,
+        "periodo": "2026-04",
+        "saldo_antes": 5000,
+        "aplicado": 5000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 823,
+        "periodo": "2026-05",
+        "saldo_antes": 5000,
+        "aplicado": 5000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 1066,
+        "periodo": "2026-06",
+        "saldo_antes": 19550,
+        "aplicado": 1550,
+        "saldo_despues": 18000,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 255,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 462,
+    "usuario_id": 82,
+    "monto": 7900,
+    "fecha_pago": "2026-08-18T00:51:47.752Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 449,
+        "periodo": "2026-03",
+        "saldo_antes": 17340,
+        "aplicado": 7900,
+        "saldo_despues": 9440,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 449,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 412,
+    "usuario_id": 88,
+    "monto": 17400,
+    "fecha_pago": "2026-07-31T22:02:11.060Z",
+    "observaciones": "pago boleta julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 455,
+        "periodo": "2026-03",
+        "saldo_antes": 13000,
+        "aplicado": 13000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 840,
+        "periodo": "2026-05",
+        "saldo_antes": 3700,
+        "aplicado": 3700,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 1083,
+        "periodo": "2026-06",
+        "saldo_antes": 8100,
+        "aplicado": 700,
+        "saldo_despues": 7400,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 455,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 422,
+    "usuario_id": 88,
+    "monto": 17400,
+    "fecha_pago": "2026-08-06T04:59:21.695Z",
+    "observaciones": "pago mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 1083,
+        "periodo": "2026-06",
+        "saldo_antes": 7400,
+        "aplicado": 7400,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 2708,
+        "periodo": "2026-08",
+        "saldo_antes": 21100,
+        "aplicado": 10000,
+        "saldo_despues": 11100,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 1083,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 429,
+    "usuario_id": 96,
+    "monto": 9200,
+    "fecha_pago": "2026-08-06T05:05:22.159Z",
+    "observaciones": "pago mes de junio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 463,
+        "periodo": "2026-03",
+        "saldo_antes": 7200,
+        "aplicado": 7200,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 1091,
+        "periodo": "2026-06",
+        "saldo_antes": 9300,
+        "aplicado": 2000,
+        "saldo_despues": 7300,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 463,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 467,
+    "usuario_id": 96,
+    "monto": 7300,
+    "fecha_pago": "2026-08-18T02:08:28.128Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 1091,
+        "periodo": "2026-06",
+        "saldo_antes": 7300,
+        "aplicado": 7300,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 1091,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 447,
+    "usuario_id": 99,
+    "monto": 6400,
+    "fecha_pago": "2026-08-17T23:17:36.449Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 662,
+        "periodo": "2026-04",
+        "saldo_antes": 19998,
+        "aplicado": 6400,
+        "saldo_despues": 13598,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 662,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 465,
+    "usuario_id": 103,
+    "monto": 183700,
+    "fecha_pago": "2026-08-18T01:51:52.776Z",
+    "observaciones": "pago consumo de agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 855,
+        "periodo": "2026-05",
+        "saldo_antes": 74300,
+        "aplicado": 74300,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 1098,
+        "periodo": "2026-06",
+        "saldo_antes": 120600,
+        "aplicado": 109400,
+        "saldo_despues": 11200,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 855,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 451,
+    "usuario_id": 104,
+    "monto": 34850,
+    "fecha_pago": "2026-08-17T23:30:04.976Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 103,
+        "periodo": "2026-01",
+        "saldo_antes": 3000,
+        "aplicado": 3000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 856,
+        "periodo": "2026-05",
+        "saldo_antes": 150,
+        "aplicado": 150,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 2379,
+        "periodo": "2026-07",
+        "saldo_antes": 47450,
+        "aplicado": 31700,
+        "saldo_despues": 15750,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 103,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 424,
+    "usuario_id": 111,
+    "monto": 40000,
+    "fecha_pago": "2026-08-06T05:00:43.065Z",
+    "observaciones": "Abono",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 294,
+        "periodo": "2026-02",
+        "saldo_antes": 7590,
+        "aplicado": 7590,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 478,
+        "periodo": "2026-03",
+        "saldo_antes": 7590,
+        "aplicado": 7590,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 674,
+        "periodo": "2026-04",
+        "saldo_antes": 7590,
+        "aplicado": 7590,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 863,
+        "periodo": "2026-05",
+        "saldo_antes": 64990,
+        "aplicado": 17230,
+        "saldo_despues": 47760,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 294,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 425,
+    "usuario_id": 117,
+    "monto": 9300,
+    "fecha_pago": "2026-08-06T05:01:08.956Z",
+    "observaciones": "",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 300,
+        "periodo": "2026-02",
+        "saldo_antes": 24550,
+        "aplicado": 9300,
+        "saldo_despues": 15250,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 300,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 452,
+    "usuario_id": 118,
+    "monto": 12500,
+    "fecha_pago": "2026-08-17T23:42:26.268Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 301,
+        "periodo": "2026-02",
+        "saldo_antes": 4400,
+        "aplicado": 4400,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 485,
+        "periodo": "2026-03",
+        "saldo_antes": 9500,
+        "aplicado": 8100,
+        "saldo_despues": 1400,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 301,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 413,
+    "usuario_id": 125,
+    "monto": 18000,
+    "fecha_pago": "2026-08-06T04:51:35.850Z",
+    "observaciones": "Pago mes de junio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 308,
+        "periodo": "2026-02",
+        "saldo_antes": 58450,
+        "aplicado": 18000,
+        "saldo_despues": 40450,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 308,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 455,
+    "usuario_id": 135,
+    "monto": 16650,
+    "fecha_pago": "2026-08-18T00:30:38.337Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2366,
+        "periodo": "2026-07",
+        "saldo_antes": 16650,
+        "aplicado": 16650,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2366,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 420,
+    "usuario_id": 137,
+    "monto": 80000,
+    "fecha_pago": "2026-08-06T04:57:58.703Z",
+    "observaciones": "Abono",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 320,
+        "periodo": "2026-02",
+        "saldo_antes": 60090,
+        "aplicado": 60090,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 504,
+        "periodo": "2026-03",
+        "saldo_antes": 111080,
+        "aplicado": 19910,
+        "saldo_despues": 91170,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 320,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 421,
+    "usuario_id": 139,
+    "monto": 13500,
+    "fecha_pago": "2026-08-06T04:58:35.664Z",
+    "observaciones": "",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 322,
+        "periodo": "2026-02",
+        "saldo_antes": 34850,
+        "aplicado": 13500,
+        "saldo_despues": 21350,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 322,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 428,
+    "usuario_id": 147,
+    "monto": 15300,
+    "fecha_pago": "2026-08-06T05:04:44.350Z",
+    "observaciones": "pago mes de junio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 711,
+        "periodo": "2026-04",
+        "saldo_antes": 3000,
+        "aplicado": 3000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 900,
+        "periodo": "2026-05",
+        "saldo_antes": 6000,
+        "aplicado": 6000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 1143,
+        "periodo": "2026-06",
+        "saldo_antes": 15300,
+        "aplicado": 6300,
+        "saldo_despues": 9000,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 711,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 416,
+    "usuario_id": 159,
+    "monto": 21000,
+    "fecha_pago": "2026-08-06T04:53:50.593Z",
+    "observaciones": "pago mes de junio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 527,
+        "periodo": "2026-03",
+        "saldo_antes": 19800,
+        "aplicado": 19800,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 723,
+        "periodo": "2026-04",
+        "saldo_antes": 20850,
+        "aplicado": 1200,
+        "saldo_despues": 19650,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 527,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 458,
+    "usuario_id": 161,
+    "monto": 17500,
+    "fecha_pago": "2026-08-18T00:37:13.220Z",
+    "observaciones": "pago consumo de agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2471,
+        "periodo": "2026-07",
+        "saldo_antes": 17500,
+        "aplicado": 17500,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2471,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 446,
+    "usuario_id": 165,
+    "monto": 10700,
+    "fecha_pago": "2026-08-17T23:01:17.171Z",
+    "observaciones": "pago consumo de agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2468,
+        "periodo": "2026-07",
+        "saldo_antes": 7700,
+        "aplicado": 7700,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 2469,
+        "periodo": "2026-07",
+        "saldo_antes": 7700,
+        "aplicado": 3000,
+        "saldo_despues": 4700,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2468,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 445,
+    "usuario_id": 166,
+    "monto": 8400,
+    "fecha_pago": "2026-08-17T23:00:06.477Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2467,
+        "periodo": "2026-07",
+        "saldo_antes": 8400,
+        "aplicado": 8400,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2467,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 450,
+    "usuario_id": 168,
+    "monto": 3000,
+    "fecha_pago": "2026-08-17T23:27:19.426Z",
+    "observaciones": "pago cargo fijo mes de julio (sin lectura)",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 2474,
+        "periodo": "2026-07",
+        "saldo_antes": 21900,
+        "aplicado": 3000,
+        "saldo_despues": 18900,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 2474,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 437,
+    "usuario_id": 171,
+    "monto": 3700,
+    "fecha_pago": "2026-08-17T20:47:16.557Z",
+    "observaciones": "pago mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 171,
+        "periodo": "2026-01",
+        "saldo_antes": 3000,
+        "aplicado": 3000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 539,
+        "periodo": "2026-03",
+        "saldo_antes": 3000,
+        "aplicado": 700,
+        "saldo_despues": 2300,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 171,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 454,
+    "usuario_id": 173,
+    "monto": 12300,
+    "fecha_pago": "2026-08-17T23:52:44.507Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 737,
+        "periodo": "2026-04",
+        "saldo_antes": 13500,
+        "aplicado": 12300,
+        "saldo_despues": 1200,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 737,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 441,
+    "usuario_id": 179,
+    "monto": 18600,
+    "fecha_pago": "2026-08-17T21:58:26.193Z",
+    "observaciones": "pago consumo agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 179,
+        "periodo": "2026-01",
+        "saldo_antes": 10700,
+        "aplicado": 10700,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 547,
+        "periodo": "2026-03",
+        "saldo_antes": 7900,
+        "aplicado": 7900,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 179,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 460,
+    "usuario_id": 186,
+    "monto": 6000,
+    "fecha_pago": "2026-08-18T00:45:25.347Z",
+    "observaciones": "pago agua potable mes de julio",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 553,
+        "periodo": "2026-02",
+        "saldo_antes": 3000,
+        "aplicado": 3000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 553,
+    "excedente_a_saldo_favor": 3000,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 440,
+    "usuario_id": 190,
+    "monto": 40000,
+    "fecha_pago": "2026-08-17T20:49:42.520Z",
+    "observaciones": "abono consumo agua potable",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 557,
+        "periodo": "2026-02",
+        "saldo_antes": 3000,
+        "aplicado": 3000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 557,
+    "excedente_a_saldo_favor": 37000,
+    "sin_boletas_pendientes": false
+  },
+  {
+    "pago_id": 469,
+    "usuario_id": 195,
+    "monto": 30000,
+    "fecha_pago": "2026-08-19T02:54:00.803Z",
+    "observaciones": "abono",
+    "boletas_afectadas": [
+      {
+        "boleta_id": 642,
+        "periodo": "2026-04",
+        "saldo_antes": 38780,
+        "aplicado": 30000,
+        "saldo_despues": 8780,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 642,
+    "excedente_a_saldo_favor": 0,
+    "sin_boletas_pendientes": false
+  }
+]

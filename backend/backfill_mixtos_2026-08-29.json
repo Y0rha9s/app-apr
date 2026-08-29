@@ -1,0 +1,174 @@
+[
+  {
+    "pago_id": 443,
+    "usuario_id": 28,
+    "monto_total": 71850,
+    "monto_agua": 55851.4,
+    "monto_prestamo": 15998.6,
+    "boletas_afectadas": [
+      {
+        "boleta_id": 394,
+        "periodo": "2026-03",
+        "saldo_antes": 16000,
+        "aplicado": 16000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 588,
+        "periodo": "2026-04",
+        "saldo_antes": 16000,
+        "aplicado": 16000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 777,
+        "periodo": "2026-05",
+        "saldo_antes": 16000,
+        "aplicado": 16000,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 1020,
+        "periodo": "2026-06",
+        "saldo_antes": 16000,
+        "aplicado": 7851.4,
+        "saldo_despues": 8148.6,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 394,
+    "prestamo_id": 43,
+    "cuota_resultante": {
+      "id": 248,
+      "prestamo_id": 43,
+      "numero_cuota": 7,
+      "fecha_esperada": null,
+      "fecha_pago": "2026-08-17T04:00:00.000Z",
+      "monto_esperado": "16000.00",
+      "monto_pagado": "15998.60",
+      "estado": "pagada",
+      "notas": "Fecha original Excel: 05-07 | Cuota completada retroactivamente vía backfill del pago mixto #443 (agua + estanque). El contador cuotas_pagadas del préstamo no se modifica porque ya reflejaba este pago.",
+      "created_at": "2026-07-29T04:36:15.937Z",
+      "updated_at": "2026-07-29T04:36:15.937Z"
+    },
+    "contador_cuotas_pagadas_modificado": false
+  },
+  {
+    "pago_id": 433,
+    "usuario_id": 170,
+    "monto_total": 18290,
+    "monto_agua": 10700,
+    "monto_prestamo": 7590,
+    "boletas_afectadas": [
+      {
+        "boleta_id": 734,
+        "periodo": "2026-04",
+        "saldo_antes": 7590,
+        "aplicado": 7590,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 923,
+        "periodo": "2026-05",
+        "saldo_antes": 7590,
+        "aplicado": 3110,
+        "saldo_despues": 4480,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 734,
+    "prestamo_id": 32,
+    "cuota_resultante": {
+      "id": 166,
+      "prestamo_id": 32,
+      "numero_cuota": 10,
+      "fecha_esperada": null,
+      "fecha_pago": "2026-08-10T04:00:00.000Z",
+      "monto_esperado": "7590.00",
+      "monto_pagado": "7590.00",
+      "estado": "pagada",
+      "notas": "Fecha original Excel: 05-08 | Cuota completada retroactivamente vía backfill del pago mixto #433 (agua + estanque). El contador cuotas_pagadas del préstamo no se modifica porque ya reflejaba este pago.",
+      "created_at": "2026-07-29T04:36:08.277Z",
+      "updated_at": "2026-07-29T04:36:08.277Z"
+    },
+    "contador_cuotas_pagadas_modificado": false
+  },
+  {
+    "pago_id": 432,
+    "usuario_id": 40,
+    "monto_total": 14340,
+    "monto_agua": 6750,
+    "monto_prestamo": 7590,
+    "boletas_afectadas": [
+      {
+        "boleta_id": 406,
+        "periodo": "2026-03",
+        "saldo_antes": 7590,
+        "aplicado": 6750,
+        "saldo_despues": 840,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 406,
+    "prestamo_id": 40,
+    "cuota_resultante": {
+      "id": 212,
+      "prestamo_id": 40,
+      "numero_cuota": 7,
+      "fecha_esperada": null,
+      "fecha_pago": "2026-08-10T04:00:00.000Z",
+      "monto_esperado": "7590.00",
+      "monto_pagado": "7590.00",
+      "estado": "pagada",
+      "notas": "Fecha original Excel: 05-08 | Cuota completada retroactivamente vía backfill del pago mixto #432 (agua + estanque). El contador cuotas_pagadas del préstamo no se modifica porque ya reflejaba este pago.",
+      "created_at": "2026-07-29T04:36:13.061Z",
+      "updated_at": "2026-07-29T04:36:13.061Z"
+    },
+    "contador_cuotas_pagadas_modificado": false
+  },
+  {
+    "pago_id": 426,
+    "usuario_id": 148,
+    "monto_total": 113700,
+    "monto_agua": 13700,
+    "monto_prestamo": 100000,
+    "boletas_afectadas": [
+      {
+        "boleta_id": 901,
+        "periodo": "2026-05",
+        "saldo_antes": 7900,
+        "aplicado": 7900,
+        "saldo_despues": 0,
+        "nuevoEstado": "pagada"
+      },
+      {
+        "boleta_id": 1144,
+        "periodo": "2026-06",
+        "saldo_antes": 13700,
+        "aplicado": 5800,
+        "saldo_despues": 7900,
+        "nuevoEstado": "abonada"
+      }
+    ],
+    "boleta_id_asignado_al_pago": 901,
+    "prestamo_id": 60,
+    "cuota_resultante": {
+      "id": 348,
+      "prestamo_id": 60,
+      "numero_cuota": 1,
+      "fecha_esperada": null,
+      "fecha_pago": null,
+      "monto_esperado": "159986.00",
+      "monto_pagado": "100000.00",
+      "estado": "pendiente",
+      "notas": "Abono parcial registrado vía backfill de pago mixto #426 (agua + estanque). Pendiente: $59986.00",
+      "created_at": "2026-08-29T05:59:15.031Z",
+      "updated_at": "2026-08-29T05:59:15.031Z"
+    },
+    "contador_cuotas_pagadas_modificado": false
+  }
+]
