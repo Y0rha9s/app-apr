@@ -3,6 +3,7 @@ const PDFDocument = require('pdfkit');
 const path = require('path');
 const twilio = require('twilio');
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 
 // ─── HELPER: cálculo de monto por tramos (compartido por generación masiva e individual) ───
 const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
@@ -98,9 +99,9 @@ const generarMasivo = async (req, res) => {
     for (const l of lecturas) {
       const consumo = parseFloat(l.consumo_m3 || 0);
       const saldo_anterior = parseFloat(l.saldo_anterior_calc || 0);
-      const saldo_favor = parseFloat(l.saldo_favor || 0);
       const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
-      const total_a_pagar = Math.max(0, total_mes + saldo_anterior - saldo_favor);
+      const { totalAPagar: total_a_pagar, creditoAplicado, saldoFavorRestante } =
+        aplicarSaldoFavor(total_mes + saldo_anterior, l.saldo_favor);
       const fecha_vencimiento = new Date();
       fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
       const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
@@ -108,6 +109,9 @@ const generarMasivo = async (req, res) => {
         INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10)
       `, [l.usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio]);
+      if (creditoAplicado > 0) {
+        await client.query(`UPDATE usuarios SET saldo_favor = $1 WHERE id = $2`, [saldoFavorRestante, l.usuario_id]);
+      }
       generadas++;
     }
     await client.query('COMMIT');
@@ -157,7 +161,6 @@ const generarIndividual = async (req, res) => {
       [usuario_id]
     );
     const saldo_anterior = saldoRows.length > 0 ? parseFloat(saldoRows[0].saldo_pendiente) : 0;
-    const saldo_favor = parseFloat(l.saldo_favor || 0);
 
     const { rows: tramos } = await client.query(`SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC`);
     const { rows: configRows } = await client.query(`SELECT clave, valor FROM configuracion_sistema WHERE clave IN ('cargo_fijo', 'subsidio_porcentaje')`);
@@ -166,7 +169,8 @@ const generarIndividual = async (req, res) => {
 
     const consumo = parseFloat(l.consumo_m3 || 0);
     const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
-    const total_a_pagar = Math.max(0, total_mes + saldo_anterior - saldo_favor);
+    const { totalAPagar: total_a_pagar, creditoAplicado, saldoFavorRestante } =
+      aplicarSaldoFavor(total_mes + saldo_anterior, l.saldo_favor);
     const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
     const fecha_vencimiento = new Date();
     fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
@@ -176,6 +180,10 @@ const generarIndividual = async (req, res) => {
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10)
       RETURNING *
     `, [usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio]);
+
+    if (creditoAplicado > 0) {
+      await client.query(`UPDATE usuarios SET saldo_favor = $1 WHERE id = $2`, [saldoFavorRestante, usuario_id]);
+    }
 
     await client.query('COMMIT');
     res.json({ success: true, boleta: creada[0] });

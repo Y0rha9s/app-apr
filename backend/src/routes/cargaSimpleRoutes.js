@@ -6,6 +6,7 @@ const xlsx = require('xlsx');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
+const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
   calcularTotalPorTramosBase(pool, consumoM3, tipoUsuario);
@@ -276,14 +277,15 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           : 0;
 
         const totalMes = montoCalculado;
-        const totalAPagar = totalMes + saldoAnterior;
+        const { totalAPagar, creditoAplicado, saldoFavorRestante } =
+          aplicarSaldoFavor(totalMes + saldoAnterior, usuario.saldo_favor);
         const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
         const fechaVencimiento = new Date(anio, mes - 1, 20); // Vence el 20 del mes
 
         // Crear boleta
         await client.query(
-          `INSERT INTO boletas 
-           (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, 
+          `INSERT INTO boletas
+           (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior,
             total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
@@ -301,6 +303,10 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
             fechaVencimiento
           ]
         );
+
+        if (creditoAplicado > 0) {
+          await client.query('UPDATE usuarios SET saldo_favor = $1 WHERE id = $2', [saldoFavorRestante, usuario.id]);
+        }
 
         resultados.exitosos.push({
           fila: numeroFila,

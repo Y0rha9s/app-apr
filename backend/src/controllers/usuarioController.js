@@ -29,16 +29,13 @@ const usuarioController = {
   getDeuda: async (req, res) => {
     try {
       const { id } = req.params;
-      const lecturasResult = await pool.query(
-        'SELECT SUM(monto_calculado) as total FROM lecturas WHERE usuario_id = $1', [id]
+      const result = await pool.query(
+        `SELECT COALESCE(SUM(saldo_pendiente), 0) as deuda
+       FROM boletas
+       WHERE usuario_id = $1 AND estado IN ('pendiente', 'abonada')`,
+        [id]
       );
-      const pagosResult = await pool.query(
-        'SELECT SUM(monto) as total FROM pagos WHERE usuario_id = $1', [id]
-      );
-      const totalLecturas = parseFloat(lecturasResult.rows[0].total || 0);
-      const totalPagos = parseFloat(pagosResult.rows[0].total || 0);
-      const deuda = totalLecturas - totalPagos;
-      res.json({ deuda: deuda >= 0 ? deuda : 0 });
+      res.json({ deuda: parseFloat(result.rows[0].deuda) });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -104,9 +101,9 @@ const usuarioController = {
          (numero_cliente, rut, nombre, email, telefono, direccion, password, rol, estado, medidor, es_socio) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'activo', $9, $10) 
          RETURNING *`,
-        [numeroCliente, rut, nombre, email || `${rut.replace(/[^0-9]/g,'')}@temp.com`,
-         telefono || null, direccion || null, hashedPassword,
-         rol || 'usuario', medidor || null, esSocio]
+        [numeroCliente, rut, nombre, email || `${rut.replace(/[^0-9]/g, '')}@temp.com`,
+          telefono || null, direccion || null, hashedPassword,
+          rol || 'usuario', medidor || null, esSocio]
       );
 
       const { password, ...usuario } = result.rows[0];

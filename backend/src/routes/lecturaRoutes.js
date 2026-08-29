@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
+const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 
 // Wrapper para mantener la firma usada en este archivo (pool tomado del closure)
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
@@ -26,7 +27,7 @@ router.post('/crear-con-boleta', async (req, res) => {
 
     // 1. Obtener tipo de usuario
     const userResult = await client.query(
-      'SELECT tipo_usuario, nombre FROM usuarios WHERE id = $1',
+      'SELECT tipo_usuario, nombre, saldo_favor FROM usuarios WHERE id = $1',
       [usuario_id]
     );
 
@@ -36,6 +37,7 @@ router.post('/crear-con-boleta', async (req, res) => {
 
     const tipoUsuario = userResult.rows[0].tipo_usuario;
     const nombreUsuario = userResult.rows[0].nombre;
+    const saldoFavorUsuario = userResult.rows[0].saldo_favor;
 
     // 2. Obtener última lectura para calcular consumo
     const ultimaLectura = await client.query(
@@ -129,9 +131,10 @@ router.post('/crear-con-boleta', async (req, res) => {
       repactacionId = repactacionResult.rows[0].id;
     }
 
-    // 6. Calcular totales de boleta
+    // 6. Calcular totales de boleta (aplicando saldo a favor, si tiene, sin perder el excedente)
     const totalMes = montoCalculado;
-    const totalAPagar = totalMes + saldoAnterior + montoCorte + montoReposicion + cuotaRepactacion;
+    const montoAntesDeCredito = totalMes + saldoAnterior + montoCorte + montoReposicion + cuotaRepactacion;
+    const { totalAPagar, creditoAplicado, saldoFavorRestante } = aplicarSaldoFavor(montoAntesDeCredito, saldoFavorUsuario);
     const saldoPendiente = totalAPagar;
 
     // 7. Calcular fecha de vencimiento (15 días después)
@@ -186,6 +189,10 @@ router.post('/crear-con-boleta', async (req, res) => {
           );
         }
       }
+    }
+
+    if (creditoAplicado > 0) {
+      await client.query('UPDATE usuarios SET saldo_favor = $1 WHERE id = $2', [saldoFavorRestante, usuario_id]);
     }
 
     await client.query('COMMIT');
