@@ -1,0 +1,119 @@
+[
+  {
+    "usuario_id": 36,
+    "nombre": "JUAN HERNAN FERNANDEZ CASTILLO",
+    "boleta_id": 35,
+    "periodo": "2026-01",
+    "total_a_pagar": 14800,
+    "fecha_pago_marcada": "2026-07-27T04:39:29.602Z",
+    "en_usuarios_del_backfill_56": false,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": false,
+    "pago_que_debio_haber_llegado_aqui": null
+  },
+  {
+    "usuario_id": 88,
+    "nombre": "MAURICIO QUEZADA ARAYA",
+    "boleta_id": 2369,
+    "periodo": "2026-07",
+    "total_a_pagar": 17400,
+    "fecha_pago_marcada": "2026-07-31T18:02:27.844Z",
+    "en_usuarios_del_backfill_56": true,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": true,
+    "pago_que_debio_haber_llegado_aqui": {
+      "boleta_id": 2708,
+      "periodo": "2026-08",
+      "pago_id": 422,
+      "monto": 17400,
+      "observaciones": "pago mes de julio"
+    }
+  },
+  {
+    "usuario_id": 27,
+    "nombre": "JOSE ENRIQUE LIZAMA CHAVEZ",
+    "boleta_id": 776,
+    "periodo": "2026-05",
+    "total_a_pagar": 16650,
+    "fecha_pago_marcada": "2026-08-20T17:24:43.849Z",
+    "en_usuarios_del_backfill_56": true,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": true,
+    "pago_que_debio_haber_llegado_aqui": {
+      "boleta_id": 2423,
+      "periodo": "2026-07",
+      "pago_id": 470,
+      "monto": 16650,
+      "observaciones": "pago consumo de agua potable mes de julio"
+    }
+  },
+  {
+    "usuario_id": 129,
+    "nombre": "BLANCA EMILIA MONSALVE ASTETE",
+    "boleta_id": 2398,
+    "periodo": "2026-07",
+    "total_a_pagar": 28200,
+    "fecha_pago_marcada": "2026-08-27T16:09:50.861Z",
+    "en_usuarios_del_backfill_56": false,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": false,
+    "pago_que_debio_haber_llegado_aqui": null
+  },
+  {
+    "usuario_id": 172,
+    "nombre": "ELENA ALEJANDRA CONTRERAS ACUÑA",
+    "boleta_id": 2408,
+    "periodo": "2026-07",
+    "total_a_pagar": 10200,
+    "fecha_pago_marcada": "2026-08-27T16:39:41.286Z",
+    "en_usuarios_del_backfill_56": false,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": false,
+    "pago_que_debio_haber_llegado_aqui": null
+  },
+  {
+    "usuario_id": 145,
+    "nombre": "JUAN ANTONIO BASCUÑAN CORDOVA",
+    "boleta_id": 2458,
+    "periodo": "2026-07",
+    "total_a_pagar": 30700,
+    "fecha_pago_marcada": "2026-08-28T00:13:06.059Z",
+    "en_usuarios_del_backfill_56": false,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": false,
+    "pago_que_debio_haber_llegado_aqui": null
+  },
+  {
+    "usuario_id": 167,
+    "nombre": "HERNAN CARLOS AEDO PAREDES",
+    "boleta_id": 2473,
+    "periodo": "2026-07",
+    "total_a_pagar": 30600,
+    "fecha_pago_marcada": "2026-08-28T00:15:36.417Z",
+    "en_usuarios_del_backfill_56": false,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": false,
+    "pago_que_debio_haber_llegado_aqui": null
+  },
+  {
+    "usuario_id": 4,
+    "nombre": "JOSE VASQUEZ MUÑOZ",
+    "boleta_id": 2335,
+    "periodo": "2026-07",
+    "total_a_pagar": 15150,
+    "fecha_pago_marcada": "2026-08-28T00:45:22.438Z",
+    "en_usuarios_del_backfill_56": true,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": true,
+    "pago_que_debio_haber_llegado_aqui": {
+      "boleta_id": 2629,
+      "periodo": "2026-08",
+      "pago_id": 463,
+      "monto": 15150,
+      "observaciones": "pago consumo mes de julio"
+    }
+  },
+  {
+    "usuario_id": 22,
+    "nombre": "JOSE ERASMO COFRE GARCES",
+    "boleta_id": 2421,
+    "periodo": "2026-07",
+    "total_a_pagar": 11880,
+    "fecha_pago_marcada": "2026-08-28T00:45:48.181Z",
+    "en_usuarios_del_backfill_56": true,
+    "es_anterior_a_boleta_que_recibio_pago_del_backfill": false,
+    "pago_que_debio_haber_llegado_aqui": null
+  }
+]

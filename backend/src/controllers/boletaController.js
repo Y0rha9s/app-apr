@@ -254,7 +254,18 @@ const actualizarEstado = async (req, res) => {
     const fechaPago = estado === 'pagada' ? new Date().toISOString() : null;
 
     await client.query('BEGIN');
-    const { rows } = await client.query(`UPDATE boletas SET estado=$1, fecha_pago=$2 WHERE id=$3 RETURNING *`, [estado, fechaPago, id]);
+    const { rows } = await client.query(`
+      UPDATE boletas 
+      SET estado=$1, 
+          fecha_pago=$2,
+          saldo_pendiente = CASE 
+            WHEN $1 = 'pagada' THEN 0
+            WHEN $1 = 'anulada' THEN 0
+            WHEN $1 = 'pendiente' THEN total_a_pagar
+            ELSE saldo_pendiente
+          END
+      WHERE id=$3 RETURNING *
+    `, [estado, fechaPago, id]);
     if (estado === 'pagada' && rows[0]?.prestamo_cuota_id) {
       await marcarCuotaConvenioPagada(client, rows[0].prestamo_cuota_id, rows[0].id);
     }
@@ -449,7 +460,7 @@ const generarPDF = async (req, res) => {
       FROM boletas b JOIN usuarios u ON u.id = b.usuario_id
       LEFT JOIN lecturas l ON l.id = b.lectura_id
       WHERE b.id = $1
-    `, [id]);   
+    `, [id]);
     if (!rows[0]) return res.status(404).json({ error: 'Boleta no encontrada' });
     const b = rows[0];
     console.log('saldo_favor:', b.saldo_favor, 'rut:', b.rut);
@@ -493,7 +504,7 @@ const generarZIP = async (req, res) => {
       FROM boletas b JOIN usuarios u ON u.id = b.usuario_id
       LEFT JOIN lecturas l ON l.id = b.lectura_id
       WHERE b.periodo = $1 ORDER BY u.numero_cliente ASC
-    `, [periodo]);    
+    `, [periodo]);
     if (boletas.length === 0) return res.status(404).json({ error: 'No hay boletas para este período' });
 
     const { rows: tramos } = await pool.query(`SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC`);
