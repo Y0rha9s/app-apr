@@ -255,13 +255,13 @@ const actualizarEstado = async (req, res) => {
 
     await client.query('BEGIN');
     const { rows } = await client.query(`
-      UPDATE boletas 
-      SET estado=$1, 
+      UPDATE boletas
+      SET estado=$1::text,
           fecha_pago=$2,
-          saldo_pendiente = CASE 
-            WHEN $1 = 'pagada' THEN 0
-            WHEN $1 = 'anulada' THEN 0
-            WHEN $1 = 'pendiente' THEN total_a_pagar
+          saldo_pendiente = CASE
+            WHEN $1::text = 'pagada' THEN 0
+            WHEN $1::text = 'anulada' THEN 0
+            WHEN $1::text = 'pendiente' THEN total_a_pagar
             ELSE saldo_pendiente
           END
       WHERE id=$3 RETURNING *
