@@ -82,14 +82,24 @@ const pagoModel = {
         const nuevoSaldo = saldo - aplicado;
         restante -= aplicado;
 
-        const nuevoEstado = nuevoSaldo <= 0 ? 'pagada' : 'abonada';
-
-        await client.query(
-          `UPDATE boletas SET estado = $1, saldo_pendiente = $2, fecha_pago = NOW() WHERE id = $3`,
-          [nuevoEstado, nuevoSaldo, b.id]
+        // Si con este pago la boleta queda completamente saldada, se marca 'pagada' si fue
+        // dentro del plazo (fecha_vencimiento) o 'atrasada' si el pago llego despues.
+        const { rows: actualizada } = await client.query(
+          `UPDATE boletas
+           SET estado = CASE
+               WHEN $1::numeric <= 0 THEN
+                 CASE WHEN CURRENT_DATE > fecha_vencimiento THEN 'atrasada' ELSE 'pagada' END
+               ELSE 'abonada'
+             END,
+             saldo_pendiente = $1,
+             fecha_pago = NOW()
+           WHERE id = $2
+           RETURNING estado`,
+          [nuevoSaldo, b.id]
         );
+        const nuevoEstado = actualizada[0].estado;
 
-        if (nuevoEstado === 'pagada' && b.prestamo_cuota_id) {
+        if ((nuevoEstado === 'pagada' || nuevoEstado === 'atrasada') && b.prestamo_cuota_id) {
           await marcarCuotaConvenioPagada(client, b.prestamo_cuota_id, b.id);
         }
       }

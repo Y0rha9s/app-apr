@@ -14,6 +14,8 @@ const estadoBadge = (estado) => {
         anulada: 'bg-red-100 text-red-800',
         abonada: 'bg-orange-100 text-orange-800',
         congelada: 'bg-blue-100 text-blue-800',
+        atrasada: 'bg-red-200 text-red-900',
+        no_pagada: 'bg-orange-100 text-orange-800',
     };
     return map[estado] || 'bg-gray-100 text-gray-700';
 };
@@ -295,6 +297,7 @@ export default function BoletasPage() {
                             <option value="pagada">Pagada</option>
                             <option value="anulada">Anulada</option>
                             <option value="congelada">Congelada</option>
+                            <option value="atrasada">Atrasada</option>
                         </select>
                     </div>
                     <div className="flex-1 min-w-[200px]">
@@ -311,12 +314,13 @@ export default function BoletasPage() {
             </Card>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {[
                     { label: 'Total boletas', valor: boletas.length, icon: '🧾', color: 'blue' },
                     { label: 'Pendientes', valor: boletas.filter(b => b.estado === 'pendiente').length, icon: '⏳', color: 'yellow' },
                     { label: 'Abonadas', valor: boletas.filter(b => b.estado === 'abonada').length, icon: '🟠', color: 'orange' },
                     { label: 'Pagadas', valor: boletas.filter(b => b.estado === 'pagada').length, icon: '✅', color: 'green' },
+                    { label: 'Atrasadas', valor: boletas.filter(b => b.estado === 'atrasada').length, icon: '⏰', color: 'red' },
                     { label: 'Monto pendiente', valor: `$${totalPendiente.toLocaleString('es-CL')}`, icon: '💰', color: 'red' },
                 ].map((s, i) => (
                     <div key={i} className={`bg-${s.color}-50 border border-${s.color}-200 rounded-xl p-4`}>
@@ -379,13 +383,26 @@ export default function BoletasPage() {
                                                 >
                                                     ❄️ Congelada
                                                 </span>
+                                            ) : b.estado === 'atrasada' ? (
+                                                <span
+                                                    title="Se pagó completa, pero después de la fecha de vencimiento"
+                                                    className={`text-xs font-semibold px-2 py-1 rounded-full ${estadoBadge(b.estado)}`}
+                                                >
+                                                    ⏰ Atrasada
+                                                </span>
                                             ) : (
                                                 <select
                                                     value={b.estado}
                                                     onChange={e => cambiarEstado(b.id, e.target.value)}
-                                                    className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer ${estadoBadge(b.estado)}`}
+                                                    className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer ${
+                                                        b.estado === 'pendiente' && b.estado_visual === 'no_pagada'
+                                                            ? estadoBadge('no_pagada')
+                                                            : estadoBadge(b.estado)
+                                                    }`}
                                                 >
-                                                    <option value="pendiente">Pendiente</option>
+                                                    <option value="pendiente">
+                                                        {b.estado_visual === 'no_pagada' ? 'No pagada' : 'Pendiente'}
+                                                    </option>
                                                     <option value="abonada">Abonada</option>
                                                     <option value="pagada">Pagada</option>
                                                     <option value="anulada">Anulada</option>

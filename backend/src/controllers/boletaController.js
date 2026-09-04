@@ -5,6 +5,7 @@ const twilio = require('twilio');
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
+const { clasificarBoletaVisual } = require('../utils/clasificacionVisual');
 
 // ─── HELPER: cálculo de monto por tramos (compartido por generación masiva e individual) ───
 const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
@@ -45,7 +46,7 @@ const getAll = async (req, res) => {
     if (estado) { params.push(estado); query += ` AND b.estado = $${params.length}`; }
     query += ` ORDER BY u.numero_cliente ASC`;
     const { rows } = await pool.query(query, params);
-    res.json(rows);
+    res.json(rows.map(b => ({ ...b, estado_visual: clasificarBoletaVisual(b) })));
   } catch (err) {
     console.error('getAll boletas:', err);
     res.status(500).json({ error: 'Error al obtener boletas' });
@@ -61,7 +62,7 @@ const getByUsuario = async (req, res) => {
        FROM boletas b JOIN usuarios u ON u.id = b.usuario_id
        WHERE b.usuario_id = $1 ORDER BY b.created_at DESC`, [id]
     );
-    res.json(rows);
+    res.json(rows.map(b => ({ ...b, estado_visual: clasificarBoletaVisual(b) })));
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener boletas del usuario' });
   }
@@ -256,7 +257,11 @@ const actualizarEstado = async (req, res) => {
     await client.query('BEGIN');
     const { rows } = await client.query(`
       UPDATE boletas
-      SET estado=$1::text,
+      SET estado = CASE
+            WHEN $1::text = 'pagada' THEN
+              CASE WHEN CURRENT_DATE > fecha_vencimiento THEN 'atrasada' ELSE 'pagada' END
+            ELSE $1::text
+          END,
           fecha_pago=$2,
           saldo_pendiente = CASE
             WHEN $1::text = 'pagada' THEN 0
@@ -266,7 +271,7 @@ const actualizarEstado = async (req, res) => {
           END
       WHERE id=$3 RETURNING *
     `, [estado, fechaPago, id]);
-    if (estado === 'pagada' && rows[0]?.prestamo_cuota_id) {
+    if ((rows[0]?.estado === 'pagada' || rows[0]?.estado === 'atrasada') && rows[0]?.prestamo_cuota_id) {
       await marcarCuotaConvenioPagada(client, rows[0].prestamo_cuota_id, rows[0].id);
     }
     await client.query('COMMIT');

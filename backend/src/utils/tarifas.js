@@ -56,4 +56,22 @@ async function calcularTotalPorTramos(pool, consumoM3, tipoUsuario = 'normal') {
   };
 }
 
-module.exports = { calcularTotalPorTramos };
+// Cargo fijo mensual: normalmente el valor global de configuracion_sistema,
+// pero un usuario puede tener uno personalizado (ej. medidor compartido de varias familias).
+async function obtenerCargoFijo(pool, usuarioId) {
+  const cfgResult = await pool.query(
+    `SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`
+  );
+  const cargoFijoGlobal = parseFloat(cfgResult.rows[0]?.valor || 3000);
+
+  if (!usuarioId) return cargoFijoGlobal;
+
+  const userResult = await pool.query(
+    `SELECT cargo_fijo_personalizado FROM usuarios WHERE id = $1`,
+    [usuarioId]
+  );
+  const personalizado = userResult.rows[0]?.cargo_fijo_personalizado;
+  return personalizado != null ? parseFloat(personalizado) : cargoFijoGlobal;
+}
+
+module.exports = { calcularTotalPorTramos, obtenerCargoFijo };
