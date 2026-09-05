@@ -124,12 +124,17 @@ router.post('/crear', async (req, res) => {
   }
 });
 
-// Obtener préstamos activos
 // Obtener préstamos activos (con detalle de cuotas)
+// Por defecto solo trae los de tipo_convenio='estanque' (los préstamos de insumos de siempre).
+// Pasar ?tipo_convenio=incorporacion,arranque para traer los convenios en su lugar.
 router.get('/activos', async (req, res) => {
   try {
+    const tipos = req.query.tipo_convenio
+      ? req.query.tipo_convenio.split(',').map(t => t.trim())
+      : ['estanque'];
+
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         p.*,
         COALESCE(u.nombre, split_part(p.notas, 'VINCULADO: ', 2)) as usuario_nombre,
         u.rut as usuario_rut,
@@ -156,15 +161,101 @@ router.get('/activos', async (req, res) => {
        LEFT JOIN usuarios u ON p.usuario_id = u.id
        LEFT JOIN insumos i ON p.insumo_id = i.id
        LEFT JOIN prestamo_cuotas pc ON pc.prestamo_id = p.id
-       WHERE p.estado = 'activo'
+       WHERE p.estado = 'activo' AND p.tipo_convenio = ANY($1::text[])
        GROUP BY p.id, u.id, u.nombre, u.rut, i.nombre, i.unidad_medida
-       ORDER BY p.created_at DESC`
+       ORDER BY p.created_at DESC`,
+      [tipos]
     );
 
     res.json({ success: true, prestamos: result.rows });
   } catch (error) {
     console.error('Error obteniendo préstamos activos:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Crear nuevo convenio (derecho de incorporación / arranque) — sin insumo físico,
+// a diferencia de los préstamos de estanque. Misma lógica de generación de cuotas que /crear.
+router.post('/convenios/crear', async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const { usuario_id, tipo_convenio, cuota_mensual, num_cuotas, fecha_inicio, notas } = req.body;
+
+    if (!usuario_id || !tipo_convenio || !cuota_mensual || !num_cuotas) {
+      return res.status(400).json({
+        success: false,
+        error: 'Faltan campos requeridos: usuario_id, tipo_convenio, cuota_mensual, num_cuotas'
+      });
+    }
+
+    if (!['incorporacion', 'arranque'].includes(tipo_convenio)) {
+      return res.status(400).json({
+        success: false,
+        error: "tipo_convenio debe ser 'incorporacion' o 'arranque'"
+      });
+    }
+
+    if (num_cuotas < 1 || num_cuotas > 60) {
+      return res.status(400).json({
+        success: false,
+        error: 'El número de cuotas debe ser entre 1 y 60'
+      });
+    }
+
+    await client.query('BEGIN');
+
+    const usuarioResult = await client.query('SELECT nombre FROM usuarios WHERE id = $1', [usuario_id]);
+    if (usuarioResult.rows.length === 0) {
+      throw new Error('Usuario no encontrado');
+    }
+    const nombreUsuario = usuarioResult.rows[0].nombre;
+
+    const cuotaMensual = parseFloat(cuota_mensual);
+    const montoTotal = cuotaMensual * parseInt(num_cuotas);
+    const fechaInicio = fecha_inicio ? new Date(fecha_inicio) : new Date();
+
+    const prestamoResult = await client.query(
+      `INSERT INTO prestamos
+       (usuario_id, insumo_id, monto_total, num_cuotas, cuota_mensual, cuotas_pagadas, estado, tipo_convenio, fecha_inicio, notas)
+       VALUES ($1, NULL, $2, $3, $4, 0, 'activo', $5, $6, $7)
+       RETURNING id`,
+      [usuario_id, montoTotal, num_cuotas, cuotaMensual, tipo_convenio, fechaInicio.toISOString().split('T')[0], notas || null]
+    );
+
+    const prestamoId = prestamoResult.rows[0].id;
+
+    for (let i = 1; i <= num_cuotas; i++) {
+      const fechaEsperada = new Date(fechaInicio);
+      fechaEsperada.setMonth(fechaEsperada.getMonth() + (i - 1));
+
+      await client.query(
+        `INSERT INTO prestamo_cuotas (prestamo_id, numero_cuota, fecha_esperada, monto_esperado, monto_pagado, estado)
+         VALUES ($1, $2, $3, $4, 0, 'pendiente')`,
+        [prestamoId, i, fechaEsperada, cuotaMensual]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      mensaje: `Convenio de ${tipo_convenio === 'incorporacion' ? 'Derecho de Incorporación' : 'Arranque'} creado para ${nombreUsuario}`,
+      prestamo: {
+        id: prestamoId,
+        tipo_convenio,
+        monto_total: montoTotal,
+        num_cuotas: parseInt(num_cuotas),
+        cuota_mensual: cuotaMensual
+      }
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error creando convenio:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
   }
 });
 

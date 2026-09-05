@@ -67,7 +67,7 @@ function Layout({ children }) {
       { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
       { id: 'cortes', label: 'Cortes', icon: '✂️' },
       { id: 'repactaciones', label: 'Repactaciones', icon: '💳' },
-      { id: 'prestamos', label: 'Préstamos', icon: '🔧' },
+      { id: 'financiamiento', label: 'Financiamiento', icon: '🔧' },
       {
         id: 'comunicaciones', label: 'Comunicaciones', icon: '📨', submenu: [
           { id: 'boletas', label: 'Boletas' },

@@ -15,7 +15,7 @@ import UploadExcel from './components/UploadExcel';
 import PagoExitoso from './pages/PagoExitoso';
 import CortesPage from './pages/CortesPage';
 import RepactacionesPage from './pages/RepactacionesPage';
-import PrestamosPage from './pages/PrestamosPage';
+import FinanciamientoPage from './pages/FinanciamientoPage';
 import AvisosPage from './pages/AvisosPage';
 import CargaSimplePage from './pages/CargaSimplePage';
 import OperadorLecturasPage from './pages/OperadorLecturasPage';
@@ -131,11 +131,11 @@ function AppContent() {
               return <MiCuentaPage />;
             }
             return <RepactacionesPage />;
-          case 'prestamos':
+          case 'financiamiento':
             if (!isAdmin) {
               return <MiCuentaPage />;
             }
-            return <PrestamosPage />;
+            return <FinanciamientoPage />;
           case 'avisos':
             if (!isAdmin) {
               return <MiCuentaPage />;
