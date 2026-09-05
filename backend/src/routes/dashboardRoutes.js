@@ -88,19 +88,27 @@ router.get('/top-deudores', async (req, res) => {
   }
 });
 
+const getMesesAtras = (rango) => {
+  const rangos = { '7d': 1, '15d': 1, '30d': 1, '3m': 3, '6m': 6, '1y': 12 };
+  return rangos[rango] || 3;
+};
+
 router.get('/evolucion-consumo', async (req, res) => {
   try {
-    const dias = getDias(req.query.rango);
+    const mesesAtras = getMesesAtras(req.query.rango);
+    // Se agrupa por los campos mes/anio (el período real de facturación), no por
+    // fecha_lectura: cargas masivas históricas dejaron fecha_lectura con la fecha
+    // de la carga, no la del período, lo que mezclaba meses distintos en un mismo punto.
     const result = await pool.query(
-      `SELECT 
-        TO_CHAR(DATE_TRUNC('month', fecha_lectura), 'Mon YYYY') as mes,
+      `SELECT
+        TO_CHAR(TO_DATE(anio || '-' || LPAD(mes::text, 2, '0'), 'YYYY-MM'), 'Mon YYYY') as mes,
         AVG(consumo_m3) as consumo_promedio,
         SUM(consumo_m3) as consumo_total,
         COUNT(*) as lecturas_totales
        FROM lecturas
-       WHERE fecha_lectura >= CURRENT_DATE - ($1 * INTERVAL '1 day')
-       GROUP BY DATE_TRUNC('month', fecha_lectura)
-       ORDER BY DATE_TRUNC('month', fecha_lectura) ASC`, [dias]
+       WHERE (anio * 12 + mes) > (EXTRACT(YEAR FROM CURRENT_DATE)::int * 12 + EXTRACT(MONTH FROM CURRENT_DATE)::int - $1)
+       GROUP BY anio, mes
+       ORDER BY anio ASC, mes ASC`, [mesesAtras]
     );
     res.json({ success: true, evolucion: result.rows });
   } catch (error) {
