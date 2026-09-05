@@ -1,0 +1,46 @@
+{
+  "fecha": "2026-09-01T23:17:58.612Z",
+  "dry_run": true,
+  "usuario_antes": {
+    "id": 58,
+    "nombre": "DEBORA LUIZA MUÑOZ BARRA",
+    "cargo_fijo_personalizado": null
+  },
+  "usuario_despues": {
+    "id": 58,
+    "nombre": "DEBORA LUIZA MUÑOZ BARRA",
+    "cargo_fijo_personalizado": "99000"
+  },
+  "boleta_antes": {
+    "id": 2657,
+    "periodo": "2026-08",
+    "consumo_m3": 248,
+    "total_mes": "334450.00",
+    "saldo_anterior": "842650.00",
+    "total_a_pagar": "1177100.00",
+    "saldo_pendiente": "1177100.00",
+    "estado": "pendiente",
+    "cuota_prestamo": "0.00",
+    "monto_corte": "0.00",
+    "monto_reposicion": "0.00",
+    "cuota_repactacion": "0.00",
+    "monto_multas": "0.00",
+    "monto_iva": "0.00"
+  },
+  "calculo": {
+    "nuevoTotalMes": 430450,
+    "nuevoSaldoAnterior": 0,
+    "extras": 0,
+    "nuevoTotalAPagar": 430450,
+    "nuevoSaldoPendiente": 430450
+  },
+  "boleta_despues": {
+    "id": 2657,
+    "periodo": "2026-08",
+    "total_mes": "430450.00",
+    "saldo_anterior": "0.00",
+    "total_a_pagar": "430450.00",
+    "saldo_pendiente": "430450.00",
+    "estado": "pendiente"
+  }
+}
