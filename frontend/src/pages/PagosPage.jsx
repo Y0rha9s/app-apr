@@ -4,7 +4,7 @@ import Button from '../components/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { usuariosService } from '../services/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const PagosPage = () => {
   const { usuario } = useAuth();
@@ -44,7 +44,7 @@ const PagosPage = () => {
 
   const cargarBoletas = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/boletas/usuario/${usuario.id}`);
+      const res = await fetch(`${API_URL}/boletas/usuario/${usuario.id}`);
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`HTTP ${res.status} ${res.statusText}: ${text.slice(0, 120)}`);
@@ -58,7 +58,7 @@ const PagosPage = () => {
 
   const cargarComprobantes = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/comprobantes/usuario/${usuario.id}`);
+      const res = await fetch(`${API_URL}/comprobantes/usuario/${usuario.id}`);
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`HTTP ${res.status} ${res.statusText}: ${text.slice(0, 120)}`);
@@ -92,7 +92,7 @@ const PagosPage = () => {
       if (form.numero_operacion) fd.append('numero_operacion', form.numero_operacion);
       if (form.comprobante) fd.append('comprobante', form.comprobante);
 
-      const res = await fetch(`${API_URL}/api/comprobantes`, {
+      const res = await fetch(`${API_URL}/comprobantes`, {
         method: 'POST',
         body: fd
       });

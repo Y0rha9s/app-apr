@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 
 function FormularioNuevaLectura({ onClose, onSuccess }) {
   const [usuarios, setUsuarios] = useState([]);
@@ -16,8 +17,6 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
     mes: new Date().getMonth() + 1,
     anio: new Date().getFullYear()
   });
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const meses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -38,9 +37,8 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
 
   const cargarUsuarios = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/usuarios`);
-      const data = await response.json();
-      const usuariosFiltrados = data.filter(u => u.rol === 'usuario');
+      const response = await api.get('/usuarios');
+      const usuariosFiltrados = response.data.filter(u => u.rol === 'usuario');
       setUsuarios(usuariosFiltrados);
       setUsuariosFiltrados(usuariosFiltrados);
     } catch (err) {
@@ -95,9 +93,9 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
 
   const obtenerUltimaLectura = async (usuarioId) => {
     try {
-      const response = await fetch(`${API_URL}/api/lecturas`);
-      const lecturas = await response.json();
-      
+      const response = await api.get('/lecturas');
+      const lecturas = response.data;
+
       const lecturasUsuario = lecturas.filter(l => l.usuario_id === parseInt(usuarioId));
       if (lecturasUsuario.length > 0) {
         const ultima = lecturasUsuario.sort((a, b) => {
@@ -133,20 +131,14 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/lecturas/crear-con-boleta`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          usuario_id: parseInt(formData.usuario_id),
-          lectura_actual: parseInt(formData.lectura_actual),
-          mes: parseInt(formData.mes),
-          anio: parseInt(formData.anio)
-        })
+      const response = await api.post('/lecturas/crear-con-boleta', {
+        usuario_id: parseInt(formData.usuario_id),
+        lectura_actual: parseInt(formData.lectura_actual),
+        mes: parseInt(formData.mes),
+        anio: parseInt(formData.anio)
       });
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         onSuccess(data);
@@ -156,7 +148,7 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
       }
     } catch (err) {
       console.error('Error:', err);
-      setError('Error de conexión con el servidor');
+      setError(err.response?.data?.error || 'Error de conexión con el servidor');
     } finally {
       setLoading(false);
     }

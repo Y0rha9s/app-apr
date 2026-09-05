@@ -67,7 +67,7 @@ function LecturasPage() {
   };
 
   const descargarExcel = () => {
-    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/reporte/lecturas-excel?mes=${mesFiltro}&anio=${anioFiltro}`;
+    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/reporte/lecturas-excel?mes=${mesFiltro}&anio=${anioFiltro}`;
     window.open(url, '_blank');
   };
 
