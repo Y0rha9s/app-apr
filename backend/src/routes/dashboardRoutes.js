@@ -7,9 +7,28 @@ const getDias = (rango) => {
   return rangos[rango] || 90;
 };
 
+const getMesesAtras = (rango) => {
+  const rangos = { '7d': 1, '15d': 1, '30d': 1, '3m': 3, '6m': 6, '1y': 12 };
+  return rangos[rango] || 3;
+};
+
+// Antes de agosto 2026 las lecturas quedaron con fecha_lectura de una carga masiva
+// historica (no la fecha real del periodo), lo que mezclaba meses distintos en las
+// metricas de consumo. Se usa como piso para todas las metricas basadas en lecturas.
+const PERIODO_CORTE = 2026 * 12 + 8;
+
+// Fragmento SQL reutilizable: filtra lecturas por (anio*12+mes) usando el mayor entre
+// el rango pedido y el piso de agosto 2026. Params: $N = mesesAtras, $N+1 = PERIODO_CORTE
+const filtroPeriodoLecturas = (colAnio = 'anio', colMes = 'mes', pMesesAtras = '$1', pCorte = '$2') =>
+  `(${colAnio} * 12 + ${colMes}) >= GREATEST(
+     EXTRACT(YEAR FROM CURRENT_DATE)::int * 12 + EXTRACT(MONTH FROM CURRENT_DATE)::int - ${pMesesAtras} + 1,
+     ${pCorte}
+   )`;
+
 router.get('/kpis', async (req, res) => {
   try {
     const dias = getDias(req.query.rango);
+    const mesesAtras = getMesesAtras(req.query.rango);
 
     const usuariosTotal  = await pool.query(`SELECT COUNT(*) as total FROM usuarios WHERE rol = $1`, ['usuario']);
     const usuariosActivos = await pool.query(`SELECT COUNT(*) as total FROM usuarios WHERE rol = $1 AND estado = $2`, ['usuario', 'activo']);
@@ -24,7 +43,7 @@ router.get('/kpis', async (req, res) => {
     );
     const consumoPromedio = await pool.query(
       `SELECT AVG(consumo_m3) as promedio FROM lecturas
-       WHERE fecha_lectura >= CURRENT_DATE - ($1 * INTERVAL '1 day')`, [dias]
+       WHERE ${filtroPeriodoLecturas()}`, [mesesAtras, PERIODO_CORTE]
     );
     const ingresosMes = await pool.query(
       `SELECT COALESCE(SUM(monto), 0) as total FROM pagos
@@ -51,16 +70,16 @@ router.get('/kpis', async (req, res) => {
 
 router.get('/top-consumidores', async (req, res) => {
   try {
-    const dias = getDias(req.query.rango);
+    const mesesAtras = getMesesAtras(req.query.rango);
     const result = await pool.query(
       `SELECT u.id, u.nombre, u.numero_cliente,
         AVG(l.consumo_m3) as consumo_promedio,
         SUM(l.consumo_m3) as consumo_total
        FROM usuarios u
        INNER JOIN lecturas l ON u.id = l.usuario_id
-       WHERE l.fecha_lectura >= CURRENT_DATE - ($1 * INTERVAL '1 day')
+       WHERE ${filtroPeriodoLecturas('l.anio', 'l.mes')}
        GROUP BY u.id, u.nombre, u.numero_cliente
-       ORDER BY consumo_total DESC LIMIT 10`, [dias]
+       ORDER BY consumo_total DESC LIMIT 10`, [mesesAtras, PERIODO_CORTE]
     );
     res.json({ success: true, consumidores: result.rows });
   } catch (error) {
@@ -88,11 +107,6 @@ router.get('/top-deudores', async (req, res) => {
   }
 });
 
-const getMesesAtras = (rango) => {
-  const rangos = { '7d': 1, '15d': 1, '30d': 1, '3m': 3, '6m': 6, '1y': 12 };
-  return rangos[rango] || 3;
-};
-
 router.get('/evolucion-consumo', async (req, res) => {
   try {
     const mesesAtras = getMesesAtras(req.query.rango);
@@ -106,9 +120,9 @@ router.get('/evolucion-consumo', async (req, res) => {
         SUM(consumo_m3) as consumo_total,
         COUNT(*) as lecturas_totales
        FROM lecturas
-       WHERE (anio * 12 + mes) > (EXTRACT(YEAR FROM CURRENT_DATE)::int * 12 + EXTRACT(MONTH FROM CURRENT_DATE)::int - $1)
+       WHERE ${filtroPeriodoLecturas()}
        GROUP BY anio, mes
-       ORDER BY anio ASC, mes ASC`, [mesesAtras]
+       ORDER BY anio ASC, mes ASC`, [mesesAtras, PERIODO_CORTE]
     );
     res.json({ success: true, evolucion: result.rows });
   } catch (error) {
@@ -119,6 +133,7 @@ router.get('/evolucion-consumo', async (req, res) => {
 router.get('/alertas', async (req, res) => {
   try {
     const dias = getDias(req.query.rango);
+    const mesesAtras = getMesesAtras(req.query.rango);
 
     const nuevosMorosos = await pool.query(
       `SELECT u.nombre, u.numero_cliente, b.periodo, b.saldo_pendiente, b.fecha_vencimiento
@@ -132,12 +147,13 @@ router.get('/alertas', async (req, res) => {
     const consumoAnormal = await pool.query(
       `WITH promedios AS (
         SELECT usuario_id, AVG(consumo_m3) as promedio FROM lecturas
-        WHERE fecha_lectura >= CURRENT_DATE - ($1 * INTERVAL '1 day')
+        WHERE ${filtroPeriodoLecturas()}
         GROUP BY usuario_id HAVING AVG(consumo_m3) > 0
       ),
       ultimas_lecturas AS (
-        SELECT DISTINCT ON (usuario_id) usuario_id, consumo_m3, fecha_lectura
-        FROM lecturas ORDER BY usuario_id, fecha_lectura DESC
+        SELECT DISTINCT ON (usuario_id) usuario_id, consumo_m3, anio, mes
+        FROM lecturas WHERE ${filtroPeriodoLecturas()}
+        ORDER BY usuario_id, anio DESC, mes DESC
       )
       SELECT u.nombre, u.numero_cliente,
         ul.consumo_m3 as consumo_actual, p.promedio as consumo_promedio,
@@ -146,7 +162,7 @@ router.get('/alertas', async (req, res) => {
       JOIN promedios p ON ul.usuario_id = p.usuario_id
       JOIN usuarios u ON ul.usuario_id = u.id
       WHERE ABS((ul.consumo_m3 - p.promedio) / NULLIF(p.promedio, 0) * 100) > 30
-      ORDER BY ABS((ul.consumo_m3 - p.promedio) / NULLIF(p.promedio, 0) * 100) DESC LIMIT 5`, [dias]
+      ORDER BY ABS((ul.consumo_m3 - p.promedio) / NULLIF(p.promedio, 0) * 100) DESC LIMIT 5`, [mesesAtras, PERIODO_CORTE]
     );
 
     const cortesProximos = await pool.query(
