@@ -16,6 +16,8 @@ function AbrirCajaPage() {
   const [usuarios, setUsuarios] = useState([]);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState('');
   const [deudaUsuario, setDeudaUsuario] = useState(0);
+  const [boletasUsuario, setBoletasUsuario] = useState([]);
+  const [boletaSeleccionada, setBoletaSeleccionada] = useState('');
   const [montoPago, setMontoPago] = useState('');
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [observacionesPago, setObservacionesPago] = useState('');
@@ -49,7 +51,11 @@ function AbrirCajaPage() {
   useEffect(() => {
     if (usuarioSeleccionado) {
       calcularDeudaUsuario(usuarioSeleccionado);
+      cargarBoletasUsuario(usuarioSeleccionado);
+    } else {
+      setBoletasUsuario([]);
     }
+    setBoletaSeleccionada('');
   }, [usuarioSeleccionado]);
 
   // Cerrar buscador al hacer clic fuera
@@ -116,6 +122,25 @@ function AbrirCajaPage() {
     }
   };
 
+  const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const etiquetaPeriodo = (periodo) => {
+    const [anio, mes] = periodo.split('-').map(Number);
+    return `${MESES_CORTOS[mes - 1]} ${anio}`;
+  };
+
+  const cargarBoletasUsuario = async (usuarioId) => {
+    try {
+      const response = await api.get(`/boletas/usuario/${usuarioId}`);
+      const pendientes = response.data
+        .filter(b => b.estado === 'pendiente' || b.estado === 'abonada')
+        .sort((a, b) => a.periodo.localeCompare(b.periodo));
+      setBoletasUsuario(pendientes);
+    } catch (error) {
+      console.error('Error cargando boletas del usuario:', error);
+      setBoletasUsuario([]);
+    }
+  };
+
   const handleAbrirCaja = async (e) => {
     e.preventDefault();
     setEnviando(true);
@@ -155,7 +180,8 @@ function AbrirCajaPage() {
         monto: parseFloat(montoPago),
         metodo_pago: metodoPago,
         numero_operacion: numeroOperacion || null,
-        observaciones: observacionesPago
+        observaciones: observacionesPago,
+        boleta_id: boletaSeleccionada ? parseInt(boletaSeleccionada) : null
       });
 
       alert('✅ Pago registrado exitosamente');
@@ -164,6 +190,8 @@ function AbrirCajaPage() {
       setUsuarioSeleccionado('');
       setBusqueda('');
       setDeudaUsuario(0);
+      setBoletasUsuario([]);
+      setBoletaSeleccionada('');
       setMontoPago('');
       setMetodoPago('efectivo');
       setNumeroOperacion('');
@@ -376,6 +404,32 @@ function AbrirCajaPage() {
               </div>
             )}
           </div>
+
+          {usuarioSeleccionado && (
+            <div>
+              <label className="block text-xl font-bold text-gray-700 mb-3">
+                Aplicar Pago a
+              </label>
+              <select
+                value={boletaSeleccionada}
+                onChange={(e) => setBoletaSeleccionada(e.target.value)}
+                className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+              >
+                <option value="">Automático (la boleta pendiente más antigua)</option>
+                {boletasUsuario.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {etiquetaPeriodo(b.periodo)} — {b.estado === 'abonada' ? 'Abonada, saldo' : 'Pendiente'} {formatearMonto(b.saldo_pendiente)}
+                  </option>
+                ))}
+              </select>
+              {boletasUsuario.length === 0 && (
+                <p className="text-base text-gray-500 mt-1">Este usuario no tiene boletas pendientes.</p>
+              )}
+              <p className="text-base text-gray-500 mt-1">
+                Si el monto pagado sobra después de cubrir la boleta elegida, el resto se aplica a las siguientes boletas pendientes en orden.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>

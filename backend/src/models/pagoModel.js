@@ -51,7 +51,7 @@ const pagoModel = {
 
   // Crear pago Y sincronizar boletas automáticamente
   create: async (pago) => {
-    const { usuario_id, caja_id, monto, metodo_pago, observaciones } = pago;
+    const { usuario_id, caja_id, monto, metodo_pago, observaciones, boleta_id } = pago;
     const client = await pool.connect();
 
     try {
@@ -64,14 +64,17 @@ const pagoModel = {
       );
       const pagoCreado = pagoResult.rows[0];
 
-      // 2. Aplicar el monto a las boletas pendientes/abonadas (más antigua primero)
+      // 2. Aplicar el monto a las boletas pendientes/abonadas. Si el cajero eligio una
+      // boleta especifica (boleta_id), esa se cubre primero; el resto (si sobra) sigue
+      // aplicandose en orden de periodo (no de fecha de creacion: una boleta generada
+      // fuera de orden -ej: julio generada despues de agosto- no debe saltarse la fila).
       let restante = parseFloat(monto);
 
       const { rows: boletasPendientes } = await client.query(
         `SELECT id, saldo_pendiente, prestamo_cuota_id FROM boletas
          WHERE usuario_id = $1 AND estado IN ('pendiente', 'abonada')
-         ORDER BY created_at ASC`,
-        [usuario_id]
+         ORDER BY (id = $2) DESC, periodo ASC`,
+        [usuario_id, boleta_id || null]
       );
 
       for (const b of boletasPendientes) {
