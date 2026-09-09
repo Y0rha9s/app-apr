@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
+const sharp = require('sharp');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -33,14 +34,21 @@ router.post('/lectura', upload.single('foto'), async (req, res) => {
 
     const supabase = getSupabase();
     const timestamp = Date.now();
-    const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
-    const fileName = `lectura_${timestamp}${ext}`;
+    const fileName = `lectura_${timestamp}.jpg`;
     const filePath = `fotos/${fileName}`;
+
+    // Redimensionar y comprimir: una foto de medidor no necesita mas de 1280px
+    // de ancho ni calidad maxima para ser legible, y esto evita llenar el storage.
+    const bufferComprimido = await sharp(req.file.buffer)
+      .rotate()
+      .resize({ width: 1280, withoutEnlargement: true })
+      .jpeg({ quality: 75 })
+      .toBuffer();
 
     const { error: uploadError } = await supabase.storage
       .from('lecturas-fotos')
-      .upload(filePath, req.file.buffer, {
-        contentType: req.file.mimetype,
+      .upload(filePath, bufferComprimido, {
+        contentType: 'image/jpeg',
         upsert: false
       });
 

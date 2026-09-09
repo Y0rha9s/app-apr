@@ -4,6 +4,7 @@ const pool = require('../config/database');
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
+const sharp = require('sharp');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -36,14 +37,30 @@ router.post('/', upload.single('comprobante'), async (req, res) => {
     if (req.file) {
       const supabase = getSupabase();
       const timestamp = Date.now();
-      const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+      const esImagen = req.file.mimetype.startsWith('image/');
+
+      // Redimensionar y comprimir solo si es imagen; los PDF se suben tal cual.
+      let bufferSubida = req.file.buffer;
+      let contentType = req.file.mimetype;
+      let ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+
+      if (esImagen) {
+        bufferSubida = await sharp(req.file.buffer)
+          .rotate()
+          .resize({ width: 1280, withoutEnlargement: true })
+          .jpeg({ quality: 75 })
+          .toBuffer();
+        contentType = 'image/jpeg';
+        ext = '.jpg';
+      }
+
       const fileName = `comprobante_${usuario_id}_${timestamp}${ext}`;
       const filePath = `comprobantes/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('lecturas-fotos')
-        .upload(filePath, req.file.buffer, {
-          contentType: req.file.mimetype,
+        .upload(filePath, bufferSubida, {
+          contentType,
           upsert: false
         });
 
