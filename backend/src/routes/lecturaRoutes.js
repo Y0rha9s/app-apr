@@ -4,6 +4,7 @@ const pool = require('../config/database');
 const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
+const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
 
 // Wrapper para mantener la firma usada en este archivo (pool tomado del closure)
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
@@ -77,19 +78,11 @@ router.post('/crear-con-boleta', async (req, res) => {
     const lecturaId = resultLectura.rows[0].id;
     const consumoM3 = resultLectura.rows[0].consumo_m3;
 
-    // 5. Obtener saldo anterior
-    const saldoResult = await client.query(
-      `SELECT saldo_pendiente 
-       FROM boletas 
-       WHERE usuario_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT 1`,
-      [usuario_id]
-    );
-
-    const saldoAnterior = saldoResult.rows.length > 0
-      ? parseFloat(saldoResult.rows[0].saldo_pendiente)
-      : 0;
+    // 5. Obtener saldo anterior (del periodo inmediatamente anterior, no de la
+    // ultima boleta creada: si esta lectura llega atrasada y ya existe una boleta
+    // de un periodo posterior, no hay que heredar el saldo de esa boleta futura).
+    const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
+    const saldoAnterior = await obtenerSaldoAnteriorPeriodo(client, usuario_id, periodo);
 
     let montoCorte = 0;
     let montoReposicion = 0;
@@ -144,9 +137,6 @@ router.post('/crear-con-boleta', async (req, res) => {
     const fechaPeriodo = new Date(anio, mes - 1, 1);
     const fechaVencimiento = new Date(fechaPeriodo);
     fechaVencimiento.setDate(fechaPeriodo.getDate() + 15);
-
-    // 8. Crear periodo en formato YYYY-MM
-    const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
 
     // 9. Insertar boleta
     const resultBoleta = await client.query(

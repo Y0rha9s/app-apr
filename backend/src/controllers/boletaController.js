@@ -6,6 +6,7 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 const { clasificarBoletaVisual } = require('../utils/clasificacionVisual');
+const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
 
 // ─── HELPER: cálculo de monto por tramos (compartido por generación masiva e individual) ───
 const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
@@ -77,11 +78,7 @@ const generarMasivo = async (req, res) => {
   try {
     await client.query('BEGIN');
     const { rows: lecturas } = await client.query(`
-      SELECT l.*, u.id as usuario_id, u.nombre, u.rut, u.numero_cliente, u.tiene_subsidio, u.saldo_favor,
-        COALESCE((
-          SELECT b2.saldo_pendiente FROM boletas b2
-          WHERE b2.usuario_id = u.id ORDER BY b2.created_at DESC LIMIT 1
-        ), 0) AS saldo_anterior_calc
+      SELECT l.*, u.id as usuario_id, u.nombre, u.rut, u.numero_cliente, u.tiene_subsidio, u.saldo_favor
       FROM lecturas l JOIN usuarios u ON u.id = l.usuario_id
       WHERE l.mes = $1 AND l.anio = $2 AND u.estado = 'activo'
         AND NOT EXISTS (SELECT 1 FROM boletas b WHERE b.usuario_id = l.usuario_id AND b.periodo = $3)
@@ -100,7 +97,7 @@ const generarMasivo = async (req, res) => {
     let generadas = 0;
     for (const l of lecturas) {
       const consumo = parseFloat(l.consumo_m3 || 0);
-      const saldo_anterior = parseFloat(l.saldo_anterior_calc || 0);
+      const saldo_anterior = await obtenerSaldoAnteriorPeriodo(client, l.usuario_id, periodo);
       const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
       const cuotaConvenio = await obtenerProximaCuotaConvenio(client, l.usuario_id);
       const cuota_prestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
@@ -160,11 +157,7 @@ const generarIndividual = async (req, res) => {
     }
     const l = lecturas[0];
 
-    const { rows: saldoRows } = await client.query(
-      `SELECT saldo_pendiente FROM boletas WHERE usuario_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [usuario_id]
-    );
-    const saldo_anterior = saldoRows.length > 0 ? parseFloat(saldoRows[0].saldo_pendiente) : 0;
+    const saldo_anterior = await obtenerSaldoAnteriorPeriodo(client, usuario_id, periodo);
 
     const { rows: tramos } = await client.query(`SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC`);
     const { rows: configRows } = await client.query(`SELECT clave, valor FROM configuracion_sistema WHERE clave IN ('cargo_fijo', 'subsidio_porcentaje')`);
