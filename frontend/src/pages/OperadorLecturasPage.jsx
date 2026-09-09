@@ -8,7 +8,7 @@ const STORE_NAME = 'lecturas_pendientes';
 // IndexedDB helpers
 function abrirDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 2); // ← versión 2
+    const req = indexedDB.open(DB_NAME, 3); // ← versión 3
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -16,6 +16,9 @@ function abrirDB() {
       }
       if (!db.objectStoreNames.contains('usuarios_cache')) {
         db.createObjectStore('usuarios_cache', { keyPath: 'id' }); // ← nuevo store
+      }
+      if (!db.objectStoreNames.contains('lecturas_periodo_cache')) {
+        db.createObjectStore('lecturas_periodo_cache', { keyPath: 'id' }); // ← v3: quienes ya tienen lectura este periodo
       }
     };
     req.onsuccess = (e) => resolve(e.target.result);
@@ -75,6 +78,26 @@ async function cargarUsuariosCache() {
   });
 }
 
+async function guardarLecturasPeriodoCache(usuarioIds, mes, anio) {
+  const db = await abrirDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('lecturas_periodo_cache', 'readwrite');
+    tx.objectStore('lecturas_periodo_cache').put({ id: 'actual', usuarioIds, mes, anio });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function cargarLecturasPeriodoCache() {
+  const db = await abrirDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('lecturas_periodo_cache', 'readonly');
+    const req = tx.objectStore('lecturas_periodo_cache').get('actual');
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
 function OperadorLecturasPage() {
   const { usuario } = useAuth();
   const [online, setOnline] = useState(navigator.onLine);
@@ -89,6 +112,7 @@ function OperadorLecturasPage() {
   const [fotoPreview, setFotoPreview] = useState(null);
   const [fotoFile, setFotoFile] = useState(null);
   const [ciclo, setCiclo] = useState(null);
+  const [usuariosConLectura, setUsuariosConLectura] = useState(new Set());
   const fotoRef = useRef();
 
   const [formData, setFormData] = useState({
@@ -115,6 +139,7 @@ function OperadorLecturasPage() {
   useEffect(() => {
     cargarPendientes();
     cargarUsuarios();
+    cargarUsuariosConLectura();
     if (online) cargarCiclo();
   }, [online]);
 
@@ -163,6 +188,41 @@ function OperadorLecturasPage() {
     const items = await obtenerPendientes();
     setPendientes(items);
   };
+
+  // Quienes ya tienen una lectura este periodo (mes/anio actual). Se guarda en cache
+  // para que el check tambien funcione sin conexion, y se combina con la cola local
+  // de pendientes (lecturas tomadas en este mismo dispositivo que aun no sincronizan).
+  const cargarUsuariosConLectura = async () => {
+    const mesActual = new Date().getMonth() + 1;
+    const anioActual = new Date().getFullYear();
+    try {
+      const res = await fetch(`${API_URL}/api/lecturas`);
+      const data = await res.json();
+      const ids = data
+        .filter(l => l.mes === mesActual && l.anio === anioActual)
+        .map(l => l.usuario_id);
+      setUsuariosConLectura(new Set(ids));
+      await guardarLecturasPeriodoCache(ids, mesActual, anioActual);
+    } catch {
+      try {
+        const cached = await cargarLecturasPeriodoCache();
+        if (cached && cached.mes === mesActual && cached.anio === anioActual) {
+          setUsuariosConLectura(new Set(cached.usuarioIds));
+        }
+      } catch (cacheErr) {
+        console.error('Error cargando cache de lecturas del periodo:', cacheErr);
+      }
+    }
+  };
+
+  // Set final para pintar el check: cache del servidor + lo que este dispositivo
+  // ya tomo en este periodo pero todavia no sincroniza.
+  const mesActual = new Date().getMonth() + 1;
+  const anioActual = new Date().getFullYear();
+  const idsPendientesEstePeriodo = pendientes
+    .filter(p => p.mes === mesActual && p.anio === anioActual)
+    .map(p => p.usuario_id);
+  const usuariosYaTomados = new Set([...usuariosConLectura, ...idsPendientesEstePeriodo]);
 
   const handleBusqueda = (e) => {
     const valor = e.target.value;
@@ -223,6 +283,13 @@ function OperadorLecturasPage() {
       return;
     }
 
+    if (usuariosYaTomados.has(parseInt(formData.usuario_id))) {
+      const continuar = window.confirm(
+        `${formData.usuario_nombre} ya tiene una lectura registrada este período.\n¿Registrar de todos modos?`
+      );
+      if (!continuar) return;
+    }
+
     setLoading(true);
 
     try {
@@ -269,6 +336,7 @@ function OperadorLecturasPage() {
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Error al guardar lectura');
         mostrarMensaje(`✅ Lectura guardada — Consumo: ${data.lectura.consumo_m3} m³`);
+        cargarUsuariosConLectura();
       } else {
         // Guardar en IndexedDB
         await guardarOffline(lecturaData);
@@ -334,7 +402,10 @@ function OperadorLecturasPage() {
 
     await cargarPendientes();
     setSincronizando(false);
-    if (exitosos > 0) mostrarMensaje(`✅ ${exitosos} lectura(s) sincronizada(s)`);
+    if (exitosos > 0) {
+      mostrarMensaje(`✅ ${exitosos} lectura(s) sincronizada(s)`);
+      cargarUsuariosConLectura();
+    }
   };
 
   const estaEnPeriodo = ciclo
@@ -408,7 +479,14 @@ function OperadorLecturasPage() {
               {usuariosFiltrados.map(u => (
                 <div key={u.id} onClick={() => seleccionarUsuario(u)}
                   className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0">
-                  <p className="font-semibold text-gray-800">{u.nombre}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-gray-800">{u.nombre}</p>
+                    {usuariosYaTomados.has(u.id) && (
+                      <span className="shrink-0 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                        ✓ Ya tomada
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {u.rut} {u.medidor && `· Medidor: ${u.medidor}`} {u.numero_cliente && `· N°${u.numero_cliente}`}
                   </p>
@@ -417,7 +495,14 @@ function OperadorLecturasPage() {
             </div>
           )}
 
-          {formData.usuario_id && (
+          {formData.usuario_id && usuariosYaTomados.has(parseInt(formData.usuario_id)) && (
+            <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg flex justify-between items-center">
+              <span className="text-sm text-amber-800 font-medium">⚠️ {formData.usuario_nombre} — ya tiene lectura este período</span>
+              <button type="button" onClick={limpiarSeleccion}
+                className="text-xs text-amber-700 underline shrink-0 ml-2">Cambiar</button>
+            </div>
+          )}
+          {formData.usuario_id && !usuariosYaTomados.has(parseInt(formData.usuario_id)) && (
             <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg flex justify-between items-center">
               <span className="text-sm text-green-800 font-medium">✓ {formData.usuario_nombre}</span>
               <button type="button" onClick={limpiarSeleccion}
