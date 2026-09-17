@@ -20,7 +20,7 @@ router.post('/crear', async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const { usuario_id, insumo_id, cantidad, num_cuotas, notas } = req.body;
+    const { usuario_id, insumo_id, cantidad, num_cuotas, fecha_inicio, notas } = req.body;
 
     if (!usuario_id || !insumo_id || !cantidad || !num_cuotas) {
       return res.status(400).json({
@@ -71,21 +71,22 @@ router.post('/crear', async (req, res) => {
     }
 
     const nombreUsuario = usuarioResult.rows[0].nombre;
+    const fechaInicio = fecha_inicio ? new Date(fecha_inicio) : new Date();
 
     // Crear préstamo
     const prestamoResult = await client.query(
-      `INSERT INTO prestamos 
-       (usuario_id, insumo_id, cantidad, monto_total, num_cuotas, cuota_mensual, cuotas_pagadas, estado, notas)
-       VALUES ($1, $2, $3, $4, $5, $6, 0, 'activo', $7)
+      `INSERT INTO prestamos
+       (usuario_id, insumo_id, cantidad, monto_total, num_cuotas, cuota_mensual, cuotas_pagadas, estado, fecha_inicio, notas)
+       VALUES ($1, $2, $3, $4, $5, $6, 0, 'activo', $7, $8)
        RETURNING id`,
-      [usuario_id, insumo_id, cantidad, montoTotal, num_cuotas, cuotaMensual, notas]
+      [usuario_id, insumo_id, cantidad, montoTotal, num_cuotas, cuotaMensual, fechaInicio.toISOString().split('T')[0], notas]
     );
 
     const prestamoId = prestamoResult.rows[0].id;
 
     for (let i = 1; i <= num_cuotas; i++) {
-      const fechaEsperada = new Date();
-      fechaEsperada.setMonth(fechaEsperada.getMonth() + i);
+      const fechaEsperada = new Date(fechaInicio);
+      fechaEsperada.setMonth(fechaEsperada.getMonth() + (i - 1));
 
       await client.query(
         `INSERT INTO prestamo_cuotas (prestamo_id, numero_cuota, fecha_esperada, monto_esperado, monto_pagado, estado)
@@ -285,12 +286,13 @@ router.get('/usuario/:usuario_id', async (req, res) => {
   }
 });
 
-// Pagar cuota de préstamo
+// Pagar una o varias cuotas de préstamo de una vez
 router.post('/pagar-cuota', async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const { prestamo_id } = req.body;
+    const { prestamo_id, cantidad_cuotas } = req.body;
+    const cantidad = Math.max(1, parseInt(cantidad_cuotas) || 1);
 
     if (!prestamo_id) {
       return res.status(400).json({ success: false, error: 'Se requiere prestamo_id' });
@@ -298,7 +300,6 @@ router.post('/pagar-cuota', async (req, res) => {
 
     await client.query('BEGIN');
 
-    // Obtener préstamo
     const prestamoResult = await client.query(
       'SELECT * FROM prestamos WHERE id = $1',
       [prestamo_id]
@@ -314,13 +315,31 @@ router.post('/pagar-cuota', async (req, res) => {
       throw new Error('El préstamo no está activo');
     }
 
-    const nuevasCuotasPagadas = prestamo.cuotas_pagadas + 1;
+    const cuotasPendientesDisponibles = prestamo.num_cuotas - prestamo.cuotas_pagadas;
+    if (cantidad > cuotasPendientesDisponibles) {
+      throw new Error(`Solo quedan ${cuotasPendientesDisponibles} cuota(s) pendiente(s)`);
+    }
+
+    // Marcar las cuotas mas antiguas pendientes como pagadas (esto tambien corrige
+    // que el detalle de cuotas se quedaba en 'pendiente' aunque el contador avanzara)
+    const { rows: cuotasAPagar } = await client.query(
+      `SELECT id FROM prestamo_cuotas WHERE prestamo_id = $1 AND estado = 'pendiente'
+       ORDER BY numero_cuota ASC LIMIT $2`,
+      [prestamo_id, cantidad]
+    );
+    for (const c of cuotasAPagar) {
+      await client.query(
+        `UPDATE prestamo_cuotas SET estado = 'pagada', fecha_pago = NOW(), monto_pagado = monto_esperado WHERE id = $1`,
+        [c.id]
+      );
+    }
+
+    const nuevasCuotasPagadas = prestamo.cuotas_pagadas + cantidad;
     const nuevoEstado = nuevasCuotasPagadas >= prestamo.num_cuotas ? 'completado' : 'activo';
     const fechaFin = nuevoEstado === 'completado' ? new Date() : null;
 
-    // Actualizar préstamo
     await client.query(
-      `UPDATE prestamos 
+      `UPDATE prestamos
        SET cuotas_pagadas = $1,
            estado = $2,
            fecha_fin = $3,
@@ -335,15 +354,113 @@ router.post('/pagar-cuota', async (req, res) => {
       success: true,
       mensaje: nuevoEstado === 'completado'
         ? 'Préstamo completado'
-        : `Cuota ${nuevasCuotasPagadas}/${prestamo.num_cuotas} pagada`,
+        : `${cantidad} cuota(s) pagada(s): ${nuevasCuotasPagadas}/${prestamo.num_cuotas}`,
       cuotas_pagadas: nuevasCuotasPagadas,
       cuotas_pendientes: prestamo.num_cuotas - nuevasCuotasPagadas,
+      saldo_pendiente: parseFloat(prestamo.cuota_mensual) * (prestamo.num_cuotas - nuevasCuotasPagadas),
       estado: nuevoEstado
     });
 
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error pagando cuota:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Anular un préstamo/convenio
+router.post('/:id/anular', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motivo } = req.body;
+
+    const result = await pool.query(
+      `UPDATE prestamos
+       SET estado = 'anulado',
+           notas = COALESCE(notas || ' | ', '') || 'Anulado' || CASE WHEN $2::text IS NOT NULL AND $2::text != '' THEN ': ' || $2::text ELSE '' END,
+           updated_at = NOW()
+       WHERE id = $1 AND estado != 'anulado'
+       RETURNING *`,
+      [id, motivo || null]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Préstamo no encontrado o ya estaba anulado' });
+    }
+
+    res.json({ success: true, prestamo: result.rows[0] });
+  } catch (error) {
+    console.error('Error anulando préstamo:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Editar un préstamo/convenio existente: cuota mensual, numero de cuotas, fecha de
+// inicio y notas. Las cuotas ya pagadas no se tocan; las pendientes se regeneran
+// segun los nuevos parametros (fechas y monto), y el estado se resincroniza.
+router.put('/:id', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const { cuota_mensual, num_cuotas, fecha_inicio, notas } = req.body;
+
+    await client.query('BEGIN');
+
+    const { rows: existente } = await client.query('SELECT * FROM prestamos WHERE id = $1', [id]);
+    if (existente.length === 0) throw new Error('Préstamo no encontrado');
+    const prestamo = existente[0];
+
+    if (prestamo.estado === 'anulado') throw new Error('No se puede editar un préstamo anulado');
+
+    const nuevoNumCuotas = num_cuotas !== undefined && num_cuotas !== '' ? parseInt(num_cuotas) : prestamo.num_cuotas;
+    if (nuevoNumCuotas < prestamo.cuotas_pagadas) {
+      throw new Error(`No se puede bajar de ${prestamo.cuotas_pagadas} cuotas: esa cantidad ya está pagada`);
+    }
+
+    const nuevaCuotaMensual = cuota_mensual !== undefined && cuota_mensual !== '' ? parseFloat(cuota_mensual) : parseFloat(prestamo.cuota_mensual);
+    const nuevaFechaInicio = fecha_inicio ? new Date(fecha_inicio) : new Date(prestamo.fecha_inicio || prestamo.created_at);
+    const nuevoMontoTotal = nuevaCuotaMensual * nuevoNumCuotas;
+
+    await client.query(
+      `UPDATE prestamos
+       SET cuota_mensual = $1, num_cuotas = $2, monto_total = $3, fecha_inicio = $4,
+           notas = $5, updated_at = NOW()
+       WHERE id = $6`,
+      [
+        nuevaCuotaMensual, nuevoNumCuotas, nuevoMontoTotal,
+        nuevaFechaInicio.toISOString().split('T')[0],
+        notas !== undefined ? notas : prestamo.notas,
+        id
+      ]
+    );
+
+    // Regenerar solo las cuotas pendientes (las pagadas quedan intactas)
+    await client.query(`DELETE FROM prestamo_cuotas WHERE prestamo_id = $1 AND estado = 'pendiente'`, [id]);
+    for (let i = prestamo.cuotas_pagadas + 1; i <= nuevoNumCuotas; i++) {
+      const fechaEsperada = new Date(nuevaFechaInicio);
+      fechaEsperada.setMonth(fechaEsperada.getMonth() + (i - 1));
+      await client.query(
+        `INSERT INTO prestamo_cuotas (prestamo_id, numero_cuota, fecha_esperada, monto_esperado, monto_pagado, estado)
+         VALUES ($1, $2, $3, $4, 0, 'pendiente')`,
+        [id, i, fechaEsperada, nuevaCuotaMensual]
+      );
+    }
+
+    // Resincronizar estado segun cuotas pagadas vs el nuevo total
+    const completado = prestamo.cuotas_pagadas >= nuevoNumCuotas;
+    await client.query(
+      `UPDATE prestamos SET estado = $1, fecha_fin = $2 WHERE id = $3`,
+      [completado ? 'completado' : 'activo', completado ? (prestamo.fecha_fin || new Date()) : null, id]
+    );
+
+    const { rows: actualizado } = await client.query('SELECT * FROM prestamos WHERE id = $1', [id]);
+    await client.query('COMMIT');
+    res.json({ success: true, prestamo: actualizado[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error editando préstamo:', error);
     res.status(500).json({ success: false, error: error.message });
   } finally {
     client.release();

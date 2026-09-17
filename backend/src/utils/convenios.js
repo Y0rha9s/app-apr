@@ -6,6 +6,7 @@ async function obtenerProximaCuotaConvenio(client, usuarioId) {
      FROM prestamos p
      JOIN prestamo_cuotas pc ON pc.prestamo_id = p.id
      WHERE p.usuario_id = $1 AND p.estado = 'activo' AND pc.estado = 'pendiente'
+       AND (pc.fecha_esperada IS NULL OR pc.fecha_esperada <= CURRENT_DATE)
      ORDER BY p.fecha_inicio ASC, pc.numero_cuota ASC
      LIMIT 1`,
     [usuarioId]
