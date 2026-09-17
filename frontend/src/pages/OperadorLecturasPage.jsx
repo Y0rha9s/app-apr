@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import CamaraLectura from '../components/CamaraLectura';
 
 const API_URL = 'https://apr-safip-xtxh.onrender.com';
 const DB_NAME = 'apr_offline';
@@ -113,6 +114,8 @@ function OperadorLecturasPage() {
   const [fotoFile, setFotoFile] = useState(null);
   const [ciclo, setCiclo] = useState(null);
   const [usuariosConLectura, setUsuariosConLectura] = useState(new Set());
+  const [mostrarCamara, setMostrarCamara] = useState(false);
+  const [usarCamaraNativa, setUsarCamaraNativa] = useState(false);
   const fotoRef = useRef();
 
   const [formData, setFormData] = useState({
@@ -260,6 +263,26 @@ function OperadorLecturasPage() {
     if (!file) return;
     setFotoFile(file);
     setFotoPreview(URL.createObjectURL(file));
+  };
+
+  const abrirCaptura = () => {
+    if (usarCamaraNativa) {
+      fotoRef.current?.click();
+    } else {
+      setMostrarCamara(true);
+    }
+  };
+
+  const handleFotoCapturada = (file) => {
+    setFotoFile(file);
+    setFotoPreview(URL.createObjectURL(file));
+    setMostrarCamara(false);
+  };
+
+  const handleFallbackCamara = (motivo) => {
+    setMostrarCamara(false);
+    setUsarCamaraNativa(true);
+    mostrarMensaje(`⚠️ ${motivo} — usando cámara del celular`, 'warning');
   };
 
   const mostrarMensaje = (texto, tipo = 'success') => {
@@ -536,11 +559,13 @@ function OperadorLecturasPage() {
 
           {!fotoPreview ? (
             <div
-              onClick={() => fotoRef.current?.click()}
+              onClick={abrirCaptura}
               className="w-full h-40 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition"
             >
               <span className="text-4xl mb-2">📷</span>
-              <p className="text-gray-500 text-sm font-medium">Toca para tomar o subir foto</p>
+              <p className="text-gray-500 text-sm font-medium">
+                {usarCamaraNativa ? 'Toca para tomar o subir foto' : 'Toca para abrir la cámara'}
+              </p>
               <p className="text-gray-400 text-xs mt-1">JPG, PNG hasta 10MB</p>
             </div>
           ) : (
@@ -592,6 +617,14 @@ function OperadorLecturasPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {mostrarCamara && (
+        <CamaraLectura
+          onCapturar={handleFotoCapturada}
+          onCancelar={() => setMostrarCamara(false)}
+          onFallback={handleFallbackCamara}
+        />
       )}
 
     </div>
