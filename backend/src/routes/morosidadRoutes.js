@@ -21,11 +21,12 @@ router.post('/actualizar-estados', async (req, res) => {
   }
 });
 
-// Obtener usuarios morosos
+// Obtener usuarios morosos ('abonada' es el estado real de pago parcial en este sistema,
+// no 'parcial' -- el filtro anterior nunca calzaba con boletas parcialmente pagadas)
 router.get('/morosos', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
+      SELECT
         u.id,
         u.nombre,
         u.rut,
@@ -37,13 +38,13 @@ router.get('/morosos', async (req, res) => {
         CURRENT_DATE - MIN(b.fecha_vencimiento)::date as dias_morosidad
       FROM usuarios u
       JOIN boletas b ON u.id = b.usuario_id
-      WHERE b.estado IN ('pendiente', 'parcial')
+      WHERE b.estado IN ('pendiente', 'abonada', 'atrasada')
         AND b.saldo_pendiente > 0
         AND b.fecha_vencimiento < CURRENT_DATE
       GROUP BY u.id, u.nombre, u.rut, u.estado_servicio, u.correo_electronico, u.medidor
       ORDER BY dias_morosidad DESC
     `);
-    
+
     res.json({
       success: true,
       morosos: result.rows
@@ -61,7 +62,7 @@ router.get('/morosos', async (req, res) => {
 router.get('/para-corte', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
+      SELECT
         u.id,
         u.nombre,
         u.rut,
@@ -73,13 +74,13 @@ router.get('/para-corte', async (req, res) => {
         CURRENT_DATE - MIN(b.fecha_vencimiento)::date as dias_morosidad
       FROM usuarios u
       JOIN boletas b ON u.id = b.usuario_id
-      WHERE b.estado IN ('pendiente', 'parcial')
+      WHERE b.estado IN ('pendiente', 'abonada', 'atrasada')
         AND b.saldo_pendiente > 0
         AND b.fecha_vencimiento < CURRENT_DATE - INTERVAL '90 days'
       GROUP BY u.id
       ORDER BY dias_morosidad DESC
     `);
-    
+
     res.json({
       success: true,
       para_corte: result.rows
@@ -90,6 +91,42 @@ router.get('/para-corte', async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+// Clasificacion por niveles para el modulo Cobranza (calculado al consultar, sin cron):
+// Nivel 1 = 1 boleta impaga (~30 dias, sin accion todavia)
+// Nivel 2 = 2 boletas impagas (~60 dias, notificacion de aviso)
+// Nivel 3 = 3+ boletas impagas (~90 dias, aviso de corte)
+router.get('/niveles', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id, u.nombre, u.rut, u.numero_cliente, u.telefono, u.estado_servicio,
+        COUNT(b.id) as boletas_impagas,
+        SUM(b.saldo_pendiente) as deuda_total,
+        MIN(b.fecha_vencimiento) as fecha_vencimiento_mas_antigua,
+        (CURRENT_DATE - MIN(b.fecha_vencimiento)::date) as dias_mora
+      FROM usuarios u
+      JOIN boletas b ON b.usuario_id = u.id
+      WHERE b.estado IN ('pendiente', 'abonada', 'atrasada')
+        AND b.saldo_pendiente > 0
+        AND b.fecha_vencimiento < CURRENT_DATE
+      GROUP BY u.id, u.nombre, u.rut, u.numero_cliente, u.telefono, u.estado_servicio
+      ORDER BY boletas_impagas DESC, dias_mora DESC
+    `);
+
+    const clasificar = (n) => n >= 3 ? 3 : n;
+    const niveles = { 1: [], 2: [], 3: [] };
+    for (const row of result.rows) {
+      const nivel = clasificar(parseInt(row.boletas_impagas));
+      niveles[nivel].push(row);
+    }
+
+    res.json({ success: true, niveles });
+  } catch (error) {
+    console.error('Error clasificando morosidad:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

@@ -35,6 +35,7 @@ const fotosRoutes = require('./routes/fotosRoutes');
 const reporteRoutes = require('./routes/reporteRoutes');
 const comprobanteRoutes = require('./routes/comprobanteRoutes');
 const dteRoutes = require('./routes/dteRoutes');
+const multaRoutes = require('./routes/multaRoutes');
 
 app.use('/api/transacciones', transaccionRoutes);
 app.use('/api/auth', authRoutes);
@@ -59,6 +60,7 @@ app.use('/api/fotos', fotosRoutes);
 app.use('/api/reporte', reporteRoutes);
 app.use('/api/comprobantes', comprobanteRoutes);
 app.use('/api/dte', dteRoutes);
+app.use('/api/multas', multaRoutes);
 
 
 // Ruta de prueba

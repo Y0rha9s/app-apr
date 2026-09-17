@@ -5,6 +5,7 @@ const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
+const { obtenerMontoMultasPendientes, aplicarMultasPendientes } = require('../utils/multas');
 
 // Wrapper para mantener la firma usada en este archivo (pool tomado del closure)
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
@@ -128,8 +129,9 @@ router.post('/crear-con-boleta', async (req, res) => {
     // 6. Calcular totales de boleta (aplicando saldo a favor, si tiene, sin perder el excedente)
     const cuotaConvenio = await obtenerProximaCuotaConvenio(client, usuario_id);
     const cuotaPrestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
+    const montoMultas = await obtenerMontoMultasPendientes(client, usuario_id, periodo);
     const totalMes = montoCalculado;
-    const montoAntesDeCredito = totalMes + saldoAnterior + montoCorte + montoReposicion + cuotaRepactacion + cuotaPrestamo;
+    const montoAntesDeCredito = totalMes + saldoAnterior + montoCorte + montoReposicion + cuotaRepactacion + cuotaPrestamo + montoMultas;
     const { totalAPagar, creditoAplicado, saldoFavorRestante } = aplicarSaldoFavor(montoAntesDeCredito, saldoFavorUsuario);
     const saldoPendiente = totalAPagar;
 
@@ -144,8 +146,8 @@ router.post('/crear-con-boleta', async (req, res) => {
    (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior,
     monto_corte, monto_reposicion, cuota_repactacion,
     total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento,
-    cuota_prestamo, prestamo_cuota_id)
-   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    cuota_prestamo, prestamo_cuota_id, monto_multas)
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
    RETURNING id`,
       [
         usuario_id,
@@ -164,11 +166,16 @@ router.post('/crear-con-boleta', async (req, res) => {
         calculoTotal.iva,
         fechaVencimiento,
         cuotaPrestamo,
-        cuotaConvenio ? cuotaConvenio.cuotaId : null
+        cuotaConvenio ? cuotaConvenio.cuotaId : null,
+        montoMultas
       ]
     );
 
     const boletaId = resultBoleta.rows[0].id;
+
+    if (montoMultas > 0) {
+      await aplicarMultasPendientes(client, usuario_id, periodo, boletaId);
+    }
 
     if (montoCorte > 0 || montoReposicion > 0) {
       for (const corte of cortesResult.rows) {
