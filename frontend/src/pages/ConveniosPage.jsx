@@ -23,6 +23,9 @@ function ConveniosPage() {
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [convenioExpandido, setConvenioExpandido] = useState(null);
+  const [cantidadPago, setCantidadPago] = useState({});
+  const [editando, setEditando] = useState(null);
+  const [formEditar, setFormEditar] = useState({ cuota_mensual: '', num_cuotas: '', fecha_inicio: '', notas: '' });
 
   // Form de nuevo convenio
   const [formConvenio, setFormConvenio] = useState({
@@ -94,16 +97,76 @@ function ConveniosPage() {
     }
   };
 
-  const handlePagarCuota = async (prestamoId) => {
-    if (!window.confirm('¿Confirmar pago de cuota?')) return;
+  const handlePagarCuota = async (convenio) => {
+    const cantidad = Math.max(1, parseInt(cantidadPago[convenio.id]) || 1);
+    if (!window.confirm(`¿Confirmar pago de ${cantidad} cuota(s)?`)) return;
 
     try {
-      const response = await api.post('/prestamos/pagar-cuota', { prestamo_id: prestamoId });
-      alert(`✅ ${response.data.mensaje}`);
+      const response = await api.post('/prestamos/pagar-cuota', {
+        prestamo_id: convenio.id,
+        cantidad_cuotas: cantidad
+      });
+      const { cuotas_pagadas, estado, saldo_pendiente } = response.data;
+      setConvenios(prev => prev.map(c => {
+        if (c.id !== convenio.id) return c;
+        return {
+          ...c,
+          cuotas_pagadas,
+          estado,
+          saldo_pendiente,
+          cuotas_pendientes: c.num_cuotas - cuotas_pagadas,
+          cuotas: (c.cuotas || []).map((cu, idx) =>
+            idx < cuotas_pagadas ? { ...cu, estado: 'pagada' } : cu
+          )
+        };
+      }));
+      setCantidadPago(prev => ({ ...prev, [convenio.id]: 1 }));
+    } catch (error) {
+      alert('❌ Error: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleAnular = async (convenio) => {
+    const motivo = window.prompt('Motivo de la anulación (opcional):');
+    if (motivo === null) return;
+    if (!window.confirm('¿Anular este convenio? Esta acción no se puede deshacer.')) return;
+
+    try {
+      await api.post(`/prestamos/${convenio.id}/anular`, { motivo });
+      alert('✅ Convenio anulado');
       cargarDatos();
     } catch (error) {
       alert('❌ Error: ' + (error.response?.data?.error || error.message));
     }
+  };
+
+  const abrirEditar = (convenio) => {
+    setEditando(convenio);
+    setFormEditar({
+      cuota_mensual: convenio.cuota_mensual,
+      num_cuotas: convenio.num_cuotas,
+      fecha_inicio: convenio.fecha_inicio ? convenio.fecha_inicio.split('T')[0] : '',
+      notas: convenio.notas || ''
+    });
+  };
+
+  const handleGuardarEdicion = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/prestamos/${editando.id}`, formEditar);
+      alert('✅ Convenio actualizado');
+      setEditando(null);
+      cargarDatos();
+    } catch (error) {
+      alert('❌ Error: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const calcularFechaTermino = (fechaInicio, numCuotas) => {
+    if (!fechaInicio || !numCuotas) return null;
+    const d = new Date(fechaInicio);
+    d.setMonth(d.getMonth() + (parseInt(numCuotas) - 1));
+    return d;
   };
 
   const handleVerHistorial = async (usuarioId) => {
@@ -248,6 +311,12 @@ function ConveniosPage() {
                   <p className="font-bold text-green-700">{formatearMonto(montoTotalEstimado)}</p>
                   <p className="text-gray-700">Cuota Mensual:</p>
                   <p className="font-bold text-blue-700">{formatearMonto(formConvenio.cuota_mensual || 0)}</p>
+                  <p className="text-gray-700">Fecha Término (estimada):</p>
+                  <p className="font-bold text-gray-700">
+                    {calcularFechaTermino(formConvenio.fecha_inicio, formConvenio.num_cuotas)
+                      ? formatearFecha(calcularFechaTermino(formConvenio.fecha_inicio, formConvenio.num_cuotas))
+                      : '—'}
+                  </p>
                 </div>
               </div>
             )}
@@ -374,13 +443,25 @@ function ConveniosPage() {
                         {formatearMonto(convenio.saldo_pendiente)}
                       </td>
                       <td className="p-4">
-                        <div className="flex gap-2 flex-wrap">
-                          <button
-                            onClick={() => handlePagarCuota(convenio.id)}
-                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-                          >
-                            ✅ Pagar Cuota
-                          </button>
+                        <div className="flex gap-2 flex-wrap items-center">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="1"
+                              max={convenio.num_cuotas - convenio.cuotas_pagadas}
+                              value={cantidadPago[convenio.id] ?? 1}
+                              onChange={(e) => setCantidadPago(prev => ({ ...prev, [convenio.id]: e.target.value }))}
+                              className="w-14 px-2 py-1 border-2 border-gray-300 rounded text-sm text-center"
+                              disabled={convenio.cuotas_pagadas >= convenio.num_cuotas}
+                            />
+                            <button
+                              onClick={() => handlePagarCuota(convenio)}
+                              disabled={convenio.cuotas_pagadas >= convenio.num_cuotas}
+                              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            >
+                              ✅ Pagar
+                            </button>
+                          </div>
                           {convenio.usuario_id && (
                             <button
                               onClick={() => handleVerHistorial(convenio.usuario_id)}
@@ -389,6 +470,18 @@ function ConveniosPage() {
                               📜 Historial
                             </button>
                           )}
+                          <button
+                            onClick={() => abrirEditar(convenio)}
+                            className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                          >
+                            ✏️ Editar
+                          </button>
+                          <button
+                            onClick={() => handleAnular(convenio)}
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                          >
+                            🚫 Anular
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -483,6 +576,70 @@ function ConveniosPage() {
                 ))}
               </tbody>
             </table>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal de Edición */}
+      {editando && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="max-w-lg w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-2xl font-bold">✏️ Editar Convenio</h3>
+              <button onClick={() => setEditando(null)} className="text-3xl hover:text-red-600">✖️</button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              {editando.usuario_nombre} — {TIPO_CONVENIO_LABEL[editando.tipo_convenio] || editando.tipo_convenio}
+            </p>
+            <form onSubmit={handleGuardarEdicion} className="space-y-4">
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">Cuota Mensual</label>
+                <input
+                  type="number" min="1"
+                  value={formEditar.cuota_mensual}
+                  onChange={(e) => setFormEditar({ ...formEditar, cuota_mensual: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">
+                  Número de Cuotas (ya pagadas: {editando.cuotas_pagadas})
+                </label>
+                <input
+                  type="number" min={editando.cuotas_pagadas}
+                  value={formEditar.num_cuotas}
+                  onChange={(e) => setFormEditar({ ...formEditar, num_cuotas: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">Fecha de Inicio</label>
+                <input
+                  type="date"
+                  value={formEditar.fecha_inicio}
+                  onChange={(e) => setFormEditar({ ...formEditar, fecha_inicio: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              {calcularFechaTermino(formEditar.fecha_inicio, formEditar.num_cuotas) && (
+                <p className="text-sm text-gray-600">
+                  Fecha Término (estimada): <strong>{formatearFecha(calcularFechaTermino(formEditar.fecha_inicio, formEditar.num_cuotas))}</strong>
+                </p>
+              )}
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">Notas</label>
+                <textarea
+                  value={formEditar.notas}
+                  onChange={(e) => setFormEditar({ ...formEditar, notas: e.target.value })}
+                  rows="2"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                Las cuotas ya pagadas no se modifican. Las pendientes se recalculan con estos nuevos valores.
+              </p>
+              <Button type="submit" variant="primary" className="w-full">💾 Guardar Cambios</Button>
+            </form>
           </Card>
         </div>
       )}

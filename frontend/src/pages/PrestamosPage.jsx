@@ -16,6 +16,9 @@ function PrestamosPage() {
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [prestamoExpandido, setPrestamoExpandido] = useState(null);
   const [mostrarCatalogo, setMostrarCatalogo] = useState(false);
+  const [cantidadPago, setCantidadPago] = useState({});
+  const [editando, setEditando] = useState(null);
+  const [formEditar, setFormEditar] = useState({ cuota_mensual: '', num_cuotas: '', fecha_inicio: '', notas: '' });
 
   // Form de nuevo préstamo
   const [formPrestamo, setFormPrestamo] = useState({
@@ -23,6 +26,7 @@ function PrestamosPage() {
     insumo_id: '',
     cantidad: 1,
     num_cuotas: 6,
+    fecha_inicio: new Date().toISOString().split('T')[0],
     notas: ''
   });
 
@@ -84,7 +88,7 @@ function PrestamosPage() {
       const response = await api.post('/prestamos/crear', formPrestamo);
       alert(`✅ ${response.data.mensaje}\n\nInsumo: ${response.data.prestamo.insumo}\nCantidad: ${response.data.prestamo.cantidad}\nTotal: $${response.data.prestamo.monto_total.toLocaleString()}\nCuotas: ${response.data.prestamo.num_cuotas}\nCuota mensual: $${response.data.prestamo.cuota_mensual.toLocaleString()}`);
       setMostrarFormPrestamo(false);
-      setFormPrestamo({ usuario_id: '', insumo_id: '', cantidad: 1, num_cuotas: 6, notas: '' });
+      setFormPrestamo({ usuario_id: '', insumo_id: '', cantidad: 1, num_cuotas: 6, fecha_inicio: new Date().toISOString().split('T')[0], notas: '' });
       cargarDatos();
     } catch (error) {
       alert('❌ Error: ' + (error.response?.data?.error || error.message));
@@ -112,16 +116,78 @@ function PrestamosPage() {
     }
   };
 
-  const handlePagarCuota = async (prestamoId) => {
-    if (!window.confirm('¿Confirmar pago de cuota?')) return;
+  const handlePagarCuota = async (prestamo) => {
+    const cantidad = Math.max(1, parseInt(cantidadPago[prestamo.id]) || 1);
+    if (!window.confirm(`¿Confirmar pago de ${cantidad} cuota(s)?`)) return;
 
     try {
-      const response = await api.post('/prestamos/pagar-cuota', { prestamo_id: prestamoId });
-      alert(`✅ ${response.data.mensaje}`);
+      const response = await api.post('/prestamos/pagar-cuota', {
+        prestamo_id: prestamo.id,
+        cantidad_cuotas: cantidad
+      });
+      const { cuotas_pagadas, estado, saldo_pendiente } = response.data;
+      // Actualiza en el estado local en vez de recargar todo, para que el progreso
+      // se refleje al instante sin refrescar la pantalla completa.
+      setPrestamosActivos(prev => prev.map(p => {
+        if (p.id !== prestamo.id) return p;
+        return {
+          ...p,
+          cuotas_pagadas,
+          estado,
+          saldo_pendiente,
+          cuotas_pendientes: p.num_cuotas - cuotas_pagadas,
+          cuotas: (p.cuotas || []).map((c, idx) =>
+            idx < cuotas_pagadas ? { ...c, estado: 'pagada' } : c
+          )
+        };
+      }));
+      setCantidadPago(prev => ({ ...prev, [prestamo.id]: 1 }));
+    } catch (error) {
+      alert('❌ Error: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleAnular = async (prestamo) => {
+    const motivo = window.prompt('Motivo de la anulación (opcional):');
+    if (motivo === null) return;
+    if (!window.confirm('¿Anular este préstamo? Esta acción no se puede deshacer.')) return;
+
+    try {
+      await api.post(`/prestamos/${prestamo.id}/anular`, { motivo });
+      alert('✅ Préstamo anulado');
       cargarDatos();
     } catch (error) {
       alert('❌ Error: ' + (error.response?.data?.error || error.message));
     }
+  };
+
+  const abrirEditar = (prestamo) => {
+    setEditando(prestamo);
+    setFormEditar({
+      cuota_mensual: prestamo.cuota_mensual,
+      num_cuotas: prestamo.num_cuotas,
+      fecha_inicio: prestamo.fecha_inicio ? prestamo.fecha_inicio.split('T')[0] : '',
+      notas: prestamo.notas || ''
+    });
+  };
+
+  const handleGuardarEdicion = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/prestamos/${editando.id}`, formEditar);
+      alert('✅ Préstamo actualizado');
+      setEditando(null);
+      cargarDatos();
+    } catch (error) {
+      alert('❌ Error: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const calcularFechaTermino = (fechaInicio, numCuotas) => {
+    if (!fechaInicio || !numCuotas) return null;
+    const d = new Date(fechaInicio);
+    d.setMonth(d.getMonth() + (parseInt(numCuotas) - 1));
+    return d;
   };
 
   const handleVerHistorial = async (usuarioId) => {
@@ -348,6 +414,18 @@ function PrestamosPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-2">Fecha de Inicio *</label>
+                <input
+                  type="date"
+                  value={formPrestamo.fecha_inicio}
+                  onChange={(e) => setFormPrestamo({ ...formPrestamo, fecha_inicio: e.target.value })}
+                  className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+                  required
+                />
+                <p className="text-sm text-gray-500 mt-1">Desde cuándo empieza a cobrarse la 1ª cuota en la boleta</p>
+              </div>
+
               <div className="md:col-span-2">
                 <label className="block text-lg font-semibold text-gray-700 mb-2">Notas</label>
                 <textarea
@@ -369,6 +447,12 @@ function PrestamosPage() {
                   <p className="font-bold text-green-700">{formatearMonto(calcularMontoTotal())}</p>
                   <p className="text-gray-700">Cuota Mensual:</p>
                   <p className="font-bold text-blue-700">{formatearMonto(calcularCuotaMensual())}</p>
+                  <p className="text-gray-700">Fecha Término (estimada):</p>
+                  <p className="font-bold text-gray-700">
+                    {calcularFechaTermino(formPrestamo.fecha_inicio, formPrestamo.num_cuotas)
+                      ? formatearFecha(calcularFechaTermino(formPrestamo.fecha_inicio, formPrestamo.num_cuotas))
+                      : '—'}
+                  </p>
                 </div>
               </div>
             )}
@@ -550,13 +634,25 @@ function PrestamosPage() {
                         {formatearMonto(prestamo.saldo_pendiente)}
                       </td>
                       <td className="p-4">
-                        <div className="flex gap-2 flex-wrap">
-                          <button
-                            onClick={() => handlePagarCuota(prestamo.id)}
-                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-                          >
-                            ✅ Pagar Cuota
-                          </button>
+                        <div className="flex gap-2 flex-wrap items-center">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="1"
+                              max={prestamo.num_cuotas - prestamo.cuotas_pagadas}
+                              value={cantidadPago[prestamo.id] ?? 1}
+                              onChange={(e) => setCantidadPago(prev => ({ ...prev, [prestamo.id]: e.target.value }))}
+                              className="w-14 px-2 py-1 border-2 border-gray-300 rounded text-sm text-center"
+                              disabled={prestamo.cuotas_pagadas >= prestamo.num_cuotas}
+                            />
+                            <button
+                              onClick={() => handlePagarCuota(prestamo)}
+                              disabled={prestamo.cuotas_pagadas >= prestamo.num_cuotas}
+                              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            >
+                              ✅ Pagar
+                            </button>
+                          </div>
                           {prestamo.usuario_id && (
                             <button
                               onClick={() => handleVerHistorial(prestamo.usuario_id)}
@@ -565,6 +661,18 @@ function PrestamosPage() {
                               📜 Historial
                             </button>
                           )}
+                          <button
+                            onClick={() => abrirEditar(prestamo)}
+                            className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                          >
+                            ✏️ Editar
+                          </button>
+                          <button
+                            onClick={() => handleAnular(prestamo)}
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                          >
+                            🚫 Anular
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -664,6 +772,68 @@ function PrestamosPage() {
                 ))}
               </tbody>
             </table>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal de Edición */}
+      {editando && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="max-w-lg w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-2xl font-bold">✏️ Editar Préstamo</h3>
+              <button onClick={() => setEditando(null)} className="text-3xl hover:text-red-600">✖️</button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">{editando.usuario_nombre} — {editando.insumo_nombre}</p>
+            <form onSubmit={handleGuardarEdicion} className="space-y-4">
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">Cuota Mensual</label>
+                <input
+                  type="number" min="1"
+                  value={formEditar.cuota_mensual}
+                  onChange={(e) => setFormEditar({ ...formEditar, cuota_mensual: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">
+                  Número de Cuotas (ya pagadas: {editando.cuotas_pagadas})
+                </label>
+                <input
+                  type="number" min={editando.cuotas_pagadas}
+                  value={formEditar.num_cuotas}
+                  onChange={(e) => setFormEditar({ ...formEditar, num_cuotas: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">Fecha de Inicio</label>
+                <input
+                  type="date"
+                  value={formEditar.fecha_inicio}
+                  onChange={(e) => setFormEditar({ ...formEditar, fecha_inicio: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              {calcularFechaTermino(formEditar.fecha_inicio, formEditar.num_cuotas) && (
+                <p className="text-sm text-gray-600">
+                  Fecha Término (estimada): <strong>{formatearFecha(calcularFechaTermino(formEditar.fecha_inicio, formEditar.num_cuotas))}</strong>
+                </p>
+              )}
+              <div>
+                <label className="block text-base font-semibold text-gray-700 mb-1">Notas</label>
+                <textarea
+                  value={formEditar.notas}
+                  onChange={(e) => setFormEditar({ ...formEditar, notas: e.target.value })}
+                  rows="2"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl"
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                Las cuotas ya pagadas no se modifican. Las pendientes se recalculan con estos nuevos valores.
+              </p>
+              <Button type="submit" variant="primary" className="w-full">💾 Guardar Cambios</Button>
+            </form>
           </Card>
         </div>
       )}
