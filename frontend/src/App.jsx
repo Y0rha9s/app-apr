@@ -13,7 +13,7 @@ import CajaPage from './pages/CajaPage';
 import PagosPage from './pages/PagosPage';
 import UploadExcel from './components/UploadExcel';
 import PagoExitoso from './pages/PagoExitoso';
-import CortesPage from './pages/CortesPage';
+import CobranzaPage from './pages/CobranzaPage';
 import RepactacionesPage from './pages/RepactacionesPage';
 import FinanciamientoPage from './pages/FinanciamientoPage';
 import AvisosPage from './pages/AvisosPage';
@@ -121,11 +121,11 @@ function AppContent() {
             return <PagosPage />;
           case 'reclamos':
             return <div className="text-3xl">📝 Reclamos (próximamente)</div>;
-          case 'cortes':
+          case 'cobranza':
             if (!isAdmin) {
               return <MiCuentaPage />;
             }
-            return <CortesPage />;
+            return <CobranzaPage />;
           case 'repactaciones':
             if (!isAdmin) {
               return <MiCuentaPage />;

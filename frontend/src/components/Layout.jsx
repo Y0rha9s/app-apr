@@ -64,8 +64,7 @@ function Layout({ children }) {
           { id: 'carga-simple', label: 'Carga Simple' },
         ]
       },
-      { id: 'morosos', label: 'Morosidad', icon: '⚠️' },
-      { id: 'cortes', label: 'Cortes', icon: '✂️' },
+      { id: 'cobranza', label: 'Cobranza', icon: '⚠️' },
       { id: 'repactaciones', label: 'Repactaciones', icon: '💳' },
       { id: 'financiamiento', label: 'Financiamiento', icon: '🔧' },
       {

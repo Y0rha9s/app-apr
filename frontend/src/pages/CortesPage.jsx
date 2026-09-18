@@ -17,6 +17,10 @@ function CortesPage() {
     motivo: '',
     monto_corte: 15000
   });
+  const [fotoCorte, setFotoCorte] = useState(null);
+  const [videoCorte, setVideoCorte] = useState(null);
+  const [subiendoCorte, setSubiendoCorte] = useState(false);
+  const [reponiendoId, setReponiendoId] = useState(null);
 
   useEffect(() => {
     cargarDatos();
@@ -38,6 +42,29 @@ function CortesPage() {
     }
   };
 
+  // GPS es opcional: si el operador no dio permiso, no hay señal, o el navegador
+  // no lo soporta, se resuelve a null en vez de bloquear el registro del corte.
+  const obtenerGPS = () => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => resolve(null),
+        { timeout: 6000, maximumAge: 30000 }
+      );
+    });
+  };
+
+  const subirEvidencia = async (file) => {
+    if (!file) return null;
+    const fd = new FormData();
+    fd.append('evidencia', file);
+    const response = await api.post('/fotos/evidencia', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data.url;
+  };
+
   const handleRegistrarCorte = async (e) => {
     e.preventDefault();
 
@@ -46,26 +73,52 @@ function CortesPage() {
       return;
     }
 
+    setSubiendoCorte(true);
     try {
-      await api.post('/cortes/registrar-corte', formCorte);
-      alert('✅ Corte registrado exitosamente');
+      const gps = await obtenerGPS();
+      const [evidencia_foto_url, evidencia_video_url] = await Promise.all([
+        subirEvidencia(fotoCorte),
+        subirEvidencia(videoCorte)
+      ]);
+
+      await api.post('/cortes/registrar-corte', {
+        ...formCorte,
+        evidencia_foto_url,
+        evidencia_video_url,
+        gps_lat: gps?.lat ?? null,
+        gps_lng: gps?.lng ?? null
+      });
+
+      alert(`✅ Corte registrado exitosamente${gps ? '' : '\n\n⚠️ No se pudo obtener la ubicación GPS (sin permiso o sin señal) — se registró igual.'}`);
       setMostrarFormCorte(false);
       setFormCorte({ usuario_id: '', motivo: '', monto_corte: 15000 });
+      setFotoCorte(null);
+      setVideoCorte(null);
       cargarDatos();
     } catch (error) {
       alert('❌ Error: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setSubiendoCorte(false);
     }
   };
 
   const handleRegistrarReposicion = async (usuarioId) => {
     if (!window.confirm('¿Está seguro de registrar la reposición del servicio?')) return;
 
+    setReponiendoId(usuarioId);
     try {
-      await api.post('/cortes/registrar-reposicion', { usuario_id: usuarioId });
-      alert('✅ Reposición registrada exitosamente');
+      const gps = await obtenerGPS();
+      await api.post('/cortes/registrar-reposicion', {
+        usuario_id: usuarioId,
+        gps_lat: gps?.lat ?? null,
+        gps_lng: gps?.lng ?? null
+      });
+      alert(`✅ Reposición registrada exitosamente${gps ? '' : '\n\n⚠️ No se pudo obtener la ubicación GPS — se registró igual.'}`);
       cargarDatos();
     } catch (error) {
       alert('❌ Error: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setReponiendoId(null);
     }
   };
 
@@ -147,10 +200,34 @@ function CortesPage() {
                   className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-red-500"
                 />
               </div>
+
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-2">📷 Foto de evidencia</label>
+                <input
+                  type="file" accept="image/*" capture="environment"
+                  onChange={(e) => setFotoCorte(e.target.files[0] || null)}
+                  className="w-full text-base"
+                />
+                {fotoCorte && <p className="text-sm text-green-700 mt-1">✓ {fotoCorte.name}</p>}
+              </div>
+
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-2">🎥 Video de evidencia (opcional)</label>
+                <input
+                  type="file" accept="video/*" capture="environment"
+                  onChange={(e) => setVideoCorte(e.target.files[0] || null)}
+                  className="w-full text-base"
+                />
+                {videoCorte && <p className="text-sm text-green-700 mt-1">✓ {videoCorte.name}</p>}
+              </div>
             </div>
 
-            <Button type="submit" variant="danger" className="w-full">
-              🚫 Registrar Corte de Servicio
+            <p className="text-sm text-gray-500">
+              📍 Se intentará registrar tu ubicación GPS actual. Si el permiso no está activo o no hay señal, el corte se registra igual sin GPS.
+            </p>
+
+            <Button type="submit" variant="danger" className="w-full" disabled={subiendoCorte}>
+              {subiendoCorte ? '⏳ Registrando...' : '🚫 Registrar Corte de Servicio'}
             </Button>
           </form>
         </Card>
@@ -226,9 +303,10 @@ function CortesPage() {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={() => handleRegistrarReposicion(corte.id)}
-                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                          disabled={reponiendoId === corte.id}
+                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm disabled:bg-gray-300"
                         >
-                          ✅ Reponer
+                          {reponiendoId === corte.id ? '⏳...' : '✅ Reponer'}
                         </button>
                         <button
                           onClick={() => handleVerHistorial(corte.id)}
@@ -272,6 +350,7 @@ function CortesPage() {
                   <th className="p-3 text-base font-semibold">Monto Reposición</th>
                   <th className="p-3 text-base font-semibold">Estado</th>
                   <th className="p-3 text-base font-semibold">Motivo</th>
+                  <th className="p-3 text-base font-semibold">Evidencia / GPS</th>
                 </tr>
               </thead>
               <tbody>
@@ -290,6 +369,22 @@ function CortesPage() {
                       </span>
                     </td>
                     <td className="p-3 text-sm">{h.motivo || '-'}</td>
+                    <td className="p-3 text-sm">
+                      <div className="flex flex-col gap-1">
+                        {h.evidencia_foto_url && (
+                          <a href={h.evidencia_foto_url} target="_blank" rel="noreferrer" className="text-blue-600 underline">📷 Foto</a>
+                        )}
+                        {h.evidencia_video_url && (
+                          <a href={h.evidencia_video_url} target="_blank" rel="noreferrer" className="text-blue-600 underline">🎥 Video</a>
+                        )}
+                        {h.gps_lat && h.gps_lng && (
+                          <a href={`https://www.google.com/maps?q=${h.gps_lat},${h.gps_lng}`} target="_blank" rel="noreferrer" className="text-blue-600 underline">📍 Ubicación</a>
+                        )}
+                        {!h.evidencia_foto_url && !h.evidencia_video_url && !h.gps_lat && (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
