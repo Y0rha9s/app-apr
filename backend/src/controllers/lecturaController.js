@@ -68,7 +68,7 @@ const lecturaController = {
       const calculo = await calcularTotalPorTramos(pool, consumoNuevo, lecturaAnterior.tipo_usuario || 'normal');
       const cargoFijoResult = await pool.query(`SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`);
       const cargoFijo = parseFloat(cargoFijoResult.rows[0]?.valor || 3000);
-      const monto_calculado = calculo.total + cargoFijo;
+      const monto_calculado = Math.round(calculo.total + cargoFijo);
 
       // Actualizar lectura
       const result = await pool.query(
@@ -128,9 +128,9 @@ const lecturaController = {
         const boleta = boletaResult.rows[0];
         const consumoM3Nuevo = result.rows[0].consumo_m3;
         const delta = monto_calculado - parseFloat(lecturaAnterior.monto_calculado || 0);
-        const nuevoTotalMes = parseFloat(boleta.total_mes || 0) + delta;
-        const nuevoTotalAPagar = Math.max(0, parseFloat(boleta.total_a_pagar || 0) + delta);
-        const nuevoSaldoPendiente = Math.max(0, parseFloat(boleta.saldo_pendiente || 0) + delta);
+        const nuevoTotalMes = Math.round(parseFloat(boleta.total_mes || 0) + delta);
+        const nuevoTotalAPagar = Math.max(0, Math.round(parseFloat(boleta.total_a_pagar || 0) + delta));
+        const nuevoSaldoPendiente = Math.max(0, Math.round(parseFloat(boleta.saldo_pendiente || 0) + delta));
 
         await pool.query(
           `UPDATE boletas SET consumo_m3 = $1, total_mes = $2, total_a_pagar = $3, saldo_pendiente = $4 WHERE id = $5`,

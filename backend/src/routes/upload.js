@@ -406,7 +406,7 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
           console.log(`  📋 Usando total del Excel: $${montoCalculado}`);
         } else {
           const calculoTotal = await calcularTotalPorTramos(consumoTemporal, tipoUsuario);
-          montoCalculado = calculoTotal.total;
+          montoCalculado = Math.round(calculoTotal.total);
           console.log(`  💵 Total calculado: $${montoCalculado.toFixed(0)}`);
         }
 
@@ -451,9 +451,9 @@ router.post('/upload-excel', upload.single('file'), async (req, res) => {
         }
 
         // 8. Calcular totales
-        const totalAPagar = totalMes + saldoAnterior;
+        const totalAPagar = Math.round(totalMes + saldoAnterior);
         const abono = parseFloat(row['ABONO']) || 0;
-        const saldoPendiente = totalAPagar - abono;
+        const saldoPendiente = Math.round(totalAPagar - abono);
 
         // 9. Determinar estado
         let estado = 'pendiente';

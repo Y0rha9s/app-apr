@@ -63,7 +63,7 @@ router.post('/crear-con-boleta', async (req, res) => {
       `SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`
     );
     const cargoFijo = parseFloat(cargoFijoResult.rows[0]?.valor || 3000);
-    const montoCalculado = calculoTotal.total + cargoFijo;
+    const montoCalculado = Math.round(calculoTotal.total + cargoFijo);
 
     // 4. Insertar lectura
     const resultLectura = await client.query(

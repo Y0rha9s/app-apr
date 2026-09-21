@@ -25,12 +25,12 @@ const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
     else totalConsumo += monto;
     restante -= consumido;
   });
-  return tieneSubsidio ? (cargoFijo + tramo1Monto) / 2 + totalConsumo : cargoFijo + tramo1Monto + totalConsumo;
+  return Math.round(tieneSubsidio ? (cargoFijo + tramo1Monto) / 2 + totalConsumo : cargoFijo + tramo1Monto + totalConsumo);
 };
 
 const calcularDescuentoSubsidio = (tramos, cargoFijo, consumo, tieneSubsidio) => {
   if (!tieneSubsidio) return 0;
-  return (cargoFijo + Math.min(consumo, parseFloat(tramos[0]?.tramo_hasta || 15)) * parseFloat(tramos[0]?.precio_por_m3 || 700)) / 2;
+  return Math.round((cargoFijo + Math.min(consumo, parseFloat(tramos[0]?.tramo_hasta || 15)) * parseFloat(tramos[0]?.precio_por_m3 || 700)) / 2);
 };
 
 // ─── GET /api/boletas ───────────────────────────────────────────────────────

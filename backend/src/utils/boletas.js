@@ -10,7 +10,7 @@ async function obtenerSaldoAnteriorPeriodo(client, usuarioId, periodo) {
      ORDER BY periodo DESC LIMIT 1`,
     [usuarioId, periodo]
   );
-  return rows.length > 0 ? parseFloat(rows[0].saldo_pendiente) : 0;
+  return rows.length > 0 ? Math.round(parseFloat(rows[0].saldo_pendiente)) : 0;
 }
 
 module.exports = { obtenerSaldoAnteriorPeriodo };
