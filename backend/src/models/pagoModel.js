@@ -69,11 +69,12 @@ const pagoModel = {
       // aplicandose en orden de periodo (no de fecha de creacion: una boleta generada
       // fuera de orden -ej: julio generada despues de agosto- no debe saltarse la fila).
       let restante = parseFloat(monto);
+      let primeraBoletaTocada = null;
 
       const { rows: boletasPendientes } = await client.query(
         `SELECT id, saldo_pendiente, prestamo_cuota_id FROM boletas
-         WHERE usuario_id = $1 AND estado IN ('pendiente', 'abonada')
-         ORDER BY (id = $2) DESC, periodo ASC`,
+       WHERE usuario_id = $1 AND estado IN ('pendiente', 'abonada')
+       ORDER BY (id = $2) DESC, periodo ASC`,
         [usuario_id, boleta_id || null]
       );
 
@@ -85,19 +86,21 @@ const pagoModel = {
         const nuevoSaldo = saldo - aplicado;
         restante -= aplicado;
 
+        if (!primeraBoletaTocada) primeraBoletaTocada = b.id;
+
         // Si con este pago la boleta queda completamente saldada, se marca 'pagada' si fue
         // dentro del plazo (fecha_vencimiento) o 'atrasada' si el pago llego despues.
         const { rows: actualizada } = await client.query(
           `UPDATE boletas
-           SET estado = CASE
-               WHEN $1::numeric <= 0 THEN
-                 CASE WHEN CURRENT_DATE > fecha_vencimiento THEN 'atrasada' ELSE 'pagada' END
-               ELSE 'abonada'
-             END,
-             saldo_pendiente = $1,
-             fecha_pago = NOW()
-           WHERE id = $2
-           RETURNING estado`,
+         SET estado = CASE
+             WHEN $1::numeric <= 0 THEN
+               CASE WHEN CURRENT_DATE > fecha_vencimiento THEN 'atrasada' ELSE 'pagada' END
+             ELSE 'abonada'
+           END,
+           saldo_pendiente = $1,
+           fecha_pago = NOW()
+         WHERE id = $2
+         RETURNING estado`,
           [nuevoSaldo, b.id]
         );
         const nuevoEstado = actualizada[0].estado;
@@ -105,6 +108,11 @@ const pagoModel = {
         if ((nuevoEstado === 'pagada' || nuevoEstado === 'atrasada') && b.prestamo_cuota_id) {
           await marcarCuotaConvenioPagada(client, b.prestamo_cuota_id, b.id);
         }
+      }
+
+      if (primeraBoletaTocada) {
+        await client.query('UPDATE pagos SET boleta_id = $1 WHERE id = $2', [primeraBoletaTocada, pagoCreado.id]);
+        pagoCreado.boleta_id = primeraBoletaTocada;
       }
 
       // 3. Si sobra plata después de cubrir todo lo pendiente, va a saldo a favor
