@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import FichaSocioModal from '../components/FichaSocioModal';
 
 function SociosPage() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [fichaUsuario, setFichaUsuario] = useState(null);
   const [actualizandoTipo, setActualizandoTipo] = useState({});
 
   // Formulario nuevo usuario
@@ -264,6 +266,14 @@ function SociosPage() {
         </Card>
       </div>
 
+      {fichaUsuario && (
+        <FichaSocioModal
+          usuario={fichaUsuario}
+          onClose={() => setFichaUsuario(null)}
+          onActualizado={(actualizado) => setUsuarios((prev) => prev.map((u) => (u.id === actualizado.id ? { ...u, ...actualizado } : u)))}
+        />
+      )}
+
       {/* Tabla de usuarios */}
       <Card title="📋 Lista de Usuarios">
         <div className="overflow-x-auto">
@@ -344,7 +354,10 @@ function SociosPage() {
                   </td>
                   <td className="p-4">
                     <div className="flex gap-2 flex-wrap">
-                      <button className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                      <button
+                        onClick={() => setFichaUsuario(usuario)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                      >
                         👁️ Ver
                       </button>
                       {usuario.estado !== 'suspendido' && (

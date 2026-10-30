@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const usuarioController = require('../controllers/usuarioController');
 const pool = require('../config/database');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
 
 // Rutas
 router.get('/', usuarioController.getAll);
@@ -9,6 +10,7 @@ router.get('/:id', usuarioController.getById);
 router.get('/:id/deuda', usuarioController.getDeuda);
 router.get('/:id/info-completa', usuarioController.getInfoCompleta);
 router.post('/', usuarioController.create);
+router.put('/:id', authMiddleware, esAdmin, usuarioController.update);
 router.put('/:id/suspender', usuarioController.suspender);
 router.put('/:id/reponer', usuarioController.reponer);
 router.put('/:id/tipo', async (req, res) => {

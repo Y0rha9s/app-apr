@@ -1,6 +1,7 @@
 const usuarioModel = require('../models/usuarioModel');
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
+const { limpiarRut, validarYFormatearRut } = require('../utils/rut');
 
 const usuarioController = {
 
@@ -113,14 +114,55 @@ const usuarioController = {
     }
   },
 
+  // Edicion de datos basicos desde la ficha del usuario (solo admin, ver usuarioRoutes).
+  // Solo cambia los campos que vienen en el body; el RUT solo se valida si realmente cambia
+  // (hay datos historicos con RUT que no pasarian la validacion y no deben bloquear otras ediciones).
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { nombre, rut, email, telefono, direccion } = req.body;
       const usuarioExistente = await usuarioModel.getById(id);
       if (!usuarioExistente) return res.status(404).json({ error: 'Usuario no encontrado' });
-      const usuarioActualizado = await usuarioModel.update(id, { nombre, rut, email, telefono, direccion });
-      const { password, ...usuario } = usuarioActualizado;
+
+      const campos = {};
+
+      if (req.body.nombre !== undefined) {
+        const nombre = String(req.body.nombre).trim();
+        if (!nombre) return res.status(400).json({ error: 'El nombre no puede estar vacío' });
+        campos.nombre = nombre;
+      }
+
+      if (req.body.rut !== undefined && limpiarRut(req.body.rut) !== limpiarRut(usuarioExistente.rut)) {
+        const rutFormateado = validarYFormatearRut(req.body.rut);
+        if (!rutFormateado) return res.status(400).json({ error: 'El RUT no es válido' });
+        const duplicado = await pool.query(
+          "SELECT id, nombre FROM usuarios WHERE replace(replace(upper(rut),'.',''),'-','') = $1 AND id <> $2",
+          [limpiarRut(rutFormateado), id]
+        );
+        if (duplicado.rows.length > 0) {
+          return res.status(400).json({ error: `El RUT ya está registrado para ${duplicado.rows[0].nombre.trim()}` });
+        }
+        campos.rut = rutFormateado;
+      }
+
+      if (req.body.email !== undefined) {
+        const email = String(req.body.email || '').trim();
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          return res.status(400).json({ error: 'El correo no es válido' });
+        }
+        campos.email = email || null;
+      }
+      if (req.body.telefono !== undefined) campos.telefono = String(req.body.telefono || '').trim() || null;
+      if (req.body.direccion !== undefined) campos.direccion = String(req.body.direccion || '').trim() || null;
+
+      const columnas = Object.keys(campos);
+      if (columnas.length === 0) return res.status(400).json({ error: 'No hay cambios para guardar' });
+
+      const sets = columnas.map((c, i) => `${c} = $${i + 1}`).join(', ');
+      const { rows } = await pool.query(
+        `UPDATE usuarios SET ${sets}, updated_at = NOW() WHERE id = $${columnas.length + 1} RETURNING *`,
+        [...columnas.map((c) => campos[c]), id]
+      );
+      const { password, ...usuario } = rows[0];
       res.json(usuario);
     } catch (error) {
       res.status(500).json({ error: error.message });
