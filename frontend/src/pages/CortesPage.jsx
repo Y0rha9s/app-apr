@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import api, { authHeaders } from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 
@@ -87,7 +87,7 @@ function CortesPage() {
         evidencia_video_url,
         gps_lat: gps?.lat ?? null,
         gps_lng: gps?.lng ?? null
-      });
+      }, { headers: authHeaders() });
 
       alert(`✅ Corte registrado exitosamente${gps ? '' : '\n\n⚠️ No se pudo obtener la ubicación GPS (sin permiso o sin señal) — se registró igual.'}`);
       setMostrarFormCorte(false);
@@ -112,7 +112,7 @@ function CortesPage() {
         usuario_id: usuarioId,
         gps_lat: gps?.lat ?? null,
         gps_lng: gps?.lng ?? null
-      });
+      }, { headers: authHeaders() });
       alert(`✅ Reposición registrada exitosamente${gps ? '' : '\n\n⚠️ No se pudo obtener la ubicación GPS — se registró igual.'}`);
       cargarDatos();
     } catch (error) {

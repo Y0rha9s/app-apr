@@ -36,6 +36,8 @@ const reporteRoutes = require('./routes/reporteRoutes');
 const comprobanteRoutes = require('./routes/comprobanteRoutes');
 const dteRoutes = require('./routes/dteRoutes');
 const multaRoutes = require('./routes/multaRoutes');
+const informeCajaRoutes = require('./routes/informeCajaRoutes');
+const notificacionesRoutes = require('./routes/notificacionesRoutes');
 
 app.use('/api/transacciones', transaccionRoutes);
 app.use('/api/auth', authRoutes);
@@ -61,6 +63,8 @@ app.use('/api/reporte', reporteRoutes);
 app.use('/api/comprobantes', comprobanteRoutes);
 app.use('/api/dte', dteRoutes);
 app.use('/api/multas', multaRoutes);
+app.use('/api/informe-caja', informeCajaRoutes);
+app.use('/api/notificaciones', notificacionesRoutes);
 
 
 // Ruta de prueba

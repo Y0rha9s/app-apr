@@ -2,6 +2,7 @@ import { useState } from 'react';
 import AbrirCajaPage from './AbrirCajaPage';
 import CerrarCajaPage from './CerrarCajaPage';
 import MisCajasPage from './MisCajasPage';
+import InformeCajaPage from './InformeCajaPage';
 
 function CajaPage() {
   const [subMenu, setSubMenu] = useState('abrir');
@@ -10,6 +11,7 @@ function CajaPage() {
     { id: 'abrir', label: 'Abrir Caja', icon: '🔓' },
     { id: 'cerrar', label: 'Cerrar Caja', icon: '🔒' },
     { id: 'mis-cajas', label: 'Mis Cajas', icon: '📦' },
+    { id: 'informe', label: 'Informe', icon: '📊' },
   ];
 
   return (
@@ -36,6 +38,7 @@ function CajaPage() {
       {subMenu === 'abrir' && <AbrirCajaPage />}
       {subMenu === 'cerrar' && <CerrarCajaPage />}
       {subMenu === 'mis-cajas' && <MisCajasPage />}
+      {subMenu === 'informe' && <InformeCajaPage />}
     </div>
   );
 }

@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
+const { authOpcional } = require('../middleware/authMiddleware');
+const { registrarNotificacionSegura } = require('../utils/notificaciones');
 
 // Registrar corte de servicio. La evidencia (foto/video) se sube antes desde el
 // frontend via /api/fotos/lectura (mismo bucket) y aca solo se guarda la URL.
 // El GPS es opcional: si el operador no dio permiso o no hay señal, se guarda null.
-router.post('/registrar-corte', async (req, res) => {
+router.post('/registrar-corte', authOpcional, async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -60,6 +62,16 @@ router.post('/registrar-corte', async (req, res) => {
       [usuario_id]
     );
 
+    // Deja constancia en el historial de notificaciones del socio (no bloquea el corte si falla).
+    await registrarNotificacionSegura(client, {
+      usuario_id,
+      tipo: 'corte',
+      titulo: 'Servicio cortado',
+      mensaje: `Se registró el corte de tu servicio de agua. Motivo: ${motivo || 'Morosidad'}. Para la reposición debes regularizar tu deuda.`,
+      generada_por: req.usuario?.id ?? null,
+      clave_dedup: `corte:${corteId}`
+    });
+
     await client.query('COMMIT');
 
     res.json({
@@ -85,7 +97,7 @@ router.post('/registrar-corte', async (req, res) => {
 // usuario). El costo de reposición queda en historial_cortes.monto_reposicion sin
 // boleta_reposicion_id asignado; se cobra automaticamente en la boleta siguiente
 // que se genere para ese usuario (ver crear-con-boleta), igual que ya pasa hoy.
-router.post('/registrar-reposicion', async (req, res) => {
+router.post('/registrar-reposicion', authOpcional, async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -132,6 +144,16 @@ router.post('/registrar-reposicion', async (req, res) => {
       `UPDATE usuarios SET estado_servicio = 'activo' WHERE id = $1`,
       [usuario_id]
     );
+
+    // Deja constancia en el historial de notificaciones del socio (no bloquea la reposicion si falla).
+    await registrarNotificacionSegura(client, {
+      usuario_id,
+      tipo: 'reconexion',
+      titulo: 'Servicio repuesto',
+      mensaje: 'Tu servicio de agua fue repuesto. El costo de reposición se cobrará en tu próxima boleta.',
+      generada_por: req.usuario?.id ?? null,
+      clave_dedup: `reposicion:${corteId}`
+    });
 
     await client.query('COMMIT');
 

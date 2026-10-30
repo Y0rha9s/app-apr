@@ -41,3 +41,6 @@ export const mercadoPagoService = {
 };
 
 export default api;
+// Cabecera con el token de sesion, para las rutas del backend que exigen autenticacion
+// (el cliente `api` global no la agrega por si solo).
+export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });

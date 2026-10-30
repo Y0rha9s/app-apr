@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
 import { usuariosService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import BandejaNotificaciones from '../components/BandejaNotificaciones';
 
 function MiCuentaPage() {
   const { usuario, refreshUser } = useAuth();
@@ -85,6 +86,8 @@ function MiCuentaPage() {
   return (
     <div>
       <h2 className="text-4xl font-bold mb-8 text-gray-800">🏠 Mi Cuenta — APR SAFIP</h2>
+
+      <BandejaNotificaciones />
 
       {message.text && (
         <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import MorosidadNivelesPage from './MorosidadNivelesPage';
 import CortesPage from './CortesPage';
 import MultasPage from './MultasPage';
+import NotificacionesAdminPage from './NotificacionesAdminPage';
 
 function CobranzaPage() {
   const [subMenu, setSubMenu] = useState('morosidad');
@@ -10,6 +11,7 @@ function CobranzaPage() {
     { id: 'morosidad', label: 'Morosidad', icon: '⚠️' },
     { id: 'cortes', label: 'Cortes', icon: '🚫' },
     { id: 'multas', label: 'Multas', icon: '🚨' },
+    { id: 'notificaciones', label: 'Notificaciones', icon: '🔔' },
   ];
 
   return (
@@ -34,6 +36,7 @@ function CobranzaPage() {
       {subMenu === 'morosidad' && <MorosidadNivelesPage />}
       {subMenu === 'cortes' && <CortesPage />}
       {subMenu === 'multas' && <MultasPage />}
+      {subMenu === 'notificaciones' && <NotificacionesAdminPage />}
     </div>
   );
 }
