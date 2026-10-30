@@ -32,7 +32,7 @@ function NotificacionesAdminPage() {
     cargar();
     api
       .get('/usuarios')
-      .then((res) => setUsuarios(res.data.filter((u) => u.rol === 'usuario')))
+      .then((res) => setUsuarios(res.data.filter((u) => u.rol === 'usuario' || u.es_socio)))
       .catch((err) => console.error('Error cargando usuarios:', err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

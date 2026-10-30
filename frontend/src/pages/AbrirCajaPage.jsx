@@ -83,8 +83,9 @@ function AbrirCajaPage() {
   const cargarUsuarios = async () => {
     try {
       const response = await api.get('/usuarios');
-      // Asegurar que filtramos por rol 'socio' o 'usuario' según como esté en tu DB
-      const filtrados = response.data.filter(u => u.rol === 'socio' || u.rol === 'usuario');
+      // Socios por rol ('socio'/'usuario') y también admin/operador que además son socios (es_socio),
+      // que tienen boletas y pagan igual (ej. un admin que es socio).
+      const filtrados = response.data.filter(u => u.rol === 'socio' || u.rol === 'usuario' || u.es_socio);
       console.log('Usuarios cargados para caja:', filtrados.length);
       setUsuarios(filtrados);
     } catch (error) {
