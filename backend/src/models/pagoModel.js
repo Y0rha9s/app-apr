@@ -1,5 +1,6 @@
 const pool = require('../config/database');
 const { marcarCuotaConvenioPagada } = require('../utils/convenios');
+const { guardarReciboSeguro } = require('../utils/recibos');
 
 const pagoModel = {
   // Obtener todos los pagos
@@ -122,6 +123,9 @@ const pagoModel = {
           [restante, usuario_id]
         );
       }
+
+      // 4. Respaldo del recibo de dinero (copia exacta de lo que se imprime). Si falla no rompe el pago.
+      await guardarReciboSeguro(client, pagoCreado.id);
 
       await client.query('COMMIT');
       return pagoCreado;

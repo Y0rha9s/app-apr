@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import ComprobantePago from '../components/ComprobantePago';
 import Card from '../components/Card';
 import Button from '../components/Button';
 
@@ -23,6 +24,7 @@ function AbrirCajaPage() {
   const [observacionesPago, setObservacionesPago] = useState('');
   const [pagosHoy, setPagosHoy] = useState([]);
   const [registrandoPago, setRegistrandoPago] = useState(false);
+  const [comprobante, setComprobante] = useState(null); // { id, nuevo } del pago cuyo comprobante se muestra
   const [numeroOperacion, setNumeroOperacion] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [mostrarResultados, setMostrarResultados] = useState(false);
@@ -175,7 +177,7 @@ function AbrirCajaPage() {
     setRegistrandoPago(true);
 
     try {
-      await api.post('/pagos', {
+      const respuestaPago = await api.post('/pagos', {
         usuario_id: parseInt(usuarioSeleccionado),
         caja_id: cajaAbierta.id,
         monto: parseFloat(montoPago),
@@ -185,7 +187,7 @@ function AbrirCajaPage() {
         boleta_id: boletaSeleccionada ? parseInt(boletaSeleccionada) : null
       });
 
-      alert('✅ Pago registrado exitosamente');
+      setComprobante({ id: respuestaPago.data.id, nuevo: true });
 
       // Limpiar formulario
       setUsuarioSeleccionado('');
@@ -529,6 +531,7 @@ function AbrirCajaPage() {
                   <th className="p-4 text-lg font-semibold">Método</th>
                   <th className="p-4 text-lg font-semibold">N° Operación</th>
                   <th className="p-4 text-lg font-semibold">Observaciones</th>
+                  <th className="p-4 text-lg font-semibold">Comprobante</th>
                 </tr>
               </thead>
               <tbody>
@@ -555,6 +558,15 @@ function AbrirCajaPage() {
                       {pago.numero_operacion || '-'} 
                     </td> 
                     <td className="p-4 text-base">{pago.observaciones || '-'}</td>
+                    <td className="p-4">
+                      <button
+                        type="button"
+                        onClick={() => setComprobante({ id: pago.id, nuevo: false })}
+                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm whitespace-nowrap"
+                      >
+                        🧾 Imprimir
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -594,6 +606,14 @@ function AbrirCajaPage() {
           </div>
         )}
       </Card>
+      {comprobante && (
+        <ComprobantePago
+          pagoId={comprobante.id}
+          titulo={comprobante.nuevo ? '✅ Pago registrado' : '🧾 Comprobante de pago'}
+          onClose={() => setComprobante(null)}
+        />
+      )}
+
       {/* Sección de EGRESOS */}
       <Card className="mt-8 bg-red-50">
         <h3 className="text-3xl font-bold mb-6 text-red-800">💸 Registrar Egreso</h3>
