@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import api, { authHeaders } from '../services/api';
 
 function FormularioNuevaLectura({ onClose, onSuccess }) {
   const [usuarios, setUsuarios] = useState([]);
@@ -136,7 +136,7 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
         lectura_actual: parseInt(formData.lectura_actual),
         mes: parseInt(formData.mes),
         anio: parseInt(formData.anio)
-      });
+      }, { headers: authHeaders() });
 
       const data = response.data;
 

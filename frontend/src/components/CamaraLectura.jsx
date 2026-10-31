@@ -4,15 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 // Cámara del celular. Si el navegador no soporta getUserMedia o el operador
 // rechaza el permiso, avisa al padre (onFallback) para que use el <input
 // type=file capture> de siempre en vez de quedar trabado.
-function formatearFechaHora(fecha) {
-  const dd = String(fecha.getDate()).padStart(2, '0');
-  const mm = String(fecha.getMonth() + 1).padStart(2, '0');
-  const yyyy = fecha.getFullYear();
-  const hh = String(fecha.getHours()).padStart(2, '0');
-  const min = String(fecha.getMinutes()).padStart(2, '0');
-  return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
-}
-
 function CamaraLectura({ onCapturar, onCancelar, onFallback }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -68,23 +59,8 @@ function CamaraLectura({ onCapturar, onCancelar, onFallback }) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Quemar fecha y hora del dispositivo en el momento de la captura, en una caja
-    // semi-transparente abajo a la derecha para que se lea sobre cualquier fondo
-    const texto = formatearFechaHora(new Date());
-    const fontSize = Math.max(16, Math.round(canvas.width * 0.035));
-    const padding = Math.round(fontSize * 0.5);
-    const margen = 14;
-    ctx.font = `bold ${fontSize}px monospace`;
-    const boxW = ctx.measureText(texto).width + padding * 2;
-    const boxH = fontSize + padding * 1.5;
-    const boxX = canvas.width - boxW - margen;
-    const boxY = canvas.height - boxH - margen;
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillRect(boxX, boxY, boxW, boxH);
-    ctx.fillStyle = '#ffffff';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(texto, boxX + padding, boxY + boxH / 2);
+    // La marca de agua con fecha y hora la agrega el servidor al subir la foto (con su propio reloj),
+    // asi que aca NO se dibuja nada: la hora del celular se puede cambiar.
 
     canvas.toBlob((blob) => {
       if (!blob) return;

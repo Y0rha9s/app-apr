@@ -6,13 +6,15 @@ const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
 const { obtenerMontoMultasPendientes, aplicarMultasPendientes } = require('../utils/multas');
+const { authOpcional } = require('../middleware/authMiddleware');
+const { validarFotoLectura } = require('../utils/fotosLectura');
 
 // Wrapper para mantener la firma usada en este archivo (pool tomado del closure)
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
   calcularTotalPorTramosBase(pool, consumoM3, tipoUsuario);
 
 // Crear lectura y generar boleta automáticamente
-router.post('/crear-con-boleta', async (req, res) => {
+router.post('/crear-con-boleta', authOpcional, async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -24,6 +26,17 @@ router.post('/crear-con-boleta', async (req, res) => {
         success: false,
         error: 'Faltan datos requeridos: usuario_id, lectura_actual, mes, anio'
       });
+    }
+
+    // Foto del medidor obligatoria: sin foto valida no se guarda la lectura. Solo un admin con sesion
+    // (correcciones desde el panel) puede registrar sin foto; todo lo demas, incluido quien no manda
+    // token, debe justificar la lectura con la foto subida por /api/fotos/lectura (con marca de agua).
+    const esAdmin = req.usuario?.rol === 'admin';
+    if (!esAdmin) {
+      const validacion = validarFotoLectura(req.body.foto_url);
+      if (!validacion.ok) {
+        return res.status(400).json({ success: false, codigo: 'FOTO_INVALIDA', error: validacion.error });
+      }
     }
 
     await client.query('BEGIN');
@@ -41,6 +54,31 @@ router.post('/crear-con-boleta', async (req, res) => {
     const tipoUsuario = userResult.rows[0].tipo_usuario;
     const nombreUsuario = userResult.rows[0].nombre;
     const saldoFavorUsuario = userResult.rows[0].saldo_favor;
+
+    // Una sola lectura por persona y periodo. Se bloquea la fila del usuario para que dos envios
+    // simultaneos (ej. reintento al volver la conexion) no puedan registrar ambos.
+    await client.query('SELECT id FROM usuarios WHERE id = $1 FOR UPDATE', [usuario_id]);
+    const yaTieneLectura = await client.query(
+      'SELECT id FROM lecturas WHERE usuario_id = $1 AND mes = $2 AND anio = $3 LIMIT 1',
+      [usuario_id, mes, anio]
+    );
+    if (yaTieneLectura.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({
+        success: false,
+        codigo: 'LECTURA_DUPLICADA',
+        error: `${nombreUsuario} ya tiene una lectura registrada para ${String(mes).padStart(2, '0')}/${anio}. Solo se permite una lectura por persona y período.`
+      });
+    }
+
+    // Una misma foto no puede respaldar dos lecturas
+    if (req.body.foto_url) {
+      const fotoUsada = await client.query('SELECT id FROM lecturas WHERE foto_url = $1 LIMIT 1', [req.body.foto_url]);
+      if (fotoUsada.rows.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, codigo: 'FOTO_REUTILIZADA', error: 'Esta foto ya se usó en otra lectura. Toma una foto nueva del medidor.' });
+      }
+    }
 
     // 2. Obtener última lectura para calcular consumo
     const ultimaLectura = await client.query(
@@ -73,7 +111,7 @@ router.post('/crear-con-boleta', async (req, res) => {
    RETURNING id, consumo_m3`,
       [usuario_id, lecturaAnterior, lectura_actual, mes, anio, montoCalculado,
         req.body.foto_url || null,
-        req.body.operador_id || null]
+        req.usuario?.rol === 'operador' ? req.usuario.id : (req.body.operador_id || null)]
     );
 
     const lecturaId = resultLectura.rows[0].id;

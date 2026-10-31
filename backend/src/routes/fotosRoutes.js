@@ -4,6 +4,7 @@ const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const sharp = require('sharp');
+const { aplicarMarcaAgua } = require('../utils/marcaAgua');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -37,13 +38,14 @@ router.post('/lectura', upload.single('foto'), async (req, res) => {
     const fileName = `lectura_${timestamp}.jpg`;
     const filePath = `fotos/${fileName}`;
 
-    // Redimensionar y comprimir: una foto de medidor no necesita mas de 1280px
-    // de ancho ni calidad maxima para ser legible, y esto evita llenar el storage.
-    const bufferComprimido = await sharp(req.file.buffer)
+    // Redimensionar: una foto de medidor no necesita mas de 1280px de ancho. Luego se le pone la
+    // marca de agua con fecha y hora de Chile tomada del SERVIDOR (no del celular) y se comprime.
+    // La marca se crea solo aca, al subir; el cliente no puede enviarla ni modificarla.
+    const bufferBase = await sharp(req.file.buffer)
       .rotate()
       .resize({ width: 1280, withoutEnlargement: true })
-      .jpeg({ quality: 75 })
       .toBuffer();
+    const bufferComprimido = await aplicarMarcaAgua(sharp, bufferBase, { capturadaEn: req.body.capturada_en });
 
     const { error: uploadError } = await supabase.storage
       .from('lecturas-fotos')

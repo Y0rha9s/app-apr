@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import CamaraLectura from '../components/CamaraLectura';
+import { authHeaders } from '../services/api';
 
 const API_URL = 'https://apr-safip-xtxh.onrender.com';
 const DB_NAME = 'apr_offline';
@@ -116,6 +117,7 @@ function OperadorLecturasPage() {
   const [usuariosConLectura, setUsuariosConLectura] = useState(new Set());
   const [mostrarCamara, setMostrarCamara] = useState(false);
   const [usarCamaraNativa, setUsarCamaraNativa] = useState(false);
+  const [capturadaEn, setCapturadaEn] = useState(null); // hora del equipo al tomar la foto (solo referencia)
   const fotoRef = useRef();
 
   const [formData, setFormData] = useState({
@@ -248,6 +250,10 @@ function OperadorLecturasPage() {
   };
 
   const seleccionarUsuario = async (u) => {
+    if (usuariosYaTomados.has(u.id)) {
+      mostrarMensaje(`❌ ${u.nombre} ya tiene lectura este período. Solo se permite una lectura por persona.`, 'error');
+      return;
+    }
     setFormData(prev => ({ ...prev, usuario_id: u.id, usuario_nombre: u.nombre }));
     setBusqueda(u.nombre);
     setMostrarLista(false);
@@ -261,7 +267,14 @@ function OperadorLecturasPage() {
   const handleFoto = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    // La foto debe tomarse en el momento: se rechaza una foto guardada antes (ej. de la galeria)
+    if (file.lastModified && Date.now() - file.lastModified > 10 * 60 * 1000) {
+      mostrarMensaje('❌ La foto debe tomarse en el momento, no puede ser una foto guardada antes', 'error');
+      e.target.value = '';
+      return;
+    }
     setFotoFile(file);
+    setCapturadaEn(new Date(file.lastModified || Date.now()).toISOString());
     setFotoPreview(URL.createObjectURL(file));
   };
 
@@ -275,6 +288,7 @@ function OperadorLecturasPage() {
 
   const handleFotoCapturada = (file) => {
     setFotoFile(file);
+    setCapturadaEn(new Date().toISOString());
     setFotoPreview(URL.createObjectURL(file));
     setMostrarCamara(false);
   };
@@ -306,11 +320,10 @@ function OperadorLecturasPage() {
       return;
     }
 
+    // Una sola lectura por persona y período (el servidor también lo exige)
     if (usuariosYaTomados.has(parseInt(formData.usuario_id))) {
-      const continuar = window.confirm(
-        `${formData.usuario_nombre} ya tiene una lectura registrada este período.\n¿Registrar de todos modos?`
-      );
-      if (!continuar) return;
+      mostrarMensaje(`❌ ${formData.usuario_nombre} ya tiene una lectura registrada este período. Solo se permite una por persona.`, 'error');
+      return;
     }
 
     setLoading(true);
@@ -322,12 +335,13 @@ function OperadorLecturasPage() {
       if (online) {
         const fd = new FormData();
         fd.append('foto', fotoFile);
+        if (capturadaEn) fd.append('capturada_en', capturadaEn);
         const fotoRes = await fetch(`${API_URL}/api/fotos/lectura`, {
           method: 'POST',
           body: fd
         });
         const fotoData = await fotoRes.json();
-        if (!fotoData.success) throw new Error('Error al subir foto');
+        if (!fotoData.success) throw new Error(fotoData.error || 'Error al subir foto');
         foto_url = fotoData.foto_url;
       } else {
         // Offline: guardar foto como base64
@@ -346,6 +360,7 @@ function OperadorLecturasPage() {
         anio: parseInt(formData.anio),
         operador_id: usuario?.id,
         foto_url,
+        capturada_en: capturadaEn,
         offline: !online
       };
 
@@ -353,7 +368,7 @@ function OperadorLecturasPage() {
         // Enviar directo al servidor
         const res = await fetch(`${API_URL}/api/lecturas/crear-con-boleta`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
           body: JSON.stringify(lecturaData)
         });
         const data = await res.json();
@@ -377,11 +392,13 @@ function OperadorLecturasPage() {
       });
       setBusqueda('');
       setFotoFile(null);
+      setCapturadaEn(null);
       setFotoPreview(null);
       if (fotoRef.current) fotoRef.current.value = '';
 
     } catch (err) {
       mostrarMensaje('❌ ' + err.message, 'error');
+      if (/ya tiene una lectura/.test(err.message)) cargarUsuariosConLectura();
     } finally {
       setLoading(false);
     }
@@ -391,6 +408,7 @@ function OperadorLecturasPage() {
     if (!online || pendientes.length === 0) return;
     setSincronizando(true);
     let exitosos = 0;
+    let descartadas = 0;
 
     for (const item of pendientes) {
       try {
@@ -400,23 +418,29 @@ function OperadorLecturasPage() {
           const blob = await fetch(foto_url).then(r => r.blob());
           const fd = new FormData();
           fd.append('foto', blob, 'foto.jpg');
+          if (item.capturada_en) fd.append('capturada_en', item.capturada_en);
           const fotoRes = await fetch(`${API_URL}/api/fotos/lectura`, {
             method: 'POST',
             body: fd
           });
           const fotoData = await fotoRes.json();
-          if (fotoData.success) foto_url = fotoData.foto_url;
+          if (!fotoData.success) throw new Error('No se pudo subir la foto; se reintentará');
+          foto_url = fotoData.foto_url;
         }
 
         const res = await fetch(`${API_URL}/api/lecturas/crear-con-boleta`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
           body: JSON.stringify({ ...item, foto_url })
         });
         const data = await res.json();
         if (data.success) {
           await eliminarPendiente(item.id);
           exitosos++;
+        } else if (res.status === 409) {
+          // El usuario ya tiene lectura este periodo: se descarta para no reintentar para siempre
+          await eliminarPendiente(item.id);
+          descartadas++;
         }
       } catch (err) {
         console.error('Error sincronizando:', err);
@@ -425,8 +449,11 @@ function OperadorLecturasPage() {
 
     await cargarPendientes();
     setSincronizando(false);
-    if (exitosos > 0) {
-      mostrarMensaje(`✅ ${exitosos} lectura(s) sincronizada(s)`);
+    if (exitosos > 0 || descartadas > 0) {
+      const partes = [];
+      if (exitosos > 0) partes.push(`✅ ${exitosos} lectura(s) sincronizada(s)`);
+      if (descartadas > 0) partes.push(`⚠️ ${descartadas} descartada(s): el usuario ya tenía lectura este período`);
+      mostrarMensaje(partes.join(' · '), descartadas > 0 ? 'warning' : 'success');
       cargarUsuariosConLectura();
     }
   };
@@ -501,7 +528,7 @@ function OperadorLecturasPage() {
             <div className="absolute z-20 w-full mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-56 overflow-y-auto">
               {usuariosFiltrados.map(u => (
                 <div key={u.id} onClick={() => seleccionarUsuario(u)}
-                  className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0">
+                  className={`px-4 py-3 border-b last:border-b-0 ${usuariosYaTomados.has(u.id) ? 'bg-gray-50 opacity-60 cursor-not-allowed' : 'hover:bg-blue-50 cursor-pointer'}`}>
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-gray-800">{u.nombre}</p>
                     {usuariosYaTomados.has(u.id) && (
@@ -520,7 +547,7 @@ function OperadorLecturasPage() {
 
           {formData.usuario_id && usuariosYaTomados.has(parseInt(formData.usuario_id)) && (
             <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-lg flex justify-between items-center">
-              <span className="text-sm text-amber-800 font-medium">⚠️ {formData.usuario_nombre} — ya tiene lectura este período</span>
+              <span className="text-sm text-amber-800 font-medium">⚠️ {formData.usuario_nombre} — ya tiene lectura este período. No se puede registrar otra.</span>
               <button type="button" onClick={limpiarSeleccion}
                 className="text-xs text-amber-700 underline shrink-0 ml-2">Cambiar</button>
             </div>
@@ -566,14 +593,14 @@ function OperadorLecturasPage() {
               <p className="text-gray-500 text-sm font-medium">
                 {usarCamaraNativa ? 'Toca para tomar o subir foto' : 'Toca para abrir la cámara'}
               </p>
-              <p className="text-gray-400 text-xs mt-1">JPG, PNG hasta 10MB</p>
+              <p className="text-gray-400 text-xs mt-1">La fecha y hora se agregan solas al subir la foto</p>
             </div>
           ) : (
             <div className="relative">
               <img src={fotoPreview} alt="Medidor" className="w-full h-48 object-cover rounded-xl border-2 border-green-300" />
               <button
                 type="button"
-                onClick={() => { setFotoPreview(null); setFotoFile(null); if (fotoRef.current) fotoRef.current.value = ''; }}
+                onClick={() => { setFotoPreview(null); setFotoFile(null); setCapturadaEn(null); if (fotoRef.current) fotoRef.current.value = ''; }}
                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm"
               >✕</button>
               <div className="absolute bottom-2 left-2 bg-green-500 text-white px-2 py-1 rounded-lg text-xs font-semibold">
@@ -595,7 +622,7 @@ function OperadorLecturasPage() {
         {/* Botón submit */}
         <button
           type="submit"
-          disabled={loading || !formData.usuario_id || !fotoFile}
+          disabled={loading || !formData.usuario_id || !fotoFile || usuariosYaTomados.has(parseInt(formData.usuario_id))}
           className="w-full py-4 bg-blue-600 text-white rounded-xl text-lg font-bold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
         >
           {loading ? '⏳ Guardando...' : online ? '✅ Registrar Lectura' : '📦 Guardar Offline'}
