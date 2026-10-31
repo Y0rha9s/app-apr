@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apr-v1';
+const CACHE_NAME = 'apr-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -28,6 +28,14 @@ self.addEventListener('fetch', (e) => {
   // No cachear llamadas al API
   if (url.pathname.startsWith('/api')) return;
   
+  // Páginas (index.html): red primero, para que una versión nueva llegue sin quedar pegada en caché
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       return cached || fetch(e.request).then(response => {
