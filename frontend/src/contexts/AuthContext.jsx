@@ -50,6 +50,11 @@ export const AuthProvider = ({ children }) => {
       // Guardar en localStorage para uso offline
       localStorage.setItem('usuario', JSON.stringify(response.data));
     } catch (error) {
+      // Token vencido o invalido: la sesion ya no sirve, hay que volver a iniciar sesion
+      if (error.response?.status === 401) {
+        logout();
+        return;
+      }
       // Si falla por red (offline), usar cache
       const cached = localStorage.getItem('usuario');
       if (cached) {

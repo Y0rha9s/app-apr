@@ -45,7 +45,7 @@ function ComprobantePago({ pagoId, titulo = '🧾 Comprobante de pago', onClose 
     api
       .get(`/pagos/${pagoId}/comprobante`, { headers: authHeaders() })
       .then((res) => setComprobante(res.data.comprobante))
-      .catch((err) => setError(err.response?.data?.error || 'No se pudo cargar el comprobante'));
+      .catch((err) => setError(err.response?.status === 401 ? 'Tu sesión expiró. Cierra sesión y vuelve a iniciar sesión.' : err.response?.data?.error || 'No se pudo cargar el comprobante'));
   }, [pagoId]);
 
   const c = comprobante;

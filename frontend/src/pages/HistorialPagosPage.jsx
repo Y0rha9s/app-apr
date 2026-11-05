@@ -45,7 +45,7 @@ function HistorialPagosPage() {
       setDatos(res.data);
     } catch (err) {
       setDatos(null);
-      setError(err.response?.data?.error || 'No se pudo cargar el historial de pagos');
+      setError(err.response?.status === 401 ? 'Tu sesión expiró. Cierra sesión y vuelve a iniciar sesión.' : err.response?.data?.error || 'No se pudo cargar el historial de pagos');
     } finally {
       setCargando(false);
     }
