@@ -44,8 +44,9 @@ const authController = {
           rut: usuario.rut, 
           rol: usuario.rol 
         },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
+        process.env.JWT_SECRET
+        // Sin vencimiento a proposito (decision con la APR: muchos socios son adultos mayores y
+        // los administradores entran a diario). Para volver a limitarlo: { expiresIn: '30d' }
       );
 
       // Retornar datos del usuario (sin password)
