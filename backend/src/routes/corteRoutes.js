@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
-const { authOpcional } = require('../middleware/authMiddleware');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
 const { registrarNotificacionSegura } = require('../utils/notificaciones');
+
+// Cortes y reposiciones: solo el administrador (sesion obligatoria).
+router.use(authMiddleware, esAdmin);
 
 // Registrar corte de servicio. La evidencia (foto/video) se sube antes desde el
 // frontend via /api/fotos/lectura (mismo bucket) y aca solo se guarda la URL.
 // El GPS es opcional: si el operador no dio permiso o no hay señal, se guarda null.
-router.post('/registrar-corte', authOpcional, async (req, res) => {
+router.post('/registrar-corte', async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -97,7 +100,7 @@ router.post('/registrar-corte', authOpcional, async (req, res) => {
 // usuario). El costo de reposición queda en historial_cortes.monto_reposicion sin
 // boleta_reposicion_id asignado; se cobra automaticamente en la boleta siguiente
 // que se genere para ese usuario (ver crear-con-boleta), igual que ya pasa hoy.
-router.post('/registrar-reposicion', authOpcional, async (req, res) => {
+router.post('/registrar-reposicion', async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -171,6 +174,45 @@ router.post('/registrar-reposicion', authOpcional, async (req, res) => {
     await client.query('ROLLBACK');
     console.error('Error registrando reposición:', error);
     res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Anular un corte registrado por error: el corte queda en el historial como 'anulado'
+// (con motivo, quien y cuando), el servicio vuelve a 'activo' y deja de cobrarse en la boleta.
+// Solo se puede anular un corte vigente; uno ya repuesto es un hecho cumplido.
+router.post('/:id/anular', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const motivo = (req.body.motivo || '').trim();
+    if (!motivo) {
+      return res.status(400).json({ success: false, error: 'Debes indicar el motivo de la anulación' });
+    }
+
+    await client.query('BEGIN');
+    const { rows } = await client.query('SELECT * FROM historial_cortes WHERE id = $1 FOR UPDATE', [id]);
+    if (rows.length === 0) throw new Error('Corte no encontrado');
+    const corte = rows[0];
+    if (corte.estado === 'anulado') throw new Error('Este corte ya estaba anulado');
+    if (corte.estado === 'repuesto') throw new Error('Este corte ya fue repuesto, no se puede anular');
+    if (corte.boleta_corte_id) throw new Error('El cobro de este corte ya fue incluido en una boleta; hay que corregir la boleta antes de anularlo');
+
+    await client.query(
+      `UPDATE historial_cortes
+       SET estado = 'anulado', anulado_motivo = $1, anulado_at = NOW(), anulado_por = $2, updated_at = NOW()
+       WHERE id = $3`,
+      [motivo, req.usuario.id, id]
+    );
+    await client.query(`UPDATE usuarios SET estado_servicio = 'activo' WHERE id = $1`, [corte.usuario_id]);
+
+    await client.query('COMMIT');
+    res.json({ success: true, mensaje: 'Corte anulado. El servicio del usuario volvió a estado activo.' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error anulando corte:', error);
+    res.status(400).json({ success: false, error: error.message });
   } finally {
     client.release();
   }

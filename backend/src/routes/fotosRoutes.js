@@ -5,6 +5,7 @@ const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const sharp = require('sharp');
 const { aplicarMarcaAgua } = require('../utils/marcaAgua');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -89,7 +90,7 @@ const uploadEvidencia = multer({
   }
 });
 
-router.post('/evidencia', uploadEvidencia.single('evidencia'), async (req, res) => {
+router.post('/evidencia', authMiddleware, esAdmin, uploadEvidencia.single('evidencia'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió ningún archivo' });

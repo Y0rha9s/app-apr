@@ -130,6 +130,7 @@ router.post('/crear-con-boleta', authOpcional, async (req, res) => {
       `SELECT id, monto_corte, monto_reposicion, fecha_corte, fecha_reposicion, boleta_corte_id, boleta_reposicion_id
       FROM historial_cortes 
       WHERE usuario_id = $1 
+      AND estado <> 'anulado'
       AND (boleta_corte_id IS NULL OR boleta_reposicion_id IS NULL)
       ORDER BY fecha_corte DESC`,
       [usuario_id]

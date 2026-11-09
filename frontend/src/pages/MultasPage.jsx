@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import api, { authHeaders } from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 
@@ -30,8 +30,8 @@ function MultasPage() {
   const cargarDatos = async () => {
     try {
       const [multasRes, tiposRes, usuariosRes] = await Promise.all([
-        api.get('/multas', { params: filtroEstado !== 'todas' ? { estado: filtroEstado } : {} }),
-        api.get('/multas/tipos'),
+        api.get('/multas', { params: filtroEstado !== 'todas' ? { estado: filtroEstado } : {}, headers: authHeaders() }),
+        api.get('/multas/tipos', { headers: authHeaders() }),
         api.get('/usuarios')
       ]);
       setMultas(multasRes.data.multas || []);
@@ -60,7 +60,7 @@ function MultasPage() {
       return;
     }
     try {
-      const response = await api.post('/multas', formMulta);
+      const response = await api.post('/multas', formMulta, { headers: authHeaders() });
       alert(`✅ ${response.data.mensaje}`);
       setMostrarFormMulta(false);
       setFormMulta({ usuario_id: '', tipo_multa_id: '', monto: '', motivo: '', fecha: new Date().toISOString().split('T')[0] });
@@ -77,7 +77,7 @@ function MultasPage() {
       return;
     }
     try {
-      await api.post('/multas/tipos', formTipo);
+      await api.post('/multas/tipos', formTipo, { headers: authHeaders() });
       alert('✅ Tipo de multa creado');
       setFormTipo({ nombre: '', monto_sugerido: '' });
       setMostrarFormTipo(false);
@@ -89,7 +89,7 @@ function MultasPage() {
 
   const handleToggleTipoActivo = async (tipo) => {
     try {
-      await api.put(`/multas/tipos/${tipo.id}`, { activo: !tipo.activo });
+      await api.put(`/multas/tipos/${tipo.id}`, { activo: !tipo.activo }, { headers: authHeaders() });
       cargarDatos();
     } catch (error) {
       alert('❌ Error: ' + (error.response?.data?.error || error.message));
@@ -102,7 +102,7 @@ function MultasPage() {
     if (!window.confirm('¿Anular esta multa?')) return;
 
     try {
-      const response = await api.post(`/multas/${multa.id}/anular`, { motivo });
+      const response = await api.post(`/multas/${multa.id}/anular`, { motivo }, { headers: authHeaders() });
       alert(`✅ ${response.data.mensaje}`);
       cargarDatos();
     } catch (error) {

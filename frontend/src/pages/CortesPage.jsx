@@ -21,6 +21,7 @@ function CortesPage() {
   const [videoCorte, setVideoCorte] = useState(null);
   const [subiendoCorte, setSubiendoCorte] = useState(false);
   const [reponiendoId, setReponiendoId] = useState(null);
+  const [anulandoId, setAnulandoId] = useState(null);
 
   useEffect(() => {
     cargarDatos();
@@ -29,7 +30,7 @@ function CortesPage() {
   const cargarDatos = async () => {
     try {
       const [cortadosRes, usuariosRes] = await Promise.all([
-        api.get('/cortes/usuarios-cortados'),
+        api.get('/cortes/usuarios-cortados', { headers: authHeaders() }),
         api.get('/usuarios')
       ]);
 
@@ -60,7 +61,7 @@ function CortesPage() {
     const fd = new FormData();
     fd.append('evidencia', file);
     const response = await api.post('/fotos/evidencia', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' }
     });
     return response.data.url;
   };
@@ -122,9 +123,31 @@ function CortesPage() {
     }
   };
 
+  // El id que recibe es el del corte (no el del usuario), para anular exactamente ese registro.
+  const handleAnularCorte = async (corte) => {
+    const motivo = window.prompt(`Anular el corte de ${corte.nombre}.
+
+Indica el motivo (obligatorio):`);
+    if (motivo === null) return;
+    if (!motivo.trim()) {
+      alert('⚠️ Debes indicar el motivo de la anulación');
+      return;
+    }
+    setAnulandoId(corte.corte_id);
+    try {
+      const response = await api.post(`/cortes/${corte.corte_id}/anular`, { motivo }, { headers: authHeaders() });
+      alert('✅ ' + response.data.mensaje);
+      cargarDatos();
+    } catch (error) {
+      alert('❌ Error: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setAnulandoId(null);
+    }
+  };
+
   const handleVerHistorial = async (usuarioId) => {
     try {
-      const response = await api.get(`/cortes/historial/${usuarioId}`);
+      const response = await api.get(`/cortes/historial/${usuarioId}`, { headers: authHeaders() });
       setHistorialUsuario(response.data.historial || []);
       setUsuarioSeleccionado(usuarioId);
     } catch (error) {
@@ -309,6 +332,13 @@ function CortesPage() {
                           {reponiendoId === corte.id ? '⏳...' : '✅ Reponer'}
                         </button>
                         <button
+                          onClick={() => handleAnularCorte(corte)}
+                          disabled={anulandoId === corte.corte_id}
+                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm disabled:bg-gray-300"
+                        >
+                          {anulandoId === corte.corte_id ? '⏳...' : '🗑️ Anular'}
+                        </button>
+                        <button
                           onClick={() => handleVerHistorial(corte.id)}
                           className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
                         >
@@ -363,12 +393,17 @@ function CortesPage() {
                       {h.monto_reposicion ? formatearMonto(h.monto_reposicion) : '-'}
                     </td>
                     <td className="p-3 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${h.estado === 'repuesto' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${h.estado === 'repuesto' ? 'bg-green-100 text-green-800' : h.estado === 'anulado' ? 'bg-gray-200 text-gray-700' : 'bg-red-100 text-red-800'
                         }`}>
                         {h.estado}
                       </span>
                     </td>
-                    <td className="p-3 text-sm">{h.motivo || '-'}</td>
+                    <td className="p-3 text-sm">
+                      {h.motivo || '-'}
+                      {h.estado === 'anulado' && h.anulado_motivo && (
+                        <div className="text-xs text-gray-500 mt-1">Anulado: {h.anulado_motivo}</div>
+                      )}
+                    </td>
                     <td className="p-3 text-sm">
                       <div className="flex flex-col gap-1">
                         {h.evidencia_foto_url && (

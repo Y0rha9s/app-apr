@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
 const { calcularPeriodoDestino } = require('../utils/multas');
+
+// Multas: solo el administrador (sesion obligatoria).
+router.use(authMiddleware, esAdmin);
 
 // ─── TIPOS DE MULTA (catalogo administrable) ─────────────────────────────────
 router.get('/tipos', async (req, res) => {
