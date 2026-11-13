@@ -419,22 +419,39 @@ const renderPDF = (doc, b, tramos, cargoFijo, historial, qrBuffer) => {
     .text(`SECTOR VILLA ALEGRE S/N VILLARRICA  •  Tel: ${b.telefono || '33554455'}`, 105, 54);
 
   // CAJA CLIENTE
-  const boxY = 105, boxH = 90;
+  // Columna izquierda con posiciones calculadas: un nombre largo se achica hasta caber en
+  // una línea (mín. 8pt); si aun así no cabe, pasa a 2 líneas y empuja el resto hacia abajo
+  // (antes el RUT iba en posición fija y quedaba encima del apellido).
+  const boxY = 105;
+  const leftX = MARGIN + 14;
+  const colW = (W / 2) - MARGIN - 20;
+  const nombreTxt = `Cliente: ${(b.nombre || '').trim()}`;
+  doc.font('Helvetica-Bold');
+  let nombreFontSize = 10;
+  while (nombreFontSize > 8 && doc.fontSize(nombreFontSize).widthOfString(nombreTxt) > colW) nombreFontSize -= 0.5;
+  const nombreH = doc.fontSize(nombreFontSize).heightOfString(nombreTxt, { width: colW });
+  const dirTxt = `Dirección: ${b.direccion || '-'}`;
+  const dirH = doc.font('Helvetica').fontSize(10).heightOfString(dirTxt, { width: colW });
+  const boxH = Math.max(90, Math.ceil(12 + nombreH + 4 + 16 + 16 + dirH + 10));
+
   doc.rect(MARGIN, boxY, W - MARGIN * 2, boxH).fillAndStroke(GRAY_LIGHT, GRAY_BORDER);
-  const nombreFontSize = b.nombre.length > 35 ? 8 : 10;
-  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(nombreFontSize)
-    .text(`Cliente: ${b.nombre}`, MARGIN + 14, boxY + 12, { width: (W / 2) - MARGIN - 20 });
-  doc.fontSize(10).text(`RUT: ${b.rut}`, MARGIN + 14, boxY + 28);
-  doc.font('Helvetica').fontSize(10)
-    .text(`Medidor N°: ${b.medidor || '-'}`, MARGIN + 14, boxY + 44)
-    .text(`Dirección: ${b.direccion || '-'}`, MARGIN + 14, boxY + 60);
+  let ly = boxY + 12;
+  doc.fillColor(TEXT_DARK).font('Helvetica-Bold').fontSize(nombreFontSize).text(nombreTxt, leftX, ly, { width: colW });
+  ly += nombreH + 4;
+  doc.fontSize(10).text(`RUT: ${b.rut || '-'}`, leftX, ly, { width: colW });
+  ly += 16;
+  doc.font('Helvetica').fontSize(10).text(`Medidor N°: ${b.medidor || '-'}`, leftX, ly, { width: colW });
+  ly += 16;
+  doc.text(dirTxt, leftX, ly, { width: colW });
+
   const col2X = W / 2 + 20;
   doc.font('Helvetica-Bold').fontSize(10)
-    .text(`Boleta #: ${b.numero_folio || b.id}`, col2X, boxY + 12)
-    .text(`Período: ${b.periodo}`, col2X, boxY + 28);
+    .text(`N° Cliente: ${b.numero_cliente || '-'}`, col2X, boxY + 12)
+    .text(`Boleta #: ${b.numero_folio || b.id}`, col2X, boxY + 28)
+    .text(`Período: ${b.periodo}`, col2X, boxY + 44);
   doc.font('Helvetica').fontSize(10)
-    .text(`Emisión: ${b.fecha_emision ? new Date(b.fecha_emision).toLocaleDateString('es-CL') : '-'}`, col2X, boxY + 44)
-    .text(`Vencimiento: ${b.fecha_vencimiento ? new Date(b.fecha_vencimiento).toLocaleDateString('es-CL') : '-'}`, col2X, boxY + 60);
+    .text(`Emisión: ${b.fecha_emision ? new Date(b.fecha_emision).toLocaleDateString('es-CL') : '-'}`, col2X, boxY + 60)
+    .text(`Vencimiento: ${b.fecha_vencimiento ? new Date(b.fecha_vencimiento).toLocaleDateString('es-CL') : '-'}`, col2X, boxY + 76);
   doc.font('Helvetica-Oblique').fontSize(8).fillColor(TEXT_MID)
     .text('A partir de esta fecha se originarán intereses y se cobrará un cargo adicional por pago fuera de plazo.', MARGIN, boxY + boxH + 10, { width: W - MARGIN * 2 });
 
@@ -465,7 +482,7 @@ const renderPDF = (doc, b, tramos, cargoFijo, historial, qrBuffer) => {
     { label: 'IVA', valor: b.monto_iva || 0 },
   ].filter(c => c !== null && (parseFloat(c.valor) !== 0 || c.label.includes('Cargo Fijo') || c.label.includes('Consumo'))) : [
     { label: 'Cargo Fijo mensual', valor: cargoFijoUsuario },
-    { label: `Monto Base (≤${tramos[0]?.tramo_hasta ?? 15} m³) — $${tramos[0]?.precio_por_m3 ?? 700}/m³`, valor: tramo1 },
+    { label: `Monto Base (hasta ${tramos[0]?.tramo_hasta ?? 15} m³) — $${tramos[0]?.precio_por_m3 ?? 700}/m³`, valor: tramo1 },
     tieneSubsidio ? { label: 'Subsidio 50% aplicado', valor: -(parseFloat(b.descuento_subsidio || 0)) } : null,
     { label: `Excedente (${tramos[1]?.tramo_desde ?? 16}-${tramos[1]?.tramo_hasta ?? 30} m³) — $${tramos[1]?.precio_por_m3 ?? 1050}/m³`, valor: tramo2 },
     { label: `Excedente (>${tramos[1]?.tramo_hasta ?? 30} m³) — $${tramos[2]?.precio_por_m3 ?? 1400}/m³`, valor: tramo3 },
