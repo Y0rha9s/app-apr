@@ -217,7 +217,28 @@ const eliminarBoleta = async (req, res) => {
     if (rows[0].estado === 'pagada') {
       return res.status(400).json({ error: 'No se puede eliminar una boleta pagada. Anúlala si necesitas revertirla.' });
     }
-    await pool.query('DELETE FROM boletas WHERE id = $1', [id]);
+    // Si la boleta tenía saldo a favor aplicado, se le devuelve al usuario para que
+    // se vuelva a aplicar al regenerarla (si no, el crédito se pierde).
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rows: borrada } = await client.query(
+        'DELETE FROM boletas WHERE id = $1 RETURNING usuario_id, saldo_favor_aplicado', [id]
+      );
+      const credito = parseFloat(borrada[0]?.saldo_favor_aplicado || 0);
+      if (credito > 0) {
+        await client.query(
+          'UPDATE usuarios SET saldo_favor = COALESCE(saldo_favor, 0) + $1 WHERE id = $2',
+          [credito, borrada[0].usuario_id]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
     res.json({ success: true });
   } catch (err) {
     console.error('eliminarBoleta:', err);
@@ -233,10 +254,31 @@ const eliminarPorPeriodo = async (req, res) => {
       `SELECT COUNT(*)::int AS total FROM boletas WHERE periodo = $1 AND estado = 'pagada'`,
       [periodo]
     );
-    const { rows: eliminadas } = await pool.query(
-      `DELETE FROM boletas WHERE periodo = $1 AND estado != 'pagada' RETURNING id`,
-      [periodo]
-    );
+    // Devolver al usuario el saldo a favor que se había aplicado en las boletas borradas
+    const client = await pool.connect();
+    let eliminadas;
+    try {
+      await client.query('BEGIN');
+      ({ rows: eliminadas } = await client.query(
+        `DELETE FROM boletas WHERE periodo = $1 AND estado != 'pagada' RETURNING id, usuario_id, saldo_favor_aplicado`,
+        [periodo]
+      ));
+      for (const b of eliminadas) {
+        const credito = parseFloat(b.saldo_favor_aplicado || 0);
+        if (credito > 0) {
+          await client.query(
+            'UPDATE usuarios SET saldo_favor = COALESCE(saldo_favor, 0) + $1 WHERE id = $2',
+            [credito, b.usuario_id]
+          );
+        }
+      }
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
     const omitidas = pagadas[0].total;
     res.json({
       success: true,
