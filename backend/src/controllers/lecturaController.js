@@ -128,14 +128,66 @@ const lecturaController = {
         const boleta = boletaResult.rows[0];
         const consumoM3Nuevo = result.rows[0].consumo_m3;
         const delta = monto_calculado - parseFloat(lecturaAnterior.monto_calculado || 0);
-        const nuevoTotalMes = Math.round(parseFloat(boleta.total_mes || 0) + delta);
-        const nuevoTotalAPagar = Math.max(0, Math.round(parseFloat(boleta.total_a_pagar || 0) + delta));
-        const nuevoSaldoPendiente = Math.max(0, Math.round(parseFloat(boleta.saldo_pendiente || 0) + delta));
 
-        await pool.query(
-          `UPDATE boletas SET consumo_m3 = $1, total_mes = $2, total_a_pagar = $3, saldo_pendiente = $4 WHERE id = $5`,
-          [consumoM3Nuevo, nuevoTotalMes, nuevoTotalAPagar, nuevoSaldoPendiente, boleta.id]
-        );
+        // Lo que ya se pagó de esta boleta se respeta: el nuevo saldo es el nuevo total
+        // menos lo pagado. Si lo pagado supera el nuevo total, el excedente va a saldo a
+        // favor; si queda deuda y el usuario tiene saldo a favor, se descuenta de ahí.
+        const totalAPagarAnterior = Math.round(parseFloat(boleta.total_a_pagar || 0));
+        const pagado = Math.max(0, totalAPagarAnterior - Math.round(parseFloat(boleta.saldo_pendiente || 0)));
+        const nuevoTotalMes = Math.round(parseFloat(boleta.total_mes || 0) + delta);
+        let nuevoTotalAPagar = Math.max(0, totalAPagarAnterior + Math.round(delta));
+        let nuevoSaldoPendiente = nuevoTotalAPagar - pagado;
+        let excedente = 0;
+        let credito = 0;
+
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+
+          if (nuevoSaldoPendiente < 0) {
+            excedente = -nuevoSaldoPendiente;
+            nuevoSaldoPendiente = 0;
+          } else if (nuevoSaldoPendiente > 0) {
+            const { rows: u } = await client.query(
+              'SELECT saldo_favor FROM usuarios WHERE id = $1 FOR UPDATE', [boleta.usuario_id]
+            );
+            const disponible = Math.round(Math.max(0, parseFloat(u[0]?.saldo_favor || 0)));
+            credito = Math.min(disponible, nuevoSaldoPendiente);
+            nuevoSaldoPendiente -= credito;
+            nuevoTotalAPagar -= credito;
+          }
+
+          // Estado coherente con el saldo (no se tocan boletas congeladas/anuladas)
+          let nuevoEstado = boleta.estado;
+          if (['pendiente', 'abonada', 'pagada', 'atrasada'].includes(boleta.estado)) {
+            if (nuevoSaldoPendiente > 0) {
+              nuevoEstado = pagado > 0 ? 'abonada' : 'pendiente';
+            } else if (boleta.estado === 'pendiente' || boleta.estado === 'abonada') {
+              nuevoEstado = 'pagada';
+            }
+          }
+
+          await client.query(
+            `UPDATE boletas SET consumo_m3 = $1, total_mes = $2, total_a_pagar = $3, saldo_pendiente = $4,
+               estado = $5, saldo_favor_aplicado = COALESCE(saldo_favor_aplicado, 0) + $6
+             WHERE id = $7`,
+            [consumoM3Nuevo, nuevoTotalMes, nuevoTotalAPagar, nuevoSaldoPendiente, nuevoEstado, credito, boleta.id]
+          );
+
+          if (excedente > 0 || credito > 0) {
+            await client.query(
+              'UPDATE usuarios SET saldo_favor = COALESCE(saldo_favor, 0) - $1 + $2 WHERE id = $3',
+              [credito, excedente, boleta.usuario_id]
+            );
+          }
+
+          await client.query('COMMIT');
+        } catch (e) {
+          await client.query('ROLLBACK');
+          throw e;
+        } finally {
+          client.release();
+        }
       }
 
       res.json(result.rows[0]);

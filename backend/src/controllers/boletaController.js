@@ -208,6 +208,18 @@ const generarIndividual = async (req, res) => {
   }
 };
 
+// Plata que el usuario ya tenía puesta en una boleta que se borra:
+// lo abonado (total_a_pagar - saldo_pendiente) + el saldo a favor que se le descontó.
+const creditoADevolver = (b) => {
+  if (!b) return 0;
+  // Las congeladas/anuladas tienen saldo_pendiente en 0 sin que se hayan pagado: no se devuelve nada por ellas
+  const conPagosReales = ['pendiente', 'abonada', 'pagada', 'atrasada'].includes(b.estado);
+  const abonado = conPagosReales
+    ? Math.max(0, Math.round(parseFloat(b.total_a_pagar || 0) - parseFloat(b.saldo_pendiente || 0)))
+    : 0;
+  return abonado + Math.round(parseFloat(b.saldo_favor_aplicado || 0));
+};
+
 // ─── DELETE /api/boletas/:id ─────────────────────────────────────────────────
 const eliminarBoleta = async (req, res) => {
   try {
@@ -217,15 +229,16 @@ const eliminarBoleta = async (req, res) => {
     if (rows[0].estado === 'pagada') {
       return res.status(400).json({ error: 'No se puede eliminar una boleta pagada. Anúlala si necesitas revertirla.' });
     }
-    // Si la boleta tenía saldo a favor aplicado, se le devuelve al usuario para que
-    // se vuelva a aplicar al regenerarla (si no, el crédito se pierde).
+    // Lo que ya se pagó de la boleta (abonos) y el saldo a favor que tenía aplicado
+    // se le devuelven al usuario como saldo a favor, para que se apliquen al regenerarla
+    // (si no, esa plata se pierde).
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       const { rows: borrada } = await client.query(
-        'DELETE FROM boletas WHERE id = $1 RETURNING usuario_id, saldo_favor_aplicado', [id]
+        'DELETE FROM boletas WHERE id = $1 RETURNING usuario_id, estado, saldo_favor_aplicado, total_a_pagar, saldo_pendiente', [id]
       );
-      const credito = parseFloat(borrada[0]?.saldo_favor_aplicado || 0);
+      const credito = creditoADevolver(borrada[0]);
       if (credito > 0) {
         await client.query(
           'UPDATE usuarios SET saldo_favor = COALESCE(saldo_favor, 0) + $1 WHERE id = $2',
@@ -254,17 +267,18 @@ const eliminarPorPeriodo = async (req, res) => {
       `SELECT COUNT(*)::int AS total FROM boletas WHERE periodo = $1 AND estado = 'pagada'`,
       [periodo]
     );
-    // Devolver al usuario el saldo a favor que se había aplicado en las boletas borradas
+    // Devolver al usuario los abonos y el saldo a favor aplicado de las boletas borradas
     const client = await pool.connect();
     let eliminadas;
     try {
       await client.query('BEGIN');
       ({ rows: eliminadas } = await client.query(
-        `DELETE FROM boletas WHERE periodo = $1 AND estado != 'pagada' RETURNING id, usuario_id, saldo_favor_aplicado`,
+        `DELETE FROM boletas WHERE periodo = $1 AND estado != 'pagada'
+         RETURNING id, usuario_id, estado, saldo_favor_aplicado, total_a_pagar, saldo_pendiente`,
         [periodo]
       ));
       for (const b of eliminadas) {
-        const credito = parseFloat(b.saldo_favor_aplicado || 0);
+        const credito = creditoADevolver(b);
         if (credito > 0) {
           await client.query(
             'UPDATE usuarios SET saldo_favor = COALESCE(saldo_favor, 0) + $1 WHERE id = $2',
