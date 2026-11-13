@@ -91,9 +91,9 @@ async function calcularTotalPorTramos(consumoM3, tipoUsuario = 'normal') {
   for (const tarifa of tarifas) {
     if (m3Restantes <= 0) break;
 
-    const desde = tarifa.tramo_desde;
-    const hasta = tarifa.tramo_hasta || Infinity;
-    const rangoTramo = hasta - desde + 1;
+    // Capacidad del tramo = su tope menos lo ya consumido en tramos anteriores
+    const hasta = tarifa.tramo_hasta != null ? parseFloat(tarifa.tramo_hasta) : Infinity;
+    const rangoTramo = Math.max(0, hasta - m3ProcesadosTotal);
 
     // Cuántos m³ entran en este tramo
     const m3EnTramo = Math.min(m3Restantes, rangoTramo);
