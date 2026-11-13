@@ -118,6 +118,7 @@ const generarMasivo = async (req, res) => {
       }
       if (creditoAplicado > 0) {
         await client.query(`UPDATE usuarios SET saldo_favor = $1 WHERE id = $2`, [saldoFavorRestante, l.usuario_id]);
+        await client.query(`UPDATE boletas SET saldo_favor_aplicado = $1 WHERE id = $2`, [creditoAplicado, nueva[0].id]);
       }
       generadas++;
     }
@@ -193,6 +194,7 @@ const generarIndividual = async (req, res) => {
 
     if (creditoAplicado > 0) {
       await client.query(`UPDATE usuarios SET saldo_favor = $1 WHERE id = $2`, [saldoFavorRestante, usuario_id]);
+      await client.query(`UPDATE boletas SET saldo_favor_aplicado = $1 WHERE id = $2`, [creditoAplicado, creada[0].id]);
     }
 
     await client.query('COMMIT');
@@ -387,7 +389,7 @@ const renderPDF = (doc, b, tramos, cargoFijo, historial, qrBuffer) => {
     tieneSubsidio ? { label: 'Subsidio 50% aplicado', valor: -(parseFloat(b.descuento_subsidio || 0)) } : null,
     { label: `Excedente (${tramos[1]?.tramo_desde ?? 16}-${tramos[1]?.tramo_hasta ?? 30} m³) — $${tramos[1]?.precio_por_m3 ?? 1050}/m³`, valor: tramo2 },
     { label: `Excedente (>${tramos[1]?.tramo_hasta ?? 30} m³) — $${tramos[2]?.precio_por_m3 ?? 1400}/m³`, valor: tramo3 },
-    parseFloat(b.saldo_favor || 0) > 0 ? { label: 'Saldo a favor', valor: -(parseFloat(b.saldo_favor || 0)) } : null,
+    parseFloat(b.saldo_favor_aplicado || 0) > 0 ? { label: 'Saldo a favor aplicado', valor: -(parseFloat(b.saldo_favor_aplicado || 0)) } : null,
     { label: 'Multa', valor: b.monto_multas || 0 },
     { label: 'Monto Corte', valor: b.monto_corte || 0 },
     { label: 'Cuota Préstamo', valor: b.cuota_prestamo || 0 },

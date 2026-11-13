@@ -235,6 +235,7 @@ router.post('/crear-con-boleta', authOpcional, async (req, res) => {
 
     if (creditoAplicado > 0) {
       await client.query('UPDATE usuarios SET saldo_favor = $1 WHERE id = $2', [saldoFavorRestante, usuario_id]);
+      await client.query('UPDATE boletas SET saldo_favor_aplicado = $1 WHERE id = $2', [creditoAplicado, boletaId]);
     }
 
     await client.query('COMMIT');

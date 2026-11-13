@@ -290,8 +290,8 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
           `INSERT INTO boletas
            (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior,
             total_a_pagar, saldo_pendiente, estado, descuento_subsidio, monto_iva, fecha_vencimiento,
-            cuota_prestamo, prestamo_cuota_id)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+            cuota_prestamo, prestamo_cuota_id, saldo_favor_aplicado)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
           [
             usuario.id,
             lecturaId,
@@ -306,7 +306,8 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
             calculoTotal.iva,
             fechaVencimiento,
             cuotaPrestamo,
-            cuotaConvenio ? cuotaConvenio.cuotaId : null
+            cuotaConvenio ? cuotaConvenio.cuotaId : null,
+            creditoAplicado
           ]
         );
 
