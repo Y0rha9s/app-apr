@@ -28,6 +28,18 @@ const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
   return Math.round(tieneSubsidio ? (cargoFijo + tramo1Monto) / 2 + totalConsumo : cargoFijo + tramo1Monto + totalConsumo);
 };
 
+// Monto del mes respetando la tarifa especial del usuario (precio_m3_plano + cargo fijo propio),
+// si la tiene. u = fila con precio_m3_plano, cargo_fijo_personalizado y tiene_subsidio.
+const cargoFijoDe = (u, cargoFijoGlobal) =>
+  u?.cargo_fijo_personalizado != null ? parseFloat(u.cargo_fijo_personalizado) : cargoFijoGlobal;
+const calcularMontoMes = (tramos, cargoFijoGlobal, consumo, u) => {
+  const cargoFijo = cargoFijoDe(u, cargoFijoGlobal);
+  if (u?.precio_m3_plano != null) {
+    return Math.round(cargoFijo + parseFloat(consumo || 0) * parseFloat(u.precio_m3_plano));
+  }
+  return calcularMontoTramos(tramos, cargoFijo, consumo, u?.tiene_subsidio);
+};
+
 const calcularDescuentoSubsidio = (tramos, cargoFijo, consumo, tieneSubsidio) => {
   if (!tieneSubsidio) return 0;
   return Math.round((cargoFijo + Math.min(consumo, parseFloat(tramos[0]?.tramo_hasta || 15)) * parseFloat(tramos[0]?.precio_por_m3 || 700)) / 2);
@@ -79,7 +91,8 @@ const generarMasivo = async (req, res) => {
   try {
     await client.query('BEGIN');
     const { rows: lecturas } = await client.query(`
-      SELECT l.*, u.id as usuario_id, u.nombre, u.rut, u.numero_cliente, u.tiene_subsidio, u.saldo_favor
+      SELECT l.*, u.id as usuario_id, u.nombre, u.rut, u.numero_cliente, u.tiene_subsidio, u.saldo_favor,
+        u.precio_m3_plano, u.cargo_fijo_personalizado
       FROM lecturas l JOIN usuarios u ON u.id = l.usuario_id
       WHERE l.mes = $1 AND l.anio = $2 AND u.estado = 'activo'
         AND NOT EXISTS (SELECT 1 FROM boletas b WHERE b.usuario_id = l.usuario_id AND b.periodo = $3)
@@ -99,7 +112,7 @@ const generarMasivo = async (req, res) => {
     for (const l of lecturas) {
       const consumo = parseFloat(l.consumo_m3 || 0);
       const saldo_anterior = await obtenerSaldoAnteriorPeriodo(client, l.usuario_id, periodo);
-      const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
+      const total_mes = calcularMontoMes(tramos, cargoFijo, consumo, l);
       const cuotaConvenio = await obtenerProximaCuotaConvenio(client, l.usuario_id);
       const cuota_prestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
       const monto_multas = await obtenerMontoMultasPendientes(client, l.usuario_id, periodo);
@@ -152,7 +165,7 @@ const generarIndividual = async (req, res) => {
     }
 
     const { rows: lecturas } = await client.query(
-      `SELECT l.*, u.tiene_subsidio, u.saldo_favor
+      `SELECT l.*, u.tiene_subsidio, u.saldo_favor, u.precio_m3_plano, u.cargo_fijo_personalizado
        FROM lecturas l JOIN usuarios u ON u.id = l.usuario_id
        WHERE l.usuario_id = $1 AND l.mes = $2 AND l.anio = $3
        ORDER BY l.id DESC LIMIT 1`,
@@ -172,7 +185,7 @@ const generarIndividual = async (req, res) => {
     const cargoFijo = cfg.cargo_fijo || 3000;
 
     const consumo = parseFloat(l.consumo_m3 || 0);
-    const total_mes = calcularMontoTramos(tramos, cargoFijo, consumo, l.tiene_subsidio);
+    const total_mes = calcularMontoMes(tramos, cargoFijo, consumo, l);
     const cuotaConvenio = await obtenerProximaCuotaConvenio(client, usuario_id);
     const cuota_prestamo = cuotaConvenio ? cuotaConvenio.monto : 0;
     const monto_multas = await obtenerMontoMultasPendientes(client, usuario_id, periodo);
@@ -439,8 +452,19 @@ const renderPDF = (doc, b, tramos, cargoFijo, historial, qrBuffer) => {
   y += 28;
   const tableX = MARGIN, tableW = W - MARGIN * 2, colMonto = 140, rowH = 22;
 
-  const conceptos = [
-    { label: 'Cargo Fijo mensual', valor: cargoFijo },
+  // Tarifa especial del usuario: un solo precio por m³ (sin tramos) y su propio cargo fijo
+  const tarifaPlana = b.precio_m3_plano != null;
+  const cargoFijoUsuario = b.cargo_fijo_personalizado != null ? parseFloat(b.cargo_fijo_personalizado) : cargoFijo;
+  const conceptos = tarifaPlana ? [
+    { label: 'Cargo Fijo mensual', valor: cargoFijoUsuario },
+    { label: `Consumo (${b.consumo_m3 ?? 0} m³) — $${parseFloat(b.precio_m3_plano).toLocaleString('es-CL')}/m³ (tarifa especial)`, valor: Math.round(parseFloat(b.consumo_m3 || 0) * parseFloat(b.precio_m3_plano)) },
+    parseFloat(b.saldo_favor_aplicado || 0) > 0 ? { label: 'Saldo a favor aplicado', valor: -(parseFloat(b.saldo_favor_aplicado || 0)) } : null,
+    { label: 'Multa', valor: b.monto_multas || 0 },
+    { label: 'Monto Corte', valor: b.monto_corte || 0 },
+    { label: 'Cuota Préstamo', valor: b.cuota_prestamo || 0 },
+    { label: 'IVA', valor: b.monto_iva || 0 },
+  ].filter(c => c !== null && (parseFloat(c.valor) !== 0 || c.label.includes('Cargo Fijo') || c.label.includes('Consumo'))) : [
+    { label: 'Cargo Fijo mensual', valor: cargoFijoUsuario },
     { label: `Monto Base (≤${tramos[0]?.tramo_hasta ?? 15} m³) — $${tramos[0]?.precio_por_m3 ?? 700}/m³`, valor: tramo1 },
     tieneSubsidio ? { label: 'Subsidio 50% aplicado', valor: -(parseFloat(b.descuento_subsidio || 0)) } : null,
     { label: `Excedente (${tramos[1]?.tramo_desde ?? 16}-${tramos[1]?.tramo_hasta ?? 30} m³) — $${tramos[1]?.precio_por_m3 ?? 1050}/m³`, valor: tramo2 },
@@ -540,7 +564,7 @@ const generarPDF = async (req, res) => {
     const { id } = req.params;
     const { rows } = await pool.query(`
       SELECT b.*, u.nombre, u.rut, u.direccion, u.telefono, u.numero_cliente,
-        u.medidor, u.tiene_subsidio, u.saldo_favor,
+        u.medidor, u.tiene_subsidio, u.saldo_favor, u.precio_m3_plano, u.cargo_fijo_personalizado,
         l.lectura_anterior, l.lectura_actual
       FROM boletas b JOIN usuarios u ON u.id = b.usuario_id
       LEFT JOIN lecturas l ON l.id = b.lectura_id
@@ -585,7 +609,7 @@ const generarZIP = async (req, res) => {
 
     const { rows: boletas } = await pool.query(`
       SELECT b.*, u.nombre, u.rut, u.direccion, u.telefono, u.numero_cliente, u.medidor,
-        u.tiene_subsidio, u.saldo_favor, l.lectura_anterior, l.lectura_actual
+        u.tiene_subsidio, u.saldo_favor, u.precio_m3_plano, u.cargo_fijo_personalizado, l.lectura_anterior, l.lectura_actual
       FROM boletas b JOIN usuarios u ON u.id = b.usuario_id
       LEFT JOIN lecturas l ON l.id = b.lectura_id
       WHERE b.periodo = $1 ORDER BY u.numero_cliente ASC

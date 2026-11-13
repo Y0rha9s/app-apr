@@ -5,7 +5,7 @@ const multer = require('multer');
 const xlsx = require('xlsx');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
+const { calcularTotalPorTramos: calcularTotalPorTramosBase, obtenerTarifaEspecial, montoTarifaEspecial } = require('../utils/tarifas');
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio } = require('../utils/convenios');
 
@@ -242,7 +242,10 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
         // Calcular monto de la boleta (si el consumo es negativo, el monto se basa en consumo 0 o el mínimo)
         const consumoParaMonto = Math.max(0, consumo);
         const calculoTotal = await calcularTotalPorTramos(consumoParaMonto, usuario.tipo_usuario || 'normal');
-        const montoCalculado = Math.round(calculoTotal.total + await obtenerCargoFijo(client));
+        const especial = await obtenerTarifaEspecial(client, usuario.id);
+        const montoCalculado = especial
+          ? montoTarifaEspecial(especial, consumoParaMonto).total
+          : Math.round(calculoTotal.total + await obtenerCargoFijo(client));
 
         // Crear lectura
         const lecturaResult = await client.query(
@@ -388,7 +391,10 @@ router.put('/resolver-conflicto', async (req, res) => {
 
     const consumoParaMonto = Math.max(0, lecturaActualNum - lecturaAnterior);
     const calculoTotal = await calcularTotalPorTramos(consumoParaMonto, tipoUsuario);
-    const montoCalculado = Math.round(calculoTotal.total + await obtenerCargoFijo(client));
+    const especial = await obtenerTarifaEspecial(client, usuarioId);
+    const montoCalculado = especial
+      ? montoTarifaEspecial(especial, consumoParaMonto).total
+      : Math.round(calculoTotal.total + await obtenerCargoFijo(client));
 
     const updateLectura = await client.query(
       `UPDATE lecturas

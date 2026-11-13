@@ -75,4 +75,26 @@ async function obtenerCargoFijo(pool, usuarioId) {
   return personalizado != null ? parseFloat(personalizado) : cargoFijoGlobal;
 }
 
-module.exports = { calcularTotalPorTramos, obtenerCargoFijo };
+// Tarifa especial por usuario (excepción acordada con la APR): si el usuario tiene
+// precio_m3_plano, todo su consumo se cobra a ese precio, sin tramos, más su cargo fijo
+// (cargo_fijo_personalizado, o el global si no tiene). Devuelve null si no tiene excepción.
+async function obtenerTarifaEspecial(db, usuarioId) {
+  if (!usuarioId) return null;
+  const { rows } = await db.query(
+    `SELECT precio_m3_plano, cargo_fijo_personalizado FROM usuarios WHERE id = $1`,
+    [usuarioId]
+  );
+  const u = rows[0];
+  if (!u || u.precio_m3_plano == null) return null;
+  return {
+    precioM3: parseFloat(u.precio_m3_plano),
+    cargoFijo: await obtenerCargoFijo(db, usuarioId)
+  };
+}
+
+function montoTarifaEspecial(especial, consumoM3) {
+  const consumo = Math.round(Math.max(0, parseFloat(consumoM3 || 0)) * especial.precioM3);
+  return { consumo, cargoFijo: especial.cargoFijo, total: Math.round(especial.cargoFijo + consumo) };
+}
+
+module.exports = { calcularTotalPorTramos, obtenerCargoFijo, obtenerTarifaEspecial, montoTarifaEspecial };

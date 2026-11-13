@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
-const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
+const { calcularTotalPorTramos: calcularTotalPorTramosBase, obtenerTarifaEspecial, montoTarifaEspecial } = require('../utils/tarifas');
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
@@ -101,7 +101,10 @@ router.post('/crear-con-boleta', authOpcional, async (req, res) => {
       `SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`
     );
     const cargoFijo = parseFloat(cargoFijoResult.rows[0]?.valor || 3000);
-    const montoCalculado = Math.round(calculoTotal.total + cargoFijo);
+    const especial = await obtenerTarifaEspecial(client, usuario_id);
+    const montoCalculado = especial
+      ? montoTarifaEspecial(especial, consumoTemporal).total
+      : Math.round(calculoTotal.total + cargoFijo);
 
     // 4. Insertar lectura
     const resultLectura = await client.query(

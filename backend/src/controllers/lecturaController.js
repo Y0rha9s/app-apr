@@ -1,6 +1,6 @@
 const lecturaModel = require('../models/lecturaModel');
 const pool = require('../config/database');
-const { calcularTotalPorTramos } = require('../utils/tarifas');
+const { calcularTotalPorTramos, obtenerTarifaEspecial, montoTarifaEspecial } = require('../utils/tarifas');
 
 const lecturaController = {
   // Obtener todas las lecturas
@@ -68,7 +68,10 @@ const lecturaController = {
       const calculo = await calcularTotalPorTramos(pool, consumoNuevo, lecturaAnterior.tipo_usuario || 'normal');
       const cargoFijoResult = await pool.query(`SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`);
       const cargoFijo = parseFloat(cargoFijoResult.rows[0]?.valor || 3000);
-      const monto_calculado = Math.round(calculo.total + cargoFijo);
+      const especial = await obtenerTarifaEspecial(pool, lecturaAnterior.usuario_id);
+      const monto_calculado = especial
+        ? montoTarifaEspecial(especial, consumoNuevo).total
+        : Math.round(calculo.total + cargoFijo);
 
       // Actualizar lectura
       const result = await pool.query(
