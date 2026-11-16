@@ -17,6 +17,21 @@ const api = axios.create({
   },
 });
 
+// Agrega el token de sesion a todas las llamadas si existe y la llamada no trae uno propio.
+// Las rutas publicas lo ignoran; las protegidas (ej. /pagos, /cajas) lo exigen.
+api.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token && !config.headers?.Authorization) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    // sin acceso a localStorage: la llamada sigue sin token
+  }
+  return config;
+});
+
 // Servicios de transacciones
 export const transaccionesService = {
   getAll: () => api.get('/transacciones'),

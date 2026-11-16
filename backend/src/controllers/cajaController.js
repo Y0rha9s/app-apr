@@ -35,7 +35,8 @@ const cajaController = {
   // Abrir caja
   abrir: async (req, res) => {
     try {
-      const nuevaCaja = await cajaModel.abrir(req.body);
+      // La caja queda a nombre de quien inicio sesion, no de lo que diga el body.
+      const nuevaCaja = await cajaModel.abrir({ ...req.body, usuario_id: req.usuario.id });
       res.status(201).json(nuevaCaja);
     } catch (error) {
       res.status(500).json({ error: error.message });

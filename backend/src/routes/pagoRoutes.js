@@ -5,6 +5,10 @@ const pool = require('../config/database');
 const { authMiddleware, soloRoles } = require('../middleware/authMiddleware');
 const { obtenerRecibo } = require('../utils/recibos');
 
+// Todas las rutas de pagos exigen sesion de admin o recaudador (antes eran publicas:
+// cualquiera con la URL podia registrar un pago).
+router.use(authMiddleware, soloRoles('admin', 'recaudador'));
+
 // Rutas
 router.get('/', pagoController.getAll);
 router.get('/caja/:cajaId', pagoController.getByCaja);
