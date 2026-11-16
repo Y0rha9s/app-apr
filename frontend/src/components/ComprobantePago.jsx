@@ -125,6 +125,12 @@ function ComprobantePago({ pagoId, titulo = '🧾 Comprobante de pago', onClose 
                 <div className="recibo-etiq">FORMA DE PAGO:</div>
                 <div className="recibo-valor recibo-forma">{c.forma_pago_etiqueta}</div>
               </div>
+              {c.numero_operacion && (
+                <div className="recibo-fila">
+                  <div className="recibo-etiq">N° OPERACIÓN:</div>
+                  <div className="recibo-valor" style={{ fontSize: 15 }}>{c.numero_operacion}</div>
+                </div>
+              )}
               {c.observaciones && (
                 <div className="recibo-fila">
                   <div className="recibo-etiq">DETALLE:</div>

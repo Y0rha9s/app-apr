@@ -28,7 +28,7 @@ function conceptoDelPago(periodos, formaPago) {
 // pago con el mismo NOW() dentro de una transaccion, asi que boleta.fecha_pago = pago.fecha_pago.
 async function construirRecibo(db, pagoId) {
   const { rows } = await db.query(
-    `SELECT p.id, p.monto, p.metodo_pago, p.observaciones, p.caja_id, p.usuario_id,
+    `SELECT p.id, p.monto, p.metodo_pago, p.observaciones, p.caja_id, p.usuario_id, p.numero_operacion,
             to_char(${FECHA_CHILE}, 'DD') AS dia, to_char(${FECHA_CHILE}, 'MM') AS mes,
             to_char(${FECHA_CHILE}, 'YYYY') AS anio, to_char(${FECHA_CHILE}, 'DD/MM/YYYY HH24:MI') AS fecha_hora,
             to_char(p.fecha_pago, 'YYYY-MM-DD HH24:MI:SS.US') AS fecha_pago_utc,
@@ -67,6 +67,7 @@ async function construirRecibo(db, pagoId) {
     monto_palabras: montoEnPalabras(monto),
     forma_pago: forma,
     forma_pago_etiqueta: ETIQUETA_FORMA_PAGO[forma],
+    numero_operacion: r.numero_operacion || null,
     concepto: conceptoDelPago(periodos, forma),
     observaciones: r.observaciones || '',
     recibido_por: r.recibido_por ? r.recibido_por.trim() : null,

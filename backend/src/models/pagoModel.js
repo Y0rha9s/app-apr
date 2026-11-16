@@ -53,6 +53,10 @@ const pagoModel = {
   // Crear pago Y sincronizar boletas automáticamente
   create: async (pago) => {
     const { usuario_id, caja_id, monto, metodo_pago, observaciones, boleta_id } = pago;
+    // N° de operacion (transferencia/tarjeta): opcional, se guarda limpio y con el largo de la columna.
+    const numeroOperacion = pago.numero_operacion != null && String(pago.numero_operacion).trim() !== ''
+      ? String(pago.numero_operacion).trim().slice(0, 100)
+      : null;
     const client = await pool.connect();
 
     try {
@@ -60,8 +64,8 @@ const pagoModel = {
 
       // 1. Registrar el pago
       const pagoResult = await client.query(
-        'INSERT INTO pagos (usuario_id, caja_id, monto, metodo_pago, observaciones) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [usuario_id, caja_id, monto, metodo_pago, observaciones]
+        'INSERT INTO pagos (usuario_id, caja_id, monto, metodo_pago, observaciones, numero_operacion) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [usuario_id, caja_id, monto, metodo_pago, observaciones, numeroOperacion]
       );
       const pagoCreado = pagoResult.rows[0];
 
