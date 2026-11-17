@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 const { calcularTotalPorTramos: calcularTotalPorTramosBase, obtenerTarifaEspecial, montoTarifaEspecial } = require('../utils/tarifas');
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio } = require('../utils/convenios');
+const { calcularVencimiento } = require('../utils/vencimiento');
 
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
   calcularTotalPorTramosBase(pool, consumoM3, tipoUsuario);
@@ -286,7 +287,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
         const { totalAPagar, creditoAplicado, saldoFavorRestante } =
           aplicarSaldoFavor(totalMes + saldoAnterior + cuotaPrestamo, usuario.saldo_favor);
         const periodo = `${anio}-${String(mes).padStart(2, '0')}`;
-        const fechaVencimiento = new Date(anio, mes - 1, 20); // Vence el 20 del mes
+        const fechaVencimiento = calcularVencimiento(periodo); // dia 10 del mes siguiente al periodo
 
         // Crear boleta
         await client.query(

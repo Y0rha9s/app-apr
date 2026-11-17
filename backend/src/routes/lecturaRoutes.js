@@ -8,6 +8,7 @@ const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
 const { obtenerMontoMultasPendientes, aplicarMultasPendientes } = require('../utils/multas');
 const { authOpcional } = require('../middleware/authMiddleware');
 const { validarFotoLectura } = require('../utils/fotosLectura');
+const { calcularVencimiento } = require('../utils/vencimiento');
 
 // Wrapper para mantener la firma usada en este archivo (pool tomado del closure)
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
@@ -177,10 +178,8 @@ router.post('/crear-con-boleta', authOpcional, async (req, res) => {
     const { totalAPagar, creditoAplicado, saldoFavorRestante } = aplicarSaldoFavor(montoAntesDeCredito, saldoFavorUsuario);
     const saldoPendiente = totalAPagar;
 
-    // 7. Calcular fecha de vencimiento (15 días después)
-    const fechaPeriodo = new Date(anio, mes - 1, 1);
-    const fechaVencimiento = new Date(fechaPeriodo);
-    fechaVencimiento.setDate(fechaPeriodo.getDate() + 15);
+    // 7. Vencimiento: dia 10 del mes siguiente al periodo (regla del APR)
+    const fechaVencimiento = calcularVencimiento(periodo);
 
     // 9. Insertar boleta
     const resultBoleta = await client.query(

@@ -8,6 +8,7 @@ const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../u
 const { clasificarBoletaVisual } = require('../utils/clasificacionVisual');
 const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
 const { obtenerMontoMultasPendientes, aplicarMultasPendientes } = require('../utils/multas');
+const { calcularVencimiento } = require('../utils/vencimiento');
 
 // ─── HELPER: cálculo de monto por tramos (compartido por generación masiva e individual) ───
 const calcularMontoTramos = (tramos, cargoFijo, consumo, tieneSubsidio) => {
@@ -118,14 +119,13 @@ const generarMasivo = async (req, res) => {
       const monto_multas = await obtenerMontoMultasPendientes(client, l.usuario_id, periodo);
       const { totalAPagar: total_a_pagar, creditoAplicado, saldoFavorRestante } =
         aplicarSaldoFavor(total_mes + saldo_anterior + cuota_prestamo + monto_multas, l.saldo_favor);
-      const fecha_vencimiento = new Date();
-      fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
+      const fecha_vencimiento = calcularVencimiento(periodo); // dia 10 del mes siguiente al periodo
       const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
       const { rows: nueva } = await client.query(`
         INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio, cuota_prestamo, prestamo_cuota_id, monto_multas)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10,$11,$12,$13)
         RETURNING id
-      `, [l.usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio, cuota_prestamo, cuotaConvenio ? cuotaConvenio.cuotaId : null, monto_multas]);
+      `, [l.usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento, descuento_subsidio, cuota_prestamo, cuotaConvenio ? cuotaConvenio.cuotaId : null, monto_multas]);
       if (monto_multas > 0) {
         await aplicarMultasPendientes(client, l.usuario_id, periodo, nueva[0].id);
       }
@@ -192,14 +192,13 @@ const generarIndividual = async (req, res) => {
     const { totalAPagar: total_a_pagar, creditoAplicado, saldoFavorRestante } =
       aplicarSaldoFavor(total_mes + saldo_anterior + cuota_prestamo + monto_multas, l.saldo_favor);
     const descuento_subsidio = calcularDescuentoSubsidio(tramos, cargoFijo, consumo, l.tiene_subsidio);
-    const fecha_vencimiento = new Date();
-    fecha_vencimiento.setDate(fecha_vencimiento.getDate() + 15);
+    const fecha_vencimiento = calcularVencimiento(periodo); // dia 10 del mes siguiente al periodo
 
     const { rows: creada } = await client.query(`
       INSERT INTO boletas (usuario_id, lectura_id, periodo, consumo_m3, total_mes, saldo_anterior, total_a_pagar, saldo_pendiente, estado, fecha_vencimiento, fecha_emision, descuento_subsidio, cuota_prestamo, prestamo_cuota_id, monto_multas)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pendiente',$9,NOW(),$10,$11,$12,$13)
       RETURNING *
-    `, [usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento.toISOString().split('T')[0], descuento_subsidio, cuota_prestamo, cuotaConvenio ? cuotaConvenio.cuotaId : null, monto_multas]);
+    `, [usuario_id, l.id, periodo, consumo, total_mes, saldo_anterior, total_a_pagar, total_a_pagar, fecha_vencimiento, descuento_subsidio, cuota_prestamo, cuotaConvenio ? cuotaConvenio.cuotaId : null, monto_multas]);
 
     if (monto_multas > 0) {
       await aplicarMultasPendientes(client, usuario_id, periodo, creada[0].id);
