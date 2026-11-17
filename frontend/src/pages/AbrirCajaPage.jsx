@@ -19,6 +19,9 @@ function AbrirCajaPage() {
   const [deudaUsuario, setDeudaUsuario] = useState(0);
   const [boletasUsuario, setBoletasUsuario] = useState([]);
   const [boletaSeleccionada, setBoletaSeleccionada] = useState('');
+  const [infoBoletas, setInfoBoletas] = useState(null); // { saldo_favor, limite_periodo, deuda_fuera_ventana }
+  const [esAbono, setEsAbono] = useState(false);
+  const solicitudRef = useRef(null); // id unico del intento de pago: evita duplicados por doble clic
   const [montoPago, setMontoPago] = useState('');
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [observacionesPago, setObservacionesPago] = useState('');
@@ -52,8 +55,7 @@ function AbrirCajaPage() {
 
   useEffect(() => {
     if (usuarioSeleccionado) {
-      calcularDeudaUsuario(usuarioSeleccionado);
-      cargarBoletasUsuario(usuarioSeleccionado);
+      cargarBoletasUsuario(usuarioSeleccionado); // trae tambien la deuda real
     } else {
       setBoletasUsuario([]);
     }
@@ -131,18 +133,52 @@ function AbrirCajaPage() {
     return `${MESES_CORTOS[mes - 1]} ${anio}`;
   };
 
+  // Boletas impagas del socio con la regla de Caja: ventana de 3 meses y la mas antigua primero.
   const cargarBoletasUsuario = async (usuarioId) => {
     try {
-      const response = await api.get(`/boletas/usuario/${usuarioId}`);
-      const pendientes = response.data
-        .filter(b => b.estado === 'pendiente' || b.estado === 'abonada')
-        .sort((a, b) => a.periodo.localeCompare(b.periodo));
-      setBoletasUsuario(pendientes);
+      const { data } = await api.get(`/pagos/boletas-elegibles/${usuarioId}`);
+      setBoletasUsuario(data.boletas);
+      setDeudaUsuario(data.deuda_real); // sin contar dos veces la deuda arrastrada
+      setInfoBoletas({ saldo_favor: data.saldo_favor, limite_periodo: data.limite_periodo, deuda_fuera_ventana: data.deuda_fuera_ventana });
+      const primera = data.boletas.find(b => b.seleccionable);
+      setBoletaSeleccionada(primera ? String(primera.id) : '');
     } catch (error) {
       console.error('Error cargando boletas del usuario:', error);
       setBoletasUsuario([]);
+      setInfoBoletas(null);
     }
   };
+
+  const nuevoIdSolicitud = () => {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {
+      const r = (Math.random() * 16) | 0;
+      return (ch === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    });
+  };
+
+  // Vista previa del calculo (misma regla que el backend, utils/pagoBoleta.js)
+  const boletaElegida = boletasUsuario.find(b => String(b.id) === String(boletaSeleccionada));
+  const calculoPago = (() => {
+    if (!boletaElegida) return null;
+    const S = Math.round(parseFloat(boletaElegida.saldo_pendiente));
+    const R = Math.round(parseFloat(montoPago) || 0);
+    if (R <= 0) return { S, R, aplicado: 0, aFavor: 0, vuelto: 0, restante: S, error: null, aviso: null };
+    if (esAbono) {
+      const aplicado = Math.min(R, S);
+      return { S, R, aplicado, aFavor: R - aplicado, vuelto: 0, restante: S - aplicado, error: null, aviso: null };
+    }
+    if (R >= S) {
+      const extra = R - S;
+      if (extra > 0 && metodoPago !== 'efectivo') {
+        return { S, R, aplicado: S, aFavor: 0, vuelto: 0, restante: 0, aviso: null,
+          error: 'Con este método no se da vuelto: ingrese el monto exacto o marque "¿Es abono?" para dejar el excedente como saldo a favor.' };
+      }
+      return { S, R, aplicado: S, aFavor: 0, vuelto: extra, restante: 0, error: null, aviso: null };
+    }
+    return { S, R, aplicado: R, aFavor: 0, vuelto: 0, restante: S - R, error: null,
+      aviso: `El monto es menor al saldo de la boleta. Se registrará como abono parcial y quedarán $${new Intl.NumberFormat('es-CL').format(S - R)} pendientes.` };
+  })();
 
   const handleAbrirCaja = async (e) => {
     e.preventDefault();
@@ -174,20 +210,42 @@ function AbrirCajaPage() {
       return;
     }
 
+    if (!boletaElegida) {
+      alert('Debe elegir la boleta a pagar');
+      return;
+    }
+    if (!calculoPago || calculoPago.R <= 0) {
+      alert('Ingrese el monto recibido');
+      return;
+    }
+    if (calculoPago.error) {
+      alert(calculoPago.error);
+      return;
+    }
+    if (calculoPago.aviso && !window.confirm(`⚠️ ${calculoPago.aviso}\n\n¿Registrar el pago igual?`)) {
+      return;
+    }
+
     setRegistrandoPago(true);
+    if (!solicitudRef.current) solicitudRef.current = nuevoIdSolicitud();
 
     try {
-      const respuestaPago = await api.post('/pagos', {
+      const respuestaPago = await api.post('/pagos/boleta', {
         usuario_id: parseInt(usuarioSeleccionado),
         caja_id: cajaAbierta.id,
-        monto: parseFloat(montoPago),
+        boleta_id: parseInt(boletaSeleccionada),
+        monto_recibido: calculoPago.R,
+        es_abono: esAbono,
         metodo_pago: metodoPago,
         numero_operacion: numeroOperacion || null,
         observaciones: observacionesPago,
-        boleta_id: boletaSeleccionada ? parseInt(boletaSeleccionada) : null
+        solicitud_id: solicitudRef.current
       });
+      solicitudRef.current = null;
 
-      setComprobante({ id: respuestaPago.data.id, nuevo: true });
+      setComprobante({ id: respuestaPago.data.pago.id, nuevo: true });
+      setEsAbono(false);
+      setInfoBoletas(null);
 
       // Limpiar formulario
       setUsuarioSeleccionado('');
@@ -203,7 +261,9 @@ function AbrirCajaPage() {
       // Recargar pagos
       cargarPagosHoy();
     } catch (error) {
-      alert('❌ Error al registrar pago: ' + error.message);
+      // Si el servidor rechazo el pago (validacion), el proximo intento es una solicitud nueva.
+      if (error.response && error.response.status < 500) solicitudRef.current = null;
+      alert('❌ Error al registrar pago: ' + (error.response?.data?.error || error.message));
     } finally {
       setRegistrandoPago(false);
     }
@@ -411,25 +471,48 @@ function AbrirCajaPage() {
           {usuarioSeleccionado && (
             <div>
               <label className="block text-xl font-bold text-gray-700 mb-3">
-                Aplicar Pago a
+                Boleta a pagar *
               </label>
               <select
                 value={boletaSeleccionada}
                 onChange={(e) => setBoletaSeleccionada(e.target.value)}
                 className="w-full px-6 py-4 text-xl border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500"
+                required
               >
-                <option value="">Automático (la boleta pendiente más antigua)</option>
+                <option value="">— Elegir boleta —</option>
                 {boletasUsuario.map(b => (
-                  <option key={b.id} value={b.id}>
-                    {etiquetaPeriodo(b.periodo)} — {b.estado === 'abonada' ? 'Abonada, saldo' : 'Pendiente'} {formatearMonto(b.saldo_pendiente)}
+                  <option key={b.id} value={b.id} disabled={!b.seleccionable}>
+                    {etiquetaPeriodo(b.periodo)} — {b.estado === 'abonada' ? 'Abonada, saldo' : 'Saldo'} {formatearMonto(b.saldo_pendiente)}
+                    {!b.seleccionable && b.motivo ? ` (${b.motivo})` : ''}
                   </option>
                 ))}
               </select>
               {boletasUsuario.length === 0 && (
-                <p className="text-base text-gray-500 mt-1">Este usuario no tiene boletas pendientes.</p>
+                <p className="text-base text-gray-500 mt-1">Este socio no tiene boletas pendientes.</p>
+              )}
+              {boletasUsuario.length > 0 && !boletasUsuario.some(b => b.seleccionable) && (
+                <p className="text-base text-red-600 mt-1">
+                  La deuda de este socio tiene más de 3 meses: no se puede pagar por boleta en Caja. Consulte con la administración (convenio).
+                </p>
               )}
               <p className="text-base text-gray-500 mt-1">
-                Si el monto pagado sobra después de cubrir la boleta elegida, el resto se aplica a las siguientes boletas pendientes en orden.
+                Se paga de la boleta más antigua a la más nueva (últimos 3 meses). Lo pagado se descuenta también del saldo anterior de las boletas siguientes.
+                {infoBoletas?.saldo_favor > 0 && ` Saldo a favor actual: ${formatearMonto(infoBoletas.saldo_favor)} (se usa en la próxima boleta).`}
+              </p>
+
+              <label className="flex items-center gap-3 mt-4 text-xl font-bold text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={esAbono}
+                  onChange={(e) => setEsAbono(e.target.checked)}
+                  className="w-6 h-6"
+                />
+                ¿Es abono?
+              </label>
+              <p className="text-base text-gray-500 mt-1">
+                {esAbono
+                  ? 'Abono: se descuenta de la boleta lo que alcance. Si sobra, queda como saldo a favor para la próxima boleta (no se da vuelto).'
+                  : 'Pago normal: si entrega más que el saldo se calcula el vuelto (solo efectivo). Si entrega menos, se avisa y se registra como abono parcial.'}
               </p>
             </div>
           )}
@@ -437,7 +520,7 @@ function AbrirCajaPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-xl font-bold text-gray-700 mb-3">
-                Monto del Pago *
+                Monto Recibido *
               </label>
               <input
                 type="number"
@@ -507,7 +590,27 @@ function AbrirCajaPage() {
             ></textarea>
           </div>
 
-          <Button type="submit" variant="success" className="w-full" disabled={registrandoPago}>
+          {calculoPago && calculoPago.R > 0 && (
+            <div className={`p-4 rounded-xl border-2 ${calculoPago.error ? 'bg-red-50 border-red-300' : calculoPago.aviso ? 'bg-yellow-50 border-yellow-300' : 'bg-green-50 border-green-300'}`}>
+              <div className="grid grid-cols-2 gap-2 text-lg">
+                <span>Saldo de la boleta</span><span className="text-right font-semibold">{formatearMonto(calculoPago.S)}</span>
+                <span>Monto recibido</span><span className="text-right font-semibold">{formatearMonto(calculoPago.R)}</span>
+                <span>Se descuenta de la boleta</span><span className="text-right font-semibold">{formatearMonto(calculoPago.aplicado)}</span>
+                {calculoPago.aFavor > 0 && (
+                  <>
+                    <span>A saldo a favor (próxima boleta)</span>
+                    <span className="text-right font-semibold">{formatearMonto(calculoPago.aFavor)}</span>
+                  </>
+                )}
+                <span>Saldo que queda en la boleta</span><span className="text-right font-semibold">{formatearMonto(calculoPago.restante)}</span>
+                <span className="text-2xl font-bold">Vuelto</span><span className="text-right text-2xl font-bold">{formatearMonto(calculoPago.vuelto)}</span>
+              </div>
+              {calculoPago.error && <p className="mt-2 text-red-700 font-semibold">{calculoPago.error}</p>}
+              {calculoPago.aviso && <p className="mt-2 text-yellow-800 font-semibold">⚠️ {calculoPago.aviso}</p>}
+            </div>
+          )}
+
+          <Button type="submit" variant="success" className="w-full" disabled={registrandoPago || !boletaElegida || !!calculoPago?.error}>
             {registrandoPago ? '⏳ Registrando...' : '✅ Registrar Pago'}
           </Button>
         </form>

@@ -137,6 +137,26 @@ function ComprobantePago({ pagoId, titulo = '🧾 Comprobante de pago', onClose 
                   <div className="recibo-valor" style={{ fontSize: 15 }}>{c.observaciones}</div>
                 </div>
               )}
+              {c.detalle_pago && (
+                <div className="recibo-fila">
+                  <div className="recibo-etiq">DETALLE PAGO:</div>
+                  <div className="recibo-valor" style={{ fontSize: 14 }}>
+                    {[
+                      ['Total boleta (saldo antes del pago)', c.detalle_pago.saldo_boleta],
+                      ['Monto recibido', c.detalle_pago.monto_recibido],
+                      ['Aplicado a la boleta', c.detalle_pago.aplicado_boleta],
+                      ...(c.detalle_pago.a_saldo_favor > 0 ? [['A saldo a favor (próxima boleta)', c.detalle_pago.a_saldo_favor]] : []),
+                      ['Saldo pendiente de la boleta', c.detalle_pago.saldo_restante],
+                      ['Vuelto', c.detalle_pago.vuelto]
+                    ].map(([etiqueta, valor]) => (
+                      <div key={etiqueta} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                        <span>{etiqueta}</span>
+                        <strong>$ {new Intl.NumberFormat('es-CL').format(valor || 0)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="recibo-pie" style={{ borderTop: '1px solid #1d4f91' }}>
                 <div className="recibo-timbre" />
                 <div className="recibo-monto">$ {new Intl.NumberFormat('es-CL').format(c.monto)}</div>

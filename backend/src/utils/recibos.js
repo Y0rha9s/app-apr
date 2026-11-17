@@ -29,6 +29,7 @@ function conceptoDelPago(periodos, formaPago) {
 async function construirRecibo(db, pagoId) {
   const { rows } = await db.query(
     `SELECT p.id, p.monto, p.metodo_pago, p.observaciones, p.caja_id, p.usuario_id, p.numero_operacion,
+            p.monto_recibido, p.vuelto, p.es_abono, p.saldo_boleta_antes, p.aplicado_boleta, p.a_saldo_favor,
             to_char(${FECHA_CHILE}, 'DD') AS dia, to_char(${FECHA_CHILE}, 'MM') AS mes,
             to_char(${FECHA_CHILE}, 'YYYY') AS anio, to_char(${FECHA_CHILE}, 'DD/MM/YYYY HH24:MI') AS fecha_hora,
             to_char(p.fecha_pago, 'YYYY-MM-DD HH24:MI:SS.US') AS fecha_pago_utc,
@@ -68,6 +69,16 @@ async function construirRecibo(db, pagoId) {
     forma_pago: forma,
     forma_pago_etiqueta: ETIQUETA_FORMA_PAGO[forma],
     numero_operacion: r.numero_operacion || null,
+    // Solo pagos hechos con "elegir boleta" (Caja nueva); los antiguos no lo traen.
+    detalle_pago: r.monto_recibido == null ? null : {
+      saldo_boleta: parseFloat(r.saldo_boleta_antes),
+      monto_recibido: parseFloat(r.monto_recibido),
+      aplicado_boleta: parseFloat(r.aplicado_boleta),
+      a_saldo_favor: parseFloat(r.a_saldo_favor),
+      vuelto: parseFloat(r.vuelto),
+      saldo_restante: parseFloat(r.saldo_boleta_antes) - parseFloat(r.aplicado_boleta),
+      es_abono: r.es_abono === true
+    },
     concepto: conceptoDelPago(periodos, forma),
     observaciones: r.observaciones || '',
     recibido_por: r.recibido_por ? r.recibido_por.trim() : null,
