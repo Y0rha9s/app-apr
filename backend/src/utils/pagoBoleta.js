@@ -1,12 +1,13 @@
 // Caja: pago de UNA boleta elegida por el cajero, con "¿es abono?" y vuelto.
 //
 // Reglas acordadas con el APR (ver INFORME_CAJA_PAGOS_ANALISIS.md, seccion 0):
-// - Se pueden elegir boletas impagas de los ultimos 3 meses (periodo >= mes actual - 3, hora de Chile).
-// - Se paga de la mas antigua a la mas nueva: no se puede pagar octubre dejando septiembre impago.
-// - Deuda arrastrada: lo que se paga de una boleta vieja se descuenta del saldo_anterior de las
+// - El cajero elige LIBREMENTE cualquier boleta impaga de los ultimos 3 meses (periodo >= mes actual - 3,
+//   hora de Chile). No hay orden obligatorio.
+// - Deuda arrastrada hacia adelante: lo que se paga de una boleta se descuenta del saldo_anterior de las
 //   boletas siguientes que lo traen (septiembre -> octubre -> noviembre), sin cobrarlo dos veces.
-// - Si se paga completa una boleta cuyo saldo_anterior trae deuda de boletas anteriores (fuera de
-//   la ventana), esas boletas anteriores quedan saldadas: su deuda ya iba incluida.
+// - Deuda arrastrada hacia atras: el saldo de una boleta puede traer deuda de meses anteriores impagos
+//   (su saldo_anterior). Lo pagado cubre primero el consumo propio de esa boleta; si sobra, cubre la
+//   deuda de los meses anteriores (del mas reciente al mas antiguo) y esas boletas bajan su saldo.
 // - Abono con excedente: el excedente va a saldo a favor y se usa en la PROXIMA boleta que se genere.
 //   No se recalculan boletas ya emitidas.
 // - Sin abono: si paga de mas, vuelto (solo efectivo). Si paga de menos, se registra igual como
@@ -29,6 +30,17 @@ class ErrorPago extends Error {
 const redondear = (n) => Math.round(Number(n) || 0);
 const pagable = (b) => ESTADOS_PAGABLES.includes(b.estado) && parseFloat(b.saldo_pendiente) > 0;
 
+// Cuanto del saldo de la boleta en la posicion i (lista del socio ordenada por periodo, sin anuladas)
+// es deuda de la boleta anterior todavia impaga (venia en su saldo_anterior).
+function incluidoDeAnteriores(lista, i) {
+  if (i == null || i <= 0) return 0;
+  const b = lista[i];
+  const prev = lista[i - 1];
+  const sa = redondear(b.saldo_anterior);
+  if (sa <= 0 || !pagable(prev)) return 0;
+  return Math.min(redondear(prev.saldo_pendiente), sa, redondear(b.saldo_pendiente));
+}
+
 // Lista para la pantalla de Caja: boletas impagas del socio, marcando cual se puede elegir.
 async function boletasElegibles(db, usuarioId) {
   const { rows: [{ limite }] } = await db.query(`SELECT ${LIMITE_SQL} AS limite`);
@@ -42,28 +54,27 @@ async function boletasElegibles(db, usuarioId) {
   );
   const { rows: u } = await db.query('SELECT COALESCE(saldo_favor, 0) AS saldo_favor FROM usuarios WHERE id = $1', [usuarioId]);
 
-  let primeraEnVentana = null;
+  const { rows: todas } = await db.query(
+    `SELECT id, estado, saldo_anterior, saldo_pendiente FROM boletas
+     WHERE usuario_id = $1 AND estado <> 'anulada' ORDER BY periodo ASC, id ASC`,
+    [usuarioId]
+  );
+  const posicion = new Map(todas.map((b, i) => [b.id, i]));
+
   const boletas = rows.map((b) => {
     const enVentana = b.periodo >= limite;
-    let seleccionable = false;
-    let motivo = null;
-    if (!enVentana) {
-      motivo = `Más de ${MESES_VENTANA} meses: su deuda va incluida en el saldo anterior de las boletas siguientes`;
-    } else if (primeraEnVentana === null) {
-      primeraEnVentana = b.id;
-      seleccionable = true;
-    } else {
-      motivo = 'Primero debe pagarse la boleta más antigua';
-    }
-    return { ...b, en_ventana: enVentana, seleccionable, motivo };
+    const incluye = incluidoDeAnteriores(todas, posicion.get(b.id));
+    return {
+      ...b,
+      en_ventana: enVentana,
+      seleccionable: enVentana,
+      incluye_anterior: incluye, // parte del saldo que es deuda de meses anteriores impagos
+      motivo: enVentana ? null : `Más de ${MESES_VENTANA} meses: su deuda va incluida en el saldo de las boletas siguientes`
+    };
   });
 
   // Deuda real: la suma de saldos cuenta dos veces la deuda arrastrada (la boleta siguiente ya la trae
   // en su saldo_anterior). Se descuenta de cada boleta lo que ya va incluido en la siguiente.
-  const { rows: todas } = await db.query(
-    `SELECT id, saldo_anterior FROM boletas WHERE usuario_id = $1 AND estado <> 'anulada' ORDER BY periodo ASC, id ASC`,
-    [usuarioId]
-  );
   const siguienteDe = new Map(todas.map((b, i) => [b.id, todas[i + 1] || null]));
   let deudaReal = 0;
   for (const b of rows) {
@@ -146,8 +157,6 @@ async function aplicarPagoBoleta(client, d) {
 
     const { rows: [{ limite }] } = await client.query(`SELECT ${LIMITE_SQL} AS limite`);
     if (elegida.periodo < limite) throw new ErrorPago(409, `Solo se pueden elegir boletas desde ${limite}`);
-    const anteriorImpaga = boletas.find((b) => b.periodo >= limite && b.periodo < elegida.periodo && pagable(b));
-    if (anteriorImpaga) throw new ErrorPago(409, `Primero debe pagarse la boleta ${anteriorImpaga.periodo}`);
 
     const saldoAntes = redondear(elegida.saldo_pendiente);
     const { aplicado, aFavor, vuelto, aviso } = calcularPago({ saldo: saldoAntes, recibido, esAbono, metodo });
@@ -195,20 +204,25 @@ async function aplicarPagoBoleta(client, d) {
       arrastre = d;
     }
 
-    // 4. Deuda arrastrada hacia atras: si la elegida quedo saldada y traia saldo_anterior, las boletas
-    //    anteriores impagas (fuera de la ventana) ya quedaron pagadas dentro de ella.
-    if (saldoNuevo <= 0 && redondear(elegida.saldo_anterior) > 0) {
-      for (let i = idx - 1; i >= 0; i--) {
-        const p = boletas[i];
-        if (!pagable(p)) break;
-        await client.query(
-          `UPDATE boletas SET saldo_pendiente = 0, estado = CASE WHEN $2 THEN 'atrasada' ELSE 'pagada' END,
-                  fecha_pago = NOW() WHERE id = $1`,
-          [p.id, p.vencida]
-        );
-        if (p.prestamo_cuota_id) await marcarCuotaConvenioPagada(client, p.prestamo_cuota_id, p.id);
-        if (redondear(p.saldo_anterior) <= 0) break;
-      }
+    // 4. Deuda arrastrada hacia atras: lo pagado cubre primero el consumo propio de la elegida; lo que
+    //    pase de eso pago deuda de meses anteriores (que venia en su saldo), y esas boletas bajan su saldo,
+    //    de la mas reciente a la mas antigua. Se usan los saldos de antes del pago (boletas no se modifica).
+    const propioElegida = saldoAntes - incluidoDeAnteriores(boletas, idx);
+    let resto = Math.max(0, aplicado - propioElegida);
+    for (let i = idx - 1; i >= 0 && resto > 0; i--) {
+      const p = boletas[i];
+      if (!pagable(p)) break;
+      const spP = redondear(p.saldo_pendiente);
+      const propioP = spP - incluidoDeAnteriores(boletas, i);
+      const d = Math.min(resto, spP);
+      const spNuevoP = spP - d;
+      const estadoP = spNuevoP <= 0 ? (p.vencida ? 'atrasada' : 'pagada') : 'abonada';
+      await client.query(
+        'UPDATE boletas SET saldo_pendiente = $1, estado = $2, fecha_pago = NOW() WHERE id = $3',
+        [spNuevoP, estadoP, p.id]
+      );
+      if (spNuevoP <= 0 && p.prestamo_cuota_id) await marcarCuotaConvenioPagada(client, p.prestamo_cuota_id, p.id);
+      resto = Math.max(0, d - propioP);
     }
 
     // 5. Saldo a favor (para la proxima boleta que se genere).

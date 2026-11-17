@@ -483,6 +483,7 @@ function AbrirCajaPage() {
                 {boletasUsuario.map(b => (
                   <option key={b.id} value={b.id} disabled={!b.seleccionable}>
                     {etiquetaPeriodo(b.periodo)} — {b.estado === 'abonada' ? 'Abonada, saldo' : 'Saldo'} {formatearMonto(b.saldo_pendiente)}
+                    {b.seleccionable && b.incluye_anterior > 0 ? ` (incluye ${formatearMonto(b.incluye_anterior)} de meses anteriores)` : ''}
                     {!b.seleccionable && b.motivo ? ` (${b.motivo})` : ''}
                   </option>
                 ))}
@@ -496,7 +497,7 @@ function AbrirCajaPage() {
                 </p>
               )}
               <p className="text-base text-gray-500 mt-1">
-                Se paga de la boleta más antigua a la más nueva (últimos 3 meses). Lo pagado se descuenta también del saldo anterior de las boletas siguientes.
+                Puede elegir cualquier boleta de los últimos 3 meses. Si el saldo de la boleta incluye meses anteriores impagos, lo pagado cubre primero el mes elegido y lo que sobre paga esos meses anteriores. Lo pagado se descuenta también del saldo anterior de las boletas siguientes.
                 {infoBoletas?.saldo_favor > 0 && ` Saldo a favor actual: ${formatearMonto(infoBoletas.saldo_favor)} (se usa en la próxima boleta).`}
               </p>
 
