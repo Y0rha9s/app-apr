@@ -6,7 +6,7 @@ const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
 const { obtenerMontoMultasPendientes, aplicarMultasPendientes } = require('../utils/multas');
-const { authOpcional } = require('../middleware/authMiddleware');
+const { authMiddleware, esAdmin, soloRoles } = require('../middleware/authMiddleware');
 const { validarFotoLectura } = require('../utils/fotosLectura');
 const { calcularVencimiento } = require('../utils/vencimiento');
 
@@ -15,7 +15,7 @@ const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
   calcularTotalPorTramosBase(pool, consumoM3, tipoUsuario);
 
 // Crear lectura y generar boleta automáticamente
-router.post('/crear-con-boleta', authOpcional, async (req, res) => {
+router.post('/crear-con-boleta', authMiddleware, soloRoles('admin', 'operador'), async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -295,6 +295,6 @@ const lecturaController = require('../controllers/lecturaController');
 router.get('/simple', lecturaController.getAll); // Listado simple
 router.get('/usuario/:usuarioId', lecturaController.getByUsuario);
 router.get('/:id/historial', lecturaController.getHistorial); // HISTORIAL DE CAMBIOS
-router.put('/:id', lecturaController.update); // ACTUALIZAR CON AUDITORÍA
+router.put('/:id', authMiddleware, esAdmin, lecturaController.update); // ACTUALIZAR CON AUDITORÍA
 
 module.exports = router;

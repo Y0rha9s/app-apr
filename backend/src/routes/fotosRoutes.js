@@ -5,7 +5,7 @@ const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const sharp = require('sharp');
 const { aplicarMarcaAgua } = require('../utils/marcaAgua');
-const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const { authMiddleware, esAdmin, soloRoles } = require('../middleware/authMiddleware');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -28,7 +28,7 @@ function getSupabase() {
 }
 
 // POST /api/fotos/lectura
-router.post('/lectura', upload.single('foto'), async (req, res) => {
+router.post('/lectura', authMiddleware, soloRoles('admin', 'operador'), upload.single('foto'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió ninguna foto' });

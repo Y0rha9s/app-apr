@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Obtener todos los insumos disponibles
 router.get('/insumos', async (req, res) => {
@@ -16,7 +18,7 @@ router.get('/insumos', async (req, res) => {
 });
 
 // Crear nuevo préstamo de insumo
-router.post('/crear', async (req, res) => {
+router.post('/crear', soloAdmin, async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -177,7 +179,7 @@ router.get('/activos', async (req, res) => {
 
 // Crear nuevo convenio (derecho de incorporación / arranque) — sin insumo físico,
 // a diferencia de los préstamos de estanque. Misma lógica de generación de cuotas que /crear.
-router.post('/convenios/crear', async (req, res) => {
+router.post('/convenios/crear', soloAdmin, async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -287,7 +289,7 @@ router.get('/usuario/:usuario_id', async (req, res) => {
 });
 
 // Pagar una o varias cuotas de préstamo de una vez
-router.post('/pagar-cuota', async (req, res) => {
+router.post('/pagar-cuota', soloAdmin, async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -371,7 +373,7 @@ router.post('/pagar-cuota', async (req, res) => {
 });
 
 // Anular un préstamo/convenio
-router.post('/:id/anular', async (req, res) => {
+router.post('/:id/anular', soloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { motivo } = req.body;
@@ -400,7 +402,7 @@ router.post('/:id/anular', async (req, res) => {
 // Editar un préstamo/convenio existente: cuota mensual, numero de cuotas, fecha de
 // inicio y notas. Las cuotas ya pagadas no se tocan; las pendientes se regeneran
 // segun los nuevos parametros (fechas y monto), y el estado se resincroniza.
-router.put('/:id', async (req, res) => {
+router.put('/:id', soloAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const { id } = req.params;
@@ -468,7 +470,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Crear/Actualizar insumo (gestión de catálogo)
-router.post('/insumos', async (req, res) => {
+router.post('/insumos', soloAdmin, async (req, res) => {
   try {
     const { nombre, descripcion, precio_unitario, stock_disponible, categoria, unidad_medida } = req.body;
 
@@ -494,7 +496,7 @@ router.post('/insumos', async (req, res) => {
 });
 
 // Actualizar stock de insumo
-router.put('/insumos/:id/stock', async (req, res) => {
+router.put('/insumos/:id/stock', soloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { cantidad } = req.body; // cantidad a agregar (positivo) o quitar (negativo)

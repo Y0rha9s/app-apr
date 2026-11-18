@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Obtener tipo de usuario
 router.get('/:id/tipo', async (req, res) => {
@@ -24,7 +26,7 @@ router.get('/:id/tipo', async (req, res) => {
 });
 
 // Actualizar tipo de usuario
-router.put('/:id/tipo', async (req, res) => {
+router.put('/:id/tipo', soloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { tipo_usuario } = req.body;

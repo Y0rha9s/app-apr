@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const { UMBRAL_BOLETAS_CORTE, NIVEL_CORTE, consultarMorosos } = require('../utils/morosidad');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Ejecutar actualización de estados de morosidad
-router.post('/actualizar-estados', async (req, res) => {
+router.post('/actualizar-estados', soloAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM actualizar_estados_morosidad()');
     

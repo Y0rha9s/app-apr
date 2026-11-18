@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './UploadExcel.css';
+import { authHeaders } from '../services/api';
 
 function UploadExcel() {
   const [file, setFile] = useState(null);
@@ -49,6 +50,7 @@ function UploadExcel() {
     try {
       const response = await fetch(`${API_URL}/api/get-sheets`, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData
       });
 
@@ -93,6 +95,7 @@ function UploadExcel() {
     try {
       const response = await fetch(`${API_URL}/api/upload-excel`, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData
       });
 

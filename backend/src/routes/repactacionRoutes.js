@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Crear nueva repactación
-router.post('/crear', async (req, res) => {
+router.post('/crear', soloAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -160,7 +162,7 @@ router.get('/usuario/:usuario_id', async (req, res) => {
 });
 
 // Marcar cuota como pagada
-router.post('/pagar-cuota', async (req, res) => {
+router.post('/pagar-cuota', soloAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -231,7 +233,7 @@ router.post('/pagar-cuota', async (req, res) => {
 });
 
 // Marcar repactación como incumplida
-router.post('/marcar-incumplida', async (req, res) => {
+router.post('/marcar-incumplida', soloAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {

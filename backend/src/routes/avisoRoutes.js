@@ -6,6 +6,8 @@ const path = require('path');
 const archiver = require('archiver');
 const fs = require('fs');
 const os = require('os');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Obtener plantillas de avisos
 router.get('/plantillas', async (req, res) => {
@@ -21,7 +23,7 @@ router.get('/plantillas', async (req, res) => {
 });
 
 // Actualizar plantilla
-router.put('/plantillas/:id', async (req, res) => {
+router.put('/plantillas/:id', soloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { contenido, asunto } = req.body;
@@ -203,7 +205,7 @@ router.get('/historial', async (req, res) => {
   }
 });
 
-router.post('/generar-masivo', async (req, res) => {
+router.post('/generar-masivo', soloAdmin, async (req, res) => {
   try {
     const { usuario_ids, plantilla_id = 1 } = req.body;
     

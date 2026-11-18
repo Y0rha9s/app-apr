@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { getCicloFechas, getConfig } = require('../helpers/configuracion.helper');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // GET /api/configuracion/ciclo
 router.get('/ciclo', async (req, res) => {
@@ -36,7 +38,7 @@ router.get('/', async (req, res) => {
 });
 
 // PUT /api/configuracion/:clave
-router.put('/:clave', async (req, res) => {
+router.put('/:clave', soloAdmin, async (req, res) => {
   try {
     const { clave } = req.params;
     const { valor } = req.body;

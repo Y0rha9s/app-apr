@@ -5,6 +5,8 @@ const XLSX = require('xlsx');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
 const fs = require('fs');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Configurar multer
 const upload = multer({ dest: 'uploads/' });
@@ -16,7 +18,7 @@ function generarPassword(rut) {
 }
 
 // NUEVO: Endpoint para obtener las hojas del Excel
-router.post('/get-sheets', upload.single('file'), async (req, res) => {
+router.post('/get-sheets', soloAdmin, upload.single('file'), async (req, res) => {
   try {
     const workbook = XLSX.readFile(req.file.path);
     const sheets = workbook.SheetNames;
@@ -182,7 +184,7 @@ async function obtenerOCrearUsuario(row, client) {
 }
 
 // Función principal - ACTUALIZADO para recibir nombre de hoja
-router.post('/upload-excel', upload.single('file'), async (req, res) => {
+router.post('/upload-excel', soloAdmin, upload.single('file'), async (req, res) => {
   const client = await pool.connect();
 
   try {

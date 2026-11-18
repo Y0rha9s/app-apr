@@ -3,17 +3,18 @@ const router = express.Router();
 const usuarioController = require('../controllers/usuarioController');
 const pool = require('../config/database');
 const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Rutas
 router.get('/', usuarioController.getAll);
 router.get('/:id', usuarioController.getById);
 router.get('/:id/deuda', usuarioController.getDeuda);
 router.get('/:id/info-completa', usuarioController.getInfoCompleta);
-router.post('/', usuarioController.create);
+router.post('/', soloAdmin, usuarioController.create);
 router.put('/:id', authMiddleware, esAdmin, usuarioController.update);
-router.put('/:id/suspender', usuarioController.suspender);
-router.put('/:id/reponer', usuarioController.reponer);
-router.put('/:id/tipo', async (req, res) => {
+router.put('/:id/suspender', soloAdmin, usuarioController.suspender);
+router.put('/:id/reponer', soloAdmin, usuarioController.reponer);
+router.put('/:id/tipo', soloAdmin, async (req, res) => {
   try {
     const { tipo_usuario } = req.body;
     const { rows } = await pool.query(
@@ -25,7 +26,7 @@ router.put('/:id/tipo', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-router.put('/:id/subsidio', async (req, res) => {
+router.put('/:id/subsidio', soloAdmin, async (req, res) => {
   try {
     const { tiene_subsidio } = req.body;
     const { rows } = await pool.query(

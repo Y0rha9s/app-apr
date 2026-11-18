@@ -9,6 +9,8 @@ const { calcularTotalPorTramos: calcularTotalPorTramosBase, obtenerTarifaEspecia
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio } = require('../utils/convenios');
 const { calcularVencimiento } = require('../utils/vencimiento');
+const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 const calcularTotalPorTramos = (consumoM3, tipoUsuario = 'normal') =>
   calcularTotalPorTramosBase(pool, consumoM3, tipoUsuario);
@@ -23,7 +25,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Procesar Excel de lecturas simples
-router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => {
+router.post('/procesar-lecturas', soloAdmin, upload.single('archivo'), async (req, res) => {
   const client = await pool.connect();
 
   try {
@@ -360,7 +362,7 @@ router.post('/procesar-lecturas', upload.single('archivo'), async (req, res) => 
 });
 
 // Resolver conflicto de lectura existente
-router.put('/resolver-conflicto', async (req, res) => {
+router.put('/resolver-conflicto', soloAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
     const { lectura_id, lectura_actual } = req.body;
@@ -593,7 +595,7 @@ router.get('/descargar-usuarios', async (req, res) => {
 });
 
 // POST /api/carga-simple/actualizar-contactos
-router.post('/actualizar-contactos', upload.single('archivo'), async (req, res) => {
+router.post('/actualizar-contactos', soloAdmin, upload.single('archivo'), async (req, res) => {
   const client = await pool.connect();
   try {
     if (!req.file) return res.status(400).json({ success: false, error: 'No se subió archivo' });

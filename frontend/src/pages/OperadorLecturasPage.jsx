@@ -338,6 +338,7 @@ function OperadorLecturasPage() {
         if (capturadaEn) fd.append('capturada_en', capturadaEn);
         const fotoRes = await fetch(`${API_URL}/api/fotos/lectura`, {
           method: 'POST',
+          headers: authHeaders(),
           body: fd
         });
         const fotoData = await fotoRes.json();
@@ -421,6 +422,7 @@ function OperadorLecturasPage() {
           if (item.capturada_en) fd.append('capturada_en', item.capturada_en);
           const fotoRes = await fetch(`${API_URL}/api/fotos/lectura`, {
             method: 'POST',
+            headers: authHeaders(),
             body: fd
           });
           const fotoData = await fotoRes.json();
