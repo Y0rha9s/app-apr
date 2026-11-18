@@ -5,6 +5,10 @@ const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const sharp = require('sharp');
+const { authMiddleware, soloRoles } = require('../middleware/authMiddleware');
+
+// Revisar y validar comprobantes es tarea de administracion: exige sesion de admin o recaudador.
+const soloAdministracion = [authMiddleware, soloRoles('admin', 'recaudador')];
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -104,7 +108,7 @@ router.post('/', upload.single('comprobante'), async (req, res) => {
 });
 
 // GET /api/comprobantes/pendientes — admin/recaudador ve pendientes
-router.get('/pendientes', async (req, res) => {
+router.get('/pendientes', soloAdministracion, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT 
@@ -147,10 +151,11 @@ router.get('/usuario/:id', async (req, res) => {
 });
 
 // PUT /api/comprobantes/:id/validar — admin/recaudador valida
-router.put('/:id/validar', async (req, res) => {
+router.put('/:id/validar', soloAdministracion, async (req, res) => {
   const client = await pool.connect();
   try {
-    const { accion, observaciones, validado_por, monto_aplicar } = req.body;
+    const { accion, observaciones, monto_aplicar } = req.body;
+    const validado_por = req.usuario.id; // quien valida sale de la sesion, no de lo que mande la pantalla
     // accion: 'validar' o 'rechazar'
 
     await client.query('BEGIN');
