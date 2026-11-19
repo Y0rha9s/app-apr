@@ -9,6 +9,7 @@ const { calcularTotalPorTramos: calcularTotalPorTramosBase, obtenerTarifaEspecia
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio } = require('../utils/convenios');
 const { calcularVencimiento } = require('../utils/vencimiento');
+const { resolverLecturaActual, aplicarCambioLectura } = require('../utils/recalculoLectura');
 const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
 const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
@@ -70,7 +71,7 @@ router.post('/procesar-lecturas', soloAdmin, upload.single('archivo'), async (re
 
         // Limpiar lectura actual (quitar caracteres no numéricos y parsear)
         const lecturaActualStr = fila['Lectura Actual'] ? fila['Lectura Actual'].toString().replace(/[^0-9.-]/g, '') : '0';
-        const lecturaActual = parseFloat(lecturaActualStr) || 0;
+        const lecturaIngresada = parseFloat(lecturaActualStr) || 0;
 
         // Validar campos requeridos mínimos
         if (!rutFila && !medidorFila && !nombreFila) {
@@ -176,7 +177,7 @@ router.post('/procesar-lecturas', soloAdmin, upload.single('archivo'), async (re
           `SELECT lectura_actual 
            FROM lecturas 
            WHERE usuario_id = $1 
-           ORDER BY fecha_lectura DESC, id DESC 
+           ORDER BY fecha_lectura DESC, id DESC
            LIMIT 1`,
           [usuario.id]
         );
@@ -184,6 +185,9 @@ router.post('/procesar-lecturas', soloAdmin, upload.single('archivo'), async (re
         const lecturaAnterior = ultimaLecturaResult.rows.length > 0
           ? parseFloat(ultimaLecturaResult.rows[0].lectura_actual)
           : 0;
+
+        // Un 1 significa que no se pudo acceder al medidor: se conserva la lectura anterior.
+        const { lecturaActual, noTomada } = resolverLecturaActual(lecturaIngresada, lecturaAnterior);
 
         let consumo = lecturaActual - lecturaAnterior;
         let observacionesExtra = '';
@@ -253,8 +257,8 @@ router.post('/procesar-lecturas', soloAdmin, upload.single('archivo'), async (re
         // Crear lectura
         const lecturaResult = await client.query(
           `INSERT INTO lecturas 
-           (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura, observaciones)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura, observaciones, no_tomada)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
            RETURNING id, consumo_m3`,
           [
             usuario.id,
@@ -264,7 +268,8 @@ router.post('/procesar-lecturas', soloAdmin, upload.single('archivo'), async (re
             anio,
             montoCalculado,
             fechaLectura,
-            `Carga masiva simple - ${nombreFila}${observacionesExtra}`
+            `Carga masiva simple - ${nombreFila}${observacionesExtra}`,
+            noTomada
           ]
         );
 
@@ -375,82 +380,27 @@ router.put('/resolver-conflicto', soloAdmin, async (req, res) => {
 
     await client.query('BEGIN');
 
-    const lecturaResult = await client.query(
-      `SELECT l.*, u.tipo_usuario
-       FROM lecturas l
-       JOIN usuarios u ON u.id = l.usuario_id
-       WHERE l.id = $1`,
-      [parseInt(lectura_id)]
-    );
-
-    if (lecturaResult.rows.length === 0) {
+    const { rows: [lectura] } = await client.query('SELECT lectura_anterior FROM lecturas WHERE id = $1', [parseInt(lectura_id)]);
+    if (!lectura) {
       throw new Error('Lectura no encontrada');
     }
 
-    const lectura = lecturaResult.rows[0];
-    const lecturaAnterior = parseFloat(lectura.lectura_anterior) || 0;
-    const usuarioId = lectura.usuario_id;
-    const tipoUsuario = lectura.tipo_usuario || 'normal';
-
-    const consumoParaMonto = Math.max(0, lecturaActualNum - lecturaAnterior);
-    const calculoTotal = await calcularTotalPorTramos(consumoParaMonto, tipoUsuario);
-    const especial = await obtenerTarifaEspecial(client, usuarioId);
-    const montoCalculado = especial
-      ? montoTarifaEspecial(especial, consumoParaMonto).total
-      : Math.round(calculoTotal.total + await obtenerCargoFijo(client));
-
-    const updateLectura = await client.query(
-      `UPDATE lecturas
-       SET lectura_actual = $1,
-           monto_calculado = $2
-       WHERE id = $3
-       RETURNING id, consumo_m3, mes, anio`,
-      [lecturaActualNum, montoCalculado, parseInt(lectura_id)]
-    );
-
-    const consumoM3 = updateLectura.rows[0].consumo_m3;
-
-    const boletaResult = await client.query(
-      `SELECT * FROM boletas WHERE lectura_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1`,
-      [parseInt(lectura_id)]
-    );
-
-    if (boletaResult.rows.length > 0) {
-      const boleta = boletaResult.rows[0];
-      const saldoAnterior = parseFloat(boleta.saldo_anterior) || 0;
-      const totalAPagar = montoCalculado + saldoAnterior;
-
-      const pagosResult = await client.query(
-        `SELECT COALESCE(SUM(monto), 0) AS pagado
-         FROM pagos
-         WHERE boleta_id = $1`,
-        [boleta.id]
-      );
-      const pagado = parseFloat(pagosResult.rows[0]?.pagado) || 0;
-      const saldoPendiente = Math.max(0, totalAPagar - pagado);
-      const nuevoEstado = saldoPendiente <= 0 ? 'pagada' : pagado > 0 ? 'abonada' : 'pendiente';
-
-      await client.query(
-        `UPDATE boletas
-         SET consumo_m3 = $1,
-             total_mes = $2,
-             total_a_pagar = $3,
-             saldo_pendiente = $4,
-             estado = $5,
-             monto_iva = $6
-         WHERE id = $7`,
-        [consumoM3, montoCalculado, totalAPagar, saldoPendiente, nuevoEstado, calculoTotal.iva, boleta.id]
-      );
-    }
+    // Mismo recalculo del modulo de lecturas: boleta, saldo arrastrado y lectura siguiente.
+    const plan = await aplicarCambioLectura(client, {
+      lecturaId: parseInt(lectura_id),
+      lecturaAnterior: lectura.lectura_anterior,
+      lecturaActual: lecturaActualNum
+    });
 
     await client.query('COMMIT');
 
     res.json({
       success: true,
       lectura_id: parseInt(lectura_id),
-      lectura_actual: lecturaActualNum,
-      consumo_m3: consumoM3,
-      monto_calculado: montoCalculado
+      lectura_actual: plan.lectura.lectura_actual,
+      consumo_m3: plan.lectura.lectura_actual - plan.lectura.lectura_anterior,
+      monto_calculado: plan.lectura.monto_calculado,
+      avisos: plan.avisos
     });
   } catch (error) {
     await client.query('ROLLBACK');

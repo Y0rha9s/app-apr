@@ -374,7 +374,9 @@ function OperadorLecturasPage() {
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Error al guardar lectura');
-        mostrarMensaje(`✅ Lectura guardada — Consumo: ${data.lectura.consumo_m3} m³`);
+        mostrarMensaje(data.lectura.no_tomada
+          ? '✅ Guardado sin lectura: se mantiene la lectura anterior hasta que administración la corrija'
+          : `✅ Lectura guardada — Consumo: ${data.lectura.consumo_m3} m³`);
         cargarUsuariosConLectura();
       } else {
         // Guardar en IndexedDB
@@ -578,6 +580,7 @@ function OperadorLecturasPage() {
             min="0"
             required
           />
+          <p className="mt-1 text-sm text-gray-500">Si no pudiste acceder al medidor, ingresa 1.</p>
         </div>
 
         {/* Foto obligatoria */}

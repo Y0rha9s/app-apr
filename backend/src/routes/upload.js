@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
 const fs = require('fs');
 const { authMiddleware, esAdmin } = require('../middleware/authMiddleware');
+const { resolverLecturaActual } = require('../utils/recalculoLectura');
 const soloAdmin = [authMiddleware, esAdmin]; // modificar datos: solo administracion
 
 // Configurar multer
@@ -397,7 +398,8 @@ router.post('/upload-excel', soloAdmin, upload.single('file'), async (req, res) 
 
         // 3. Preparar datos de lectura
         const lecturaAnterior = parseInt(row['L.ANTERIOR']) || 0;
-        const lecturaActual = parseInt(row['L.ACTUAL']) || 0;
+        // Un 1 significa que no se pudo acceder al medidor: se conserva la lectura anterior.
+        const { lecturaActual, noTomada } = resolverLecturaActual(parseInt(row['L.ACTUAL']) || 0, lecturaAnterior);
         const consumoTemporal = Math.max(0, lecturaActual - lecturaAnterior);
 
         // 4. CALCULAR MONTO (SIEMPRE debe definirse aquí)
@@ -419,9 +421,9 @@ router.post('/upload-excel', soloAdmin, upload.single('file'), async (req, res) 
         fechaVencimiento.setDate(fechaPeriodo.getDate() + 15);
 
         const resultLectura = await client.query(
-          `INSERT INTO lecturas (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura)
-     VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, consumo_m3`,
-          [usuarioId, lecturaAnterior, lecturaActual, mes, anio, montoCalculado]
+          `INSERT INTO lecturas (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura, no_tomada)
+     VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7) RETURNING id, consumo_m3`,
+          [usuarioId, lecturaAnterior, lecturaActual, mes, anio, montoCalculado, noTomada]
         );
 
         const lecturaId = resultLectura.rows[0].id;

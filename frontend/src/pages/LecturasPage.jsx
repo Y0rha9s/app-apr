@@ -95,7 +95,7 @@ function LecturasPage() {
       return;
     }
     try {
-      await api.put(`/lecturas/${editando}`, {
+      const { data } = await api.put(`/lecturas/${editando}`, {
         medidor: (formEdit.medidor || '').toString().trim(),
         lectura_anterior: parseInt(formEdit.lectura_anterior),
         lectura_actual: parseInt(formEdit.lectura_actual),
@@ -103,7 +103,8 @@ function LecturasPage() {
         razon_modificacion: razonModificacion,
         usuario_modificador_id: usuario.id
       });
-      alert('✅ Lectura actualizada correctamente');
+      const avisos = data?.avisos?.length ? `\n\n⚠️ ${data.avisos.join('\n⚠️ ')}` : '';
+      alert(`✅ Lectura y boletas actualizadas correctamente${avisos}`);
       setEditando(null);
       setMostrarModalEdicion(false);
       setRazonModificacion('');
@@ -116,7 +117,7 @@ function LecturasPage() {
 
   const handleSolicitarGuardar = () => {
     const consumoNuevo = parseInt(formEdit.lectura_actual) - parseInt(formEdit.lectura_anterior);
-    if (consumoNuevo < 0) {
+    if (consumoNuevo < 0 && parseInt(formEdit.lectura_actual) !== 1) {
       alert('⚠️ La lectura actual no puede ser menor que la anterior');
       return;
     }
@@ -281,6 +282,11 @@ function LecturasPage() {
                           onChange={(e) => setFormEdit({ ...formEdit, lectura_actual: e.target.value })}
                           className="w-24 px-2 py-1 border rounded" />
                       ) : lectura.lectura_actual}
+                      {lectura.no_tomada && editando !== lectura.id && (
+                        <span className="block mt-1 px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-sans font-semibold">
+                          Sin lectura
+                        </span>
+                      )}
                     </td>
                     <td className="p-4 text-base text-center">
                       <span className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full font-bold">

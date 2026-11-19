@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
-const { calcularTotalPorTramos: calcularTotalPorTramosBase, obtenerTarifaEspecial, montoTarifaEspecial } = require('../utils/tarifas');
+const { calcularTotalPorTramos: calcularTotalPorTramosBase } = require('../utils/tarifas');
+const { calcularMontoMes, cargoFijoDe, calcularDescuentoSubsidio } = require('../utils/montoMes');
+const { resolverLecturaActual } = require('../utils/recalculoLectura');
 const { aplicarSaldoFavor } = require('../utils/saldoFavor');
 const { obtenerProximaCuotaConvenio, marcarCuotaConvenioPagada } = require('../utils/convenios');
 const { obtenerSaldoAnteriorPeriodo } = require('../utils/boletas');
@@ -44,7 +46,8 @@ router.post('/crear-con-boleta', authMiddleware, soloRoles('admin', 'operador'),
 
     // 1. Obtener tipo de usuario
     const userResult = await client.query(
-      'SELECT tipo_usuario, nombre, saldo_favor FROM usuarios WHERE id = $1',
+      `SELECT tipo_usuario, nombre, saldo_favor, tiene_subsidio, precio_m3_plano, cargo_fijo_personalizado
+       FROM usuarios WHERE id = $1`,
       [usuario_id]
     );
 
@@ -86,7 +89,7 @@ router.post('/crear-con-boleta', authMiddleware, soloRoles('admin', 'operador'),
       `SELECT lectura_actual 
        FROM lecturas 
        WHERE usuario_id = $1 
-       ORDER BY anio DESC, mes DESC 
+       ORDER BY anio DESC, mes DESC, id DESC
        LIMIT 1`,
       [usuario_id]
     );
@@ -95,27 +98,32 @@ router.post('/crear-con-boleta', authMiddleware, soloRoles('admin', 'operador'),
       ? parseInt(ultimaLectura.rows[0].lectura_actual)
       : 0;
 
-    // 3. Calcular monto (tramos de consumo + cargo fijo mensual)
-    const consumoTemporal = Math.max(0, parseInt(lectura_actual) - lecturaAnterior);
+    // Un 1 significa que no se pudo acceder al medidor: se conserva la lectura anterior.
+    const { lecturaActual, noTomada } = resolverLecturaActual(parseInt(lectura_actual), lecturaAnterior);
+
+    // 3. Calcular monto (el mismo calculo de la generacion de boletas)
+    const consumoTemporal = Math.max(0, lecturaActual - lecturaAnterior);
     const calculoTotal = await calcularTotalPorTramos(consumoTemporal, tipoUsuario);
     const cargoFijoResult = await client.query(
       `SELECT valor FROM configuracion_sistema WHERE clave = 'cargo_fijo'`
     );
     const cargoFijo = parseFloat(cargoFijoResult.rows[0]?.valor || 3000);
-    const especial = await obtenerTarifaEspecial(client, usuario_id);
-    const montoCalculado = especial
-      ? montoTarifaEspecial(especial, consumoTemporal).total
-      : Math.round(calculoTotal.total + cargoFijo);
+    const { rows: tramos } = await client.query('SELECT * FROM tarifas WHERE activo = true ORDER BY tramo_desde ASC');
+    const montoCalculado = calcularMontoMes(tramos, cargoFijo, consumoTemporal, userResult.rows[0]);
+    const descuentoSubsidio = calcularDescuentoSubsidio(
+      tramos, cargoFijoDe(userResult.rows[0], cargoFijo), consumoTemporal, userResult.rows[0].tiene_subsidio
+    );
 
     // 4. Insertar lectura
     const resultLectura = await client.query(
-      `INSERT INTO lecturas 
-   (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura, foto_url, operador_id)
-   VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8) 
+      `INSERT INTO lecturas
+   (usuario_id, lectura_anterior, lectura_actual, mes, anio, monto_calculado, fecha_lectura, foto_url, operador_id, no_tomada)
+   VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)
    RETURNING id, consumo_m3`,
-      [usuario_id, lecturaAnterior, lectura_actual, mes, anio, montoCalculado,
+      [usuario_id, lecturaAnterior, lecturaActual, mes, anio, montoCalculado,
         req.body.foto_url || null,
-        req.usuario?.rol === 'operador' ? req.usuario.id : (req.body.operador_id || null)]
+        req.usuario?.rol === 'operador' ? req.usuario.id : (req.body.operador_id || null),
+        noTomada]
     );
 
     const lecturaId = resultLectura.rows[0].id;
@@ -203,7 +211,7 @@ router.post('/crear-con-boleta', authMiddleware, soloRoles('admin', 'operador'),
         totalAPagar,
         saldoPendiente,
         'pendiente',
-        tipoUsuario === 'subsidiado' ? calculoTotal.subtotal * 0.5 : 0,
+        descuentoSubsidio,
         calculoTotal.iva,
         fechaVencimiento,
         cuotaPrestamo,
@@ -248,7 +256,8 @@ router.post('/crear-con-boleta', authMiddleware, soloRoles('admin', 'operador'),
       lectura: {
         id: lecturaId,
         consumo_m3: consumoM3,
-        monto_calculado: montoCalculado
+        monto_calculado: montoCalculado,
+        no_tomada: noTomada
       },
       boleta: {
         id: boletaId,
