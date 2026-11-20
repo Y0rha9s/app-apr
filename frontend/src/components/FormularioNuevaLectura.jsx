@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { authHeaders } from '../services/api';
+import { subirFotoLecturaAdmin, EXTENSIONES_FOTO } from '../utils/fotoLectura';
 
 function FormularioNuevaLectura({ onClose, onSuccess }) {
   const [usuarios, setUsuarios] = useState([]);
@@ -9,6 +10,8 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [ultimaLectura, setUltimaLectura] = useState(null);
+  const [foto, setFoto] = useState(null); // foto opcional, ej. enviada por el socio
+  const [fotoPreview, setFotoPreview] = useState(null);
   
   const [formData, setFormData] = useState({
     usuario_id: '',
@@ -111,6 +114,19 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
     }
   };
 
+  const elegirFoto = (e) => {
+    const archivo = e.target.files?.[0] || null;
+    if (fotoPreview) URL.revokeObjectURL(fotoPreview);
+    setFoto(archivo);
+    setFotoPreview(archivo ? URL.createObjectURL(archivo) : null);
+  };
+
+  const quitarFoto = () => {
+    if (fotoPreview) URL.revokeObjectURL(fotoPreview);
+    setFoto(null);
+    setFotoPreview(null);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -131,11 +147,13 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
     }
 
     try {
+      const foto_url = foto ? await subirFotoLecturaAdmin(foto) : undefined;
       const response = await api.post('/lecturas/crear-con-boleta', {
         usuario_id: parseInt(formData.usuario_id),
         lectura_actual: parseInt(formData.lectura_actual),
         mes: parseInt(formData.mes),
-        anio: parseInt(formData.anio)
+        anio: parseInt(formData.anio),
+        foto_url
       }, { headers: authHeaders() });
 
       const data = response.data;
@@ -148,7 +166,7 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
       }
     } catch (err) {
       console.error('Error:', err);
-      setError(err.response?.data?.error || 'Error de conexión con el servidor');
+      setError(err.response?.data?.error || err.message || 'Error de conexión con el servidor');
     } finally {
       setLoading(false);
     }
@@ -328,6 +346,24 @@ function FormularioNuevaLectura({ onClose, onSuccess }) {
               <p className="text-sm text-gray-600 mt-2">
                 Consumo estimado: <strong>{Math.max(0, parseInt(formData.lectura_actual) - ultimaLectura.lectura_actual)} m³</strong>
               </p>
+            )}
+          </div>
+
+          {/* Foto del medidor (opcional) */}
+          <div>
+            <label className="block text-lg font-semibold text-gray-700 mb-2">
+              Foto del medidor <span className="text-sm font-normal text-gray-500">(opcional, ej. la que envió el socio)</span>
+            </label>
+            {fotoPreview ? (
+              <div className="flex items-start gap-4">
+                <img src={fotoPreview} alt="Foto seleccionada" className="w-40 h-40 object-cover rounded-lg border" />
+                <button type="button" onClick={quitarFoto} className="text-red-600 hover:text-red-800 font-semibold">
+                  Quitar foto
+                </button>
+              </div>
+            ) : (
+              <input type="file" accept={EXTENSIONES_FOTO} onChange={elegirFoto}
+                className="block w-full text-base text-gray-700 file:mr-4 file:px-4 file:py-2 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-semibold hover:file:bg-blue-100" />
             )}
           </div>
 

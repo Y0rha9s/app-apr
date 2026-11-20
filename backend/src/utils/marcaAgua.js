@@ -61,12 +61,15 @@ function formatearFechaHoraChile(fecha) {
 
 // Lineas de la marca. La hora principal es siempre la del servidor. Si el celular informo una hora
 // de captura distinta (>2 min, ej. foto tomada sin conexion y subida despues), se agrega aparte.
-function lineasMarca(ahora = new Date(), capturadaEn = null) {
+// Las fotos que sube administracion (ej. enviadas por el socio) lo indican, para no confundirlas
+// con las tomadas por el operador en terreno.
+function lineasMarca(ahora = new Date(), capturadaEn = null, origen = null) {
   const lineas = [`SAFIP APR  ${formatearFechaHoraChile(ahora)}`];
   const captura = capturadaEn ? new Date(capturadaEn) : null;
   if (captura && !Number.isNaN(captura.getTime()) && Math.abs(ahora - captura) > 2 * 60 * 1000) {
     lineas.push(`CAPTURA EQUIPO  ${formatearFechaHoraChile(captura).slice(0, 16)}`);
   }
+  if (origen === 'administracion') lineas.push('SUBIDA POR ADMINISTRACION');
   return lineas;
 }
 
@@ -103,9 +106,9 @@ function construirMarcaSvg(ancho, alto, lineas) {
 }
 
 // Dibuja la marca sobre la imagen (buffer ya orientado y redimensionado). Devuelve un buffer JPEG.
-async function aplicarMarcaAgua(sharp, bufferImagen, { capturadaEn = null, ahora = new Date(), calidad = 75 } = {}) {
+async function aplicarMarcaAgua(sharp, bufferImagen, { capturadaEn = null, ahora = new Date(), calidad = 75, origen = null } = {}) {
   const { width, height } = await sharp(bufferImagen).metadata();
-  const { svg } = construirMarcaSvg(width, height, lineasMarca(ahora, capturadaEn));
+  const { svg } = construirMarcaSvg(width, height, lineasMarca(ahora, capturadaEn, origen));
   return sharp(bufferImagen)
     .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
     .jpeg({ quality: calidad })

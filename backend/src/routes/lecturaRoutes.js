@@ -34,8 +34,9 @@ router.post('/crear-con-boleta', authMiddleware, soloRoles('admin', 'operador'),
     // Foto del medidor obligatoria: sin foto valida no se guarda la lectura. Solo un admin con sesion
     // (correcciones desde el panel) puede registrar sin foto; todo lo demas, incluido quien no manda
     // token, debe justificar la lectura con la foto subida por /api/fotos/lectura (con marca de agua).
+    // Si administracion adjunta una foto (ej. enviada por el socio), se valida igual.
     const esAdmin = req.usuario?.rol === 'admin';
-    if (!esAdmin) {
+    if (!esAdmin || req.body.foto_url) {
       const validacion = validarFotoLectura(req.body.foto_url);
       if (!validacion.ok) {
         return res.status(400).json({ success: false, codigo: 'FOTO_INVALIDA', error: validacion.error });

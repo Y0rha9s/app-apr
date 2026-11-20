@@ -1,6 +1,7 @@
 const lecturaModel = require('../models/lecturaModel');
 const pool = require('../config/database');
 const { aplicarCambioLectura } = require('../utils/recalculoLectura');
+const { validarFotoLectura } = require('../utils/fotosLectura');
 
 const lecturaController = {
   // Obtener todas las lecturas
@@ -38,7 +39,7 @@ const lecturaController = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { lectura_anterior, lectura_actual, observaciones, razon_modificacion, usuario_modificador_id, medidor } = req.body;
+      const { lectura_anterior, lectura_actual, observaciones, razon_modificacion, usuario_modificador_id, medidor, foto_url } = req.body;
 
       if (!razon_modificacion) {
         return res.status(400).json({ error: 'Debe proporcionar una razón para la modificación' });
@@ -46,6 +47,13 @@ const lecturaController = {
 
       if (!Number.isInteger(parseInt(lectura_anterior)) || !Number.isInteger(parseInt(lectura_actual))) {
         return res.status(400).json({ error: 'Las lecturas deben ser números válidos' });
+      }
+
+      // Foto opcional: administracion puede agregar o cambiar la foto (ej. la que envio el socio).
+      // Debe haberse subido por /api/fotos/lectura, igual que las del operador.
+      if (foto_url) {
+        const validacion = validarFotoLectura(foto_url);
+        if (!validacion.ok) return res.status(400).json({ error: validacion.error });
       }
 
       const client = await pool.connect();
@@ -56,6 +64,18 @@ const lecturaController = {
         if (!actualEnBase) {
           await client.query('ROLLBACK');
           return res.status(404).json({ error: 'Lectura no encontrada' });
+        }
+
+        let fotoAnterior = null;
+        if (foto_url) {
+          const { rows: usada } = await client.query('SELECT id FROM lecturas WHERE foto_url = $1 AND id <> $2 LIMIT 1', [foto_url, id]);
+          if (usada.length > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: 'Esta foto ya se usó en otra lectura. Sube una foto nueva.' });
+          }
+          const { rows: [f] } = await client.query('SELECT foto_url FROM lecturas WHERE id = $1', [id]);
+          fotoAnterior = f.foto_url;
+          await client.query('UPDATE lecturas SET foto_url = $1 WHERE id = $2', [foto_url, id]);
         }
 
         let medidorAnterior = null;
@@ -82,9 +102,12 @@ const lecturaController = {
           }
         }
 
-        const razonFinal = typeof medidor === 'string'
+        let razonFinal = typeof medidor === 'string'
           ? `${razon_modificacion} | Medidor: ${medidorAnterior || '—'} -> ${(medidor || '').trim() || '—'}`
           : razon_modificacion;
+        if (foto_url && foto_url !== fotoAnterior) {
+          razonFinal += fotoAnterior ? ` | Foto reemplazada (anterior: ${fotoAnterior})` : ' | Foto agregada';
+        }
 
         // Auditoria de la lectura editada y de las ajustadas en cadena
         const modificador = req.usuario?.id || usuario_modificador_id;

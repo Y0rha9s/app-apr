@@ -4,6 +4,7 @@ import api from '../services/api';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import FormularioNuevaLectura from '../components/FormularioNuevaLectura';
+import { subirFotoLecturaAdmin, EXTENSIONES_FOTO } from '../utils/fotoLectura';
 
 function LecturasPage() {
   const { usuario } = useAuth();
@@ -20,6 +21,8 @@ function LecturasPage() {
   const [formEdit, setFormEdit] = useState({});
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
   const [razonModificacion, setRazonModificacion] = useState('');
+  const [fotoEdit, setFotoEdit] = useState(null); // foto nueva elegida al editar
+  const [guardando, setGuardando] = useState(false);
 
   const handleNuevaLectura = () => setMostrarFormulario(true);
   const handleCerrarFormulario = () => setMostrarFormulario(false);
@@ -73,6 +76,7 @@ function LecturasPage() {
 
   const handleEditar = (lectura) => {
     setEditando(lectura.id);
+    setFotoEdit(null);
     setFormEdit({
       medidor: lectura.usuario_medidor || getMedidorUsuario(lectura.usuario_id),
       lectura_anterior: lectura.lectura_anterior,
@@ -84,6 +88,7 @@ function LecturasPage() {
 
   const handleCancelarEdicion = () => {
     setEditando(null);
+    setFotoEdit(null);
     setFormEdit({});
     setMostrarModalEdicion(false);
     setRazonModificacion('');
@@ -94,14 +99,17 @@ function LecturasPage() {
       alert('⚠️ Debe ingresar una razón para modificar la lectura');
       return;
     }
+    setGuardando(true);
     try {
+      const foto_url = fotoEdit ? await subirFotoLecturaAdmin(fotoEdit) : undefined;
       const { data } = await api.put(`/lecturas/${editando}`, {
         medidor: (formEdit.medidor || '').toString().trim(),
         lectura_anterior: parseInt(formEdit.lectura_anterior),
         lectura_actual: parseInt(formEdit.lectura_actual),
         observaciones: formEdit.observaciones,
         razon_modificacion: razonModificacion,
-        usuario_modificador_id: usuario.id
+        usuario_modificador_id: usuario.id,
+        foto_url
       });
       const avisos = data?.avisos?.length ? `\n\n⚠️ ${data.avisos.join('\n⚠️ ')}` : '';
       alert(`✅ Lectura y boletas actualizadas correctamente${avisos}`);
@@ -109,9 +117,12 @@ function LecturasPage() {
       setMostrarModalEdicion(false);
       setRazonModificacion('');
       setFormEdit({});
+      setFotoEdit(null);
       cargarDatos();
     } catch (error) {
       alert('❌ Error al actualizar lectura: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -298,7 +309,13 @@ function LecturasPage() {
                     </td>
                     <td className="p-4 text-base text-gray-500">{lectura.operador_nombre || '—'}</td>
                     <td className="p-4 text-center">
-                      {lectura.foto_url ? (
+                      {editando === lectura.id ? (
+                        <label className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm hover:bg-blue-100 font-semibold cursor-pointer">
+                          {fotoEdit ? '✅ Foto lista' : lectura.foto_url ? '📷 Cambiar' : '📷 Subir'}
+                          <input type="file" accept={EXTENSIONES_FOTO} className="hidden"
+                            onChange={(e) => setFotoEdit(e.target.files?.[0] || null)} />
+                        </label>
+                      ) : lectura.foto_url ? (
                         <button
                           onClick={() => setFotoModal(lectura.foto_url)}
                           className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 font-semibold"
@@ -374,8 +391,8 @@ function LecturasPage() {
               className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 mb-4"
             />
             <div className="flex gap-4">
-              <Button variant="success" onClick={handleGuardarConRazon} className="flex-1">
-                ✅ Confirmar Cambios
+              <Button variant="success" onClick={handleGuardarConRazon} className="flex-1" disabled={guardando}>
+                {guardando ? 'Guardando...' : '✅ Confirmar Cambios'}
               </Button>
               <Button variant="secondary" onClick={() => { setMostrarModalEdicion(false); setRazonModificacion(''); }} className="flex-1">
                 ❌ Cancelar

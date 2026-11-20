@@ -46,7 +46,8 @@ router.post('/lectura', authMiddleware, soloRoles('admin', 'operador'), upload.s
       .rotate()
       .resize({ width: 1280, withoutEnlargement: true })
       .toBuffer();
-    const bufferComprimido = await aplicarMarcaAgua(sharp, bufferBase, { capturadaEn: req.body.capturada_en });
+    const origen = req.usuario?.rol === 'admin' && req.body.origen === 'administracion' ? 'administracion' : null;
+    const bufferComprimido = await aplicarMarcaAgua(sharp, bufferBase, { capturadaEn: req.body.capturada_en, origen });
 
     const { error: uploadError } = await supabase.storage
       .from('lecturas-fotos')
